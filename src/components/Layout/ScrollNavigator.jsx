@@ -11,6 +11,7 @@ const ScrollNavigator = () => {
     useEffect(() => {
         let isScrolling = false;
         let touchStartY = 0;
+        let touchEndY = 0;
 
         const handleScroll = (deltaY) => {
             const state = useAppStore.getState();
@@ -41,20 +42,35 @@ const ScrollNavigator = () => {
 
         const onWheel = (e) => handleScroll(e.deltaY);
 
-        const onTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
+        const onTouchStart = (e) => { 
+            touchStartY = e.touches[0].clientY; 
+            touchEndY = e.touches[0].clientY; 
+        };
+        
         const onTouchMove = (e) => {
-            const touchEndY = e.touches[0].clientY;
-            handleScroll(touchStartY - touchEndY); // positive diff = scroll down
+            touchEndY = e.touches[0].clientY;
         };
 
-        window.addEventListener('wheel', onWheel);
-        window.addEventListener('touchstart', onTouchStart);
-        window.addEventListener('touchmove', onTouchMove);
+        const onTouchEnd = () => {
+            if (!touchStartY || !touchEndY) return;
+            const deltaY = touchStartY - touchEndY;
+            if (Math.abs(deltaY) > 50) {
+                handleScroll(deltaY);
+            }
+            touchStartY = 0;
+            touchEndY = 0;
+        };
+
+        window.addEventListener('wheel', onWheel, { passive: false });
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchmove', onTouchMove, { passive: true });
+        window.addEventListener('touchend', onTouchEnd);
 
         return () => {
             window.removeEventListener('wheel', onWheel);
             window.removeEventListener('touchstart', onTouchStart);
             window.removeEventListener('touchmove', onTouchMove);
+            window.removeEventListener('touchend', onTouchEnd);
         };
     }, [location.pathname, navigate]);
 

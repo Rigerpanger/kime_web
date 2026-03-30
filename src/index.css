@@ -8,6 +8,7 @@ body {
   @apply bg-obsidian text-white;
   font-family: 'Unbounded', sans-serif;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 /* Scrollbar */

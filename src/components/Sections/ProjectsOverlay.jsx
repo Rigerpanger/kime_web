@@ -54,6 +54,54 @@ const cardVariants = {
 
 // --- Sub-components ---
 
+// --- Mobile Native Gallery Components ---
+const MobileNativeGallery = ({ projects, onProjectSelect }) => {
+    return (
+        <div 
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
+        >
+            {projects.map((project, idx) => (
+                <div 
+                    key={project.id || idx} 
+                    className="flex-shrink-0 w-[85vw] h-[360px] snap-center rounded-3xl relative overflow-hidden group border border-white/10 active:scale-[0.98] transition-transform shadow-2xl"
+                    onClick={() => onProjectSelect(project)}
+                >
+                    <div className="absolute inset-0 bg-black/40 z-0" />
+                    {project.cover ? (
+                        <img src={project.cover} alt="" className="w-full h-full object-cover opacity-80" />
+                    ) : (
+                        <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-zinc-900 flex items-center justify-center">
+                            <span className="text-white/10 text-[6rem] font-bold select-none">{project.title[0]}</span>
+                        </div>
+                    )}
+                    
+                    <div className="absolute inset-0 flex flex-col justify-between p-6 bg-gradient-to-t from-black via-black/40 to-black/10 z-10">
+                        <div className="flex flex-wrap gap-2 w-full pr-8">
+                            {project.tags?.map(t => (
+                                <span key={t} className="text-[10px] font-bold uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-3 py-1 bg-[#ffaa44]/15 backdrop-blur-md rounded-md">
+                                    {t}
+                                </span>
+                            ))}
+                        </div>
+
+                        <div className="flex items-end justify-between mt-auto w-full">
+                            <h3 className="text-xl font-bold text-white leading-tight tracking-wide drop-shadow-md pr-4 uppercase">
+                                {project.title}
+                            </h3>
+                            <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+                                {project.video_url ? <Play size={20} className="text-[#ffaa44] fill-[#ffaa44] ml-1" /> : <ArrowUpRight size={22} className="text-[#ffaa44]" />}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ))}
+            {/* Spacing for the very last item */}
+            <div className="flex-shrink-0 w-[7.5vw] h-full pointer-events-none"></div>
+        </div>
+    );
+};
+
+// --- Desktop 3D Card ---
 const ProjectCard = ({ project, custom, onClick, isMobile }) => (
     <motion.div
         custom={{ ...custom, isMobile }}
@@ -62,7 +110,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
         animate="center"
         exit="exit"
         onClick={() => onClick(project)}
-        className={`absolute cursor-pointer pointer-events-auto group ${isMobile ? 'w-[220px] h-[320px]' : 'w-[180px] h-[250px]'}`}
+        className="absolute cursor-pointer pointer-events-auto group w-[180px] h-[250px]"
         style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
     >
         <div 
@@ -88,7 +136,6 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
                 </div>
             )}
             
-            {/* Subtle glow on hover */}
             <div className="absolute inset-0 bg-[#ffaa44]/0 group-hover:bg-[#ffaa44]/20 mix-blend-overlay transition-colors duration-700 pointer-events-none" />
         </div>
         
@@ -96,7 +143,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 bg-gradient-to-t from-black/90 via-black/10 to-transparent rounded-3xl overflow-hidden transition-all duration-500"
             style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }}
         >
-            <div className={`relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 ${isMobile ? 'opacity-100 translate-y-0' : 'opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0'}`} style={{ transform: "translateZ(15px)" }}>
+            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0" style={{ transform: "translateZ(15px)" }}>
                 {project.tags.map(t => (
                     <span key={t} className="text-[7px] md:text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-[#ffaa44]/10 backdrop-blur-xl rounded-sm">
                         {t}
@@ -105,19 +152,18 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             </div>
 
             <div className="relative z-20 w-full flex items-end justify-between mt-auto" style={{ transform: "translateZ(15px)" }}>
-                <h3 className={`text-sm md:text-base font-medium text-left transition-colors duration-500 ease-out leading-tight tracking-wide drop-shadow-md pr-3 uppercase ${isMobile ? 'text-white' : 'text-white/90 group-hover:text-white'}`}>
+                <h3 className="text-sm md:text-base font-medium text-left transition-colors duration-500 ease-out leading-tight tracking-wide drop-shadow-md pr-3 uppercase text-white/90 group-hover:text-white">
                     {project.title}
                 </h3>
-                <motion.div className={`text-[#ffaa44] transform transition-all duration-500 shrink-0 mb-0.5 ${isMobile ? 'opacity-100 translate-x-0' : 'opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0'}`}>
+                <motion.div className="text-[#ffaa44] transform transition-all duration-500 shrink-0 mb-0.5 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0">
                     <ArrowUpRight size={18} strokeWidth={2} />
                 </motion.div>
             </div>
             
-            <div className={`absolute inset-0 rounded-3xl border pointer-events-none transition-colors duration-500 ${isMobile ? 'border-white/20' : 'border-white/0 group-hover:border-white/20'}`} />
+            <div className="absolute inset-0 rounded-3xl border pointer-events-none transition-colors duration-500 border-white/0 group-hover:border-white/20" />
             
-            {/* Play icon for video projects indicator */}
             {project.video_url && (
-                 <div className={`absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/30 transition-opacity duration-500 shadow-lg ${isMobile ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} style={{ transform: "translateZ(10px)" }}>
+                 <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/30 transition-opacity duration-500 shadow-lg opacity-0 group-hover:opacity-100" style={{ transform: "translateZ(10px)" }}>
                      <Play size={14} className="text-white fill-white ml-0.5" />
                  </div>
             )}
@@ -372,26 +418,26 @@ const ProjectsOverlay = () => {
                 </div>
             </motion.div>
 
-            {/* Slider Navigation Arrows - Centered veritcally */}
-            {showNavigation && (
+            {/* Slider Navigation Arrows - Desktop Only */}
+            {!isMobile && showNavigation && (
                 <>
                     <button 
                         onClick={() => paginate(-1)} 
-                        className={`absolute z-40 pointer-events-auto flex items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group ${isMobile ? 'left-2 top-1/2 -translate-y-1/2 w-10 h-10' : 'left-4 md:left-12 top-1/2 -translate-y-1/2 w-12 h-12'}`}
+                        className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
-                        <ChevronLeft size={isMobile ? 18 : 24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
+                        <ChevronLeft size={24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
                     </button>
                     <button 
                         onClick={() => paginate(1)} 
-                        className={`absolute z-40 pointer-events-auto flex items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group ${isMobile ? 'right-2 top-1/2 -translate-y-1/2 w-10 h-10' : 'right-4 md:right-12 top-1/2 -translate-y-1/2 w-12 h-12'}`}
+                        className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
-                        <ChevronRight size={isMobile ? 18 : 24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
+                        <ChevronRight size={24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
                 </>
             )}
 
-            {/* Pagination Dots for Mobile/Desktop */}
-            {showNavigation && (
+            {/* Pagination Dots - Desktop Only */}
+            {!isMobile && showNavigation && (
                 <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-40 flex gap-2 pointer-events-auto">
                     {[...Array(totalPages)].map((_, i) => (
                         <button
@@ -406,39 +452,41 @@ const ProjectsOverlay = () => {
                 </div>
             )}
 
-            {/* 3D Container Area - Restored & Optimized */}
-            <div className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20">
-                
-                {/* Precise Interactive Belt (Only at card level) */}
-                <div 
-                    className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"
-                    onWheel={handleWheel}
-                    onMouseEnter={() => setScrollLocked(true)}
-                    onMouseLeave={() => setScrollLocked(false)}
-                >
-                    <AnimatePresence initial={false} mode="wait" custom={{dir: direction, index: 0}}>
-                        <motion.div 
-                            key={page}
-                            custom={{dir: direction, index: 0}}
-                            className="flex items-center justify-center relative w-full h-full"
-                        >
-                            {currentProjects.map((p, i) => (
-                                <ProjectCard 
-                                    key={p.uKey} 
-                                    project={p}
-                                    isMobile={isMobile}
-                                    custom={{ 
-                                        dir: direction, 
-                                        index: isMobile ? 0 : i, 
-                                        totalCount: isMobile ? 1 : currentProjects.length 
-                                    }}
-                                    onClick={handleProjectSelect}
-                                />
-                            ))}
-                        </motion.div>
-                    </AnimatePresence>
+            {/* Main Content Area (Split Mobile/Desktop) */}
+            {isMobile ? (
+                <MobileNativeGallery projects={projects} onProjectSelect={handleProjectSelect} />
+            ) : (
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20">
+                    <div 
+                        className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"
+                        onWheel={handleWheel}
+                        onMouseEnter={() => setScrollLocked(true)}
+                        onMouseLeave={() => setScrollLocked(false)}
+                    >
+                        <AnimatePresence initial={false} mode="wait" custom={{dir: direction, index: 0}}>
+                            <motion.div 
+                                key={page}
+                                custom={{dir: direction, index: 0}}
+                                className="flex items-center justify-center relative w-full h-full"
+                            >
+                                {currentProjects.map((p, i) => (
+                                    <ProjectCard 
+                                        key={p.uKey} 
+                                        project={p}
+                                        isMobile={false}
+                                        custom={{ 
+                                            dir: direction, 
+                                            index: i, 
+                                            totalCount: currentProjects.length 
+                                        }}
+                                        onClick={handleProjectSelect}
+                                    />
+                                ))}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Details Modal */}
             <ArtifactPassport project={selectedProject} onClose={handleCloseModal} />

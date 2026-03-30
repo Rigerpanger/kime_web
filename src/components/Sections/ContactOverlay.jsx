@@ -71,7 +71,7 @@ const ContactOverlay = () => {
     const inputClasses = (fieldName) => `
         w-full bg-black/60 shadow-inner border 
         ${focusedField === fieldName ? 'border-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.1)]' : 'border-white/10'} 
-        rounded-lg px-3 py-2.5 text-white text-[10px] outline-none 
+        rounded-lg px-4 py-3 text-white text-sm outline-none 
         focus:bg-black/80 transition-all duration-300
     `;
 
@@ -82,13 +82,13 @@ const ContactOverlay = () => {
                 <div className="w-5 h-5 rounded bg-[#ffcc00]/10 border border-[#ffcc00]/20 flex items-center justify-center text-[#ffcc00]">
                     <Sparkles size={12} />
                 </div>
-                <h2 className="text-[8px] uppercase tracking-[0.2em] font-bold text-white leading-none">ИИ-ОЦЕНЩИК</h2>
+                <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-white leading-none">ИИ-ОЦЕНЩИК</h2>
             </div>
 
             <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[90%] rounded-lg p-2 text-[9px] leading-relaxed border ${
+                        <div className={`max-w-[90%] rounded-lg p-3 text-[12px] leading-relaxed border ${
                             msg.role === 'user' 
                                 ? 'bg-[#ffcc00]/10 border-[#ffcc00]/10 text-[#ffcc00] rounded-tr-none' 
                                 : 'bg-white/5 border-white/5 text-gray-300 rounded-tl-none'
@@ -115,7 +115,7 @@ const ContactOverlay = () => {
                         onChange={(e) => setGptInput(e.target.value)}
                         disabled={isThinking}
                         placeholder="Опишите ваш проект..." 
-                        className="w-full bg-black/30 shadow-inner border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-[10px] text-white outline-none focus:border-[#ffcc00]/50 transition-all disabled:opacity-50"
+                        className="w-full bg-black/30 shadow-inner border border-white/10 rounded-lg pl-3 pr-10 py-3 text-xs md:text-sm text-white outline-none focus:border-[#ffcc00]/50 transition-all disabled:opacity-50"
                     />
                     <button 
                         type="submit" 
@@ -135,10 +135,10 @@ const ContactOverlay = () => {
             <div className="mb-3 relative flex justify-between items-start shrink-0">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-1 h-1 rounded-full bg-[#ffcc00] animate-pulse shadow-[0_0_5px_#ffcc00]" />
-                        <span className="text-[6px] uppercase tracking-[0.3em] font-medium text-[#ffcc00]">ЗАЯВКА</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse shadow-[0_0_5px_#ffcc00]" />
+                        <span className="text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-medium text-[#ffcc00]">ЗАЯВКА</span>
                     </div>
-                    <h1 className="text-lg font-light text-white tracking-tight">Есть задача?</h1>
+                    <h1 className="text-xl md:text-2xl font-light text-white tracking-tight">Есть задача?</h1>
                 </div>
                 {showClose && (
                     <button onClick={() => navigate('/')} className="text-gray-500 hover:text-white p-1 outline-none">
@@ -180,10 +180,10 @@ const ContactOverlay = () => {
                         className={`${inputClasses('message')} pl-8 resize-none`} placeholder="ОПИСАНИЕ ЗАДАЧИ..." />
                 </div>
 
-                <div className="pt-2">
-                    <button className="w-full group relative overflow-hidden bg-[#ffcc00] text-black py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:bg-[#ffaa00] hover:shadow-[0_0_20px_rgba(255,204,0,0.3)] outline-none">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] relative z-10">ОТПРАВИТЬ</span>
-                        <ArrowRight size={12} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+                <div className="pt-4">
+                    <button className="w-full group relative overflow-hidden bg-[#ffcc00] text-black py-3.5 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:bg-[#ffaa00] hover:shadow-[0_0_20px_rgba(255,204,0,0.3)] outline-none">
+                        <span className="text-xs font-black uppercase tracking-[0.2em] relative z-10">ОТПРАВИТЬ</span>
+                        <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </form>
@@ -221,19 +221,19 @@ const ContactOverlay = () => {
                     <div className="flex border-b border-white/10 shrink-0">
                         <button
                             onClick={() => setMobileTab('ai')}
-                            className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-1.5 outline-none ${
+                            className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
                                 mobileTab === 'ai' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00]' : 'text-white/40 hover:text-white/70'
                             }`}
                         >
-                            <Sparkles size={10} /> ИИ-ОЦЕНКА
+                            <Sparkles size={14} /> ИИ-ОЦЕНКА
                         </button>
                         <button
                             onClick={() => setMobileTab('form')}
-                            className={`flex-1 py-3 text-[9px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-1.5 outline-none ${
+                            className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
                                 mobileTab === 'form' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00]' : 'text-white/40 hover:text-white/70'
                             }`}
                         >
-                            <Mail size={10} /> ЗАЯВКА
+                            <Mail size={14} /> ЗАЯВКА
                         </button>
                         <button onClick={() => navigate('/')} className="px-4 text-gray-600 hover:text-white outline-none">
                             <X size={16} />
@@ -241,7 +241,7 @@ const ContactOverlay = () => {
                     </div>
 
                     {/* Active Tab Content */}
-                    <div className="h-[400px]">
+                    <div className="h-[55vh] min-h-[450px]">
                         {mobileTab === 'ai' ? <AiPanel /> : <FormPanel />}
                     </div>
                 </div>
