@@ -19,7 +19,7 @@ const About = () => {
         slide1_text2: 'Мы упаковываем смыслы в цифровой формат. Наша задача — не просто создать визуал, а найти единое видение: от сбора требований до профессиональной защиты концепции перед всеми участниками вашей компании.',
         slide2_title: 'НАШ ПОДХОД',
         slide2_text: 'Мы верим, что технологии должны служить идее. Наша команда объединяет художников, программистов и инженеров для создания проектов на стыке физического и цифрового миров.',
-        slide3_quote: '"Мы превращаем холодный программный код в живую эмоцию."',
+        slide3_quote: 'Мы знаем, что у вас не всегда всё идет по плану. Мы понимаем, что задачи могут гореть, а вводные — меняться. Наша работа — быть той точкой опоры, где стресс превращается в качественный результат, а доверие важнее пустых обещаний. За это вы платите, за это мы работаем.',
         slide3_name: 'Александр Ким',
         slide3_role: 'Основатель & Креативный директор',
         verticalOffsetMobile: -148,
@@ -98,26 +98,9 @@ const About = () => {
 
     const MobileAbout = ({ content, displayCertificates }) => {
         const [expandedCert, setExpandedCert] = useState(null);
-        
-        // Lock scroll globally so the user doesn't jump pages while reading the longread
-        const handleScrollEvent = (e) => {
-            const { scrollTop, scrollHeight, clientHeight } = e.target;
-            const isAtTop = scrollTop <= 5;
-            const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 5;
-
-            if (isAtTop || isAtBottom) {
-                setScrollLocked(false);
-            } else {
-                setScrollLocked(true);
-            }
-        };
 
         return (
-            <div 
-                className="w-full h-full overflow-y-auto no-scrollbar pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-24 relative"
-                onScroll={handleScrollEvent}
-                onTouchStart={handleScrollEvent} // Edge case re-evaluation on touch
-            >
+            <div className="w-full pointer-events-auto px-2 pt-24 pb-24 flex flex-col gap-16 relative">
                 <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
                  <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
                  <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
@@ -146,9 +129,9 @@ const About = () => {
                         className="w-full h-full object-cover opacity-80"
                     />
                 </div>
-                <span className="text-white/30 text-xs uppercase tracking-[0.4em] mb-4">Видение и лидерство</span>
-                <blockquote className="text-3xl font-thin italic text-white/90 leading-tight mb-8">
-                    {content.slide3_quote}
+                <span className="text-white drop-shadow-md text-sm font-medium uppercase tracking-[0.4em] mb-4">Видение и лидерство</span>
+                <blockquote className="text-xl md:text-2xl font-light italic text-white/95 leading-relaxed mb-8">
+                    "{content.slide3_quote}"
                 </blockquote>
                 <div>
                     <p className="text-white uppercase tracking-widest text-sm font-bold mb-1">{content.slide3_name}</p>
@@ -212,8 +195,12 @@ const About = () => {
                 </div>
             </div>
             
-            <div className="mt-12 pb-24 w-full">
+            <div className="mt-8 pb-12 w-full flex flex-col items-center">
                 <LogoTicker />
+                <div className="mt-24 flex flex-col items-center opacity-60 animate-bounce">
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">Направления</span>
+                    <ChevronRight size={24} className="text-gray-500 rotate-90" />
+                </div>
             </div>
         </div>
         );
@@ -319,13 +306,13 @@ const About = () => {
                 </div>
             </div>
             <div className="flex flex-col justify-center">
-                <span className="text-white/20 text-[10px] uppercase tracking-[0.4em] mb-6">Видение и лидерство</span>
-                <blockquote className="text-2xl md:text-4xl font-thin italic text-white/80 leading-relaxed mb-8 tracking-wide">
-                    {content.slide3_quote}
+                <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4 drop-shadow-md">Видение и лидерство</span>
+                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-wide">
+                    "{content.slide3_quote}"
                 </blockquote>
                 <div>
-                    <p className="text-white uppercase tracking-widest text-xs font-medium mb-1">{content.slide3_name}</p>
-                    <p className="text-gray-500 uppercase tracking-widest text-[9px]">{content.slide3_role}</p>
+                    <p className="text-white uppercase tracking-widest text-xs font-semibold mb-1">{content.slide3_name}</p>
+                    <p className="text-gray-400 uppercase tracking-widest text-[9px] font-medium">{content.slide3_role}</p>
                 </div>
             </div>
         </motion.div>,
@@ -427,7 +414,7 @@ const About = () => {
     ];
 
     return (
-        <section id="about" className="h-screen w-full relative flex items-center overflow-hidden pointer-events-none">
+        <section id="about" className={`w-full relative flex items-center pointer-events-none ${isMobile ? 'min-h-[100dvh]' : 'h-screen overflow-hidden'}`}>
             {/* Side Navigation */}
             <button 
                 onClick={prevSlide}
@@ -442,10 +429,10 @@ const About = () => {
                 <ChevronRight size={56} strokeWidth={1} />
             </button>
 
-            <div className="container mx-auto px-6 md:px-24 pointer-events-auto relative h-full flex flex-col justify-center items-center">
+            <div className={`container mx-auto px-6 md:px-24 pointer-events-auto relative flex flex-col ${isMobile ? 'h-auto py-10 justify-start items-center' : 'h-full justify-center items-center'}`}>
                 
                 {/* Content Area */}
-                <div className="w-full h-full flex items-center justify-center pt-8 md:pt-44 pb-4 md:pb-24">
+                <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-4 pb-4' : 'h-full items-center justify-center pt-8 md:pt-44 pb-4 md:pb-24'}`}>
                     {isMobile ? (
                         <MobileAbout content={content} displayCertificates={displayCertificates} />
                     ) : (

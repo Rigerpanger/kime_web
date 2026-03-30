@@ -195,16 +195,32 @@ const ContactOverlay = () => {
     );
 
     return (
-        <div className="w-full min-h-screen pointer-events-auto flex justify-center items-center p-4 relative z-50 bg-black/10">
+        <div className="w-full min-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-center items-center px-4 py-20 md:py-12 relative z-50 bg-black/10">
             
-            {/* Close Overlay */}
-            <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
+            {/* Close Overlay - visually disabled on mobile since it's inline in scroll */}
+            <div className="absolute inset-0 z-0 hidden md:block cursor-pointer" onClick={() => navigate('/')} />
+
+            {/* Header / Intro Text (Outside Modal) */}
+            <div className="relative z-10 w-full max-w-2xl text-center mb-8 md:mb-12">
+                <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse shadow-[0_0_5px_#ffcc00]" />
+                    <span className="text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-medium text-white/80">Готовы начать?</span>
+                </div>
+                
+                <h2 className="text-3xl md:text-5xl font-thin text-white uppercase tracking-widest leading-tight mb-6">
+                    Оценить <span className="text-[#ffaa44] font-normal drop-shadow-md border-b-2 border-dashed border-[#ffaa44]/30 pb-1">проект</span>
+                </h2>
+                
+                <p className="text-sm md:text-base font-light text-gray-400 leading-relaxed max-w-xl mx-auto px-2 md:px-0">
+                    Попросите нашего ИИ задать вопросы для понимания стоимости и формирования задачи. Затем переключитесь на соседнюю вкладку и отправьте эту задачу нашей команде.
+                </p>
+            </div>
 
             {/* Main Modal */}
-            <div className="relative z-10 w-full max-w-2xl bg-[#050505]/70 backdrop-blur-xl border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1),0_0_10px_rgba(255,255,255,0.05)] rounded-xl overflow-hidden transform translate-y-10">
+            <div className="relative z-10 w-full max-w-2xl bg-[#050505]/70 backdrop-blur-xl border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1),0_0_10px_rgba(255,255,255,0.05)] rounded-2xl md:rounded-3xl overflow-hidden transform">
                 
                 {/* ── DESKTOP: side-by-side "book" layout ── */}
-                <div className="hidden md:flex flex-row h-[380px]">
+                <div className="hidden md:flex flex-row h-[420px]">
                     {/* Left: AI */}
                     <div className="w-1/2 flex flex-col border-r border-white/5 bg-white/[0.01]">
                         {renderAiPanel()}
@@ -218,11 +234,11 @@ const ContactOverlay = () => {
                 {/* ── MOBILE: tabbed layout ── */}
                 <div className="md:hidden flex flex-col">
                     {/* Tab Bar */}
-                    <div className="flex border-b border-white/10 shrink-0">
+                    <div className="flex border-b border-white/10 shrink-0 bg-black/40">
                         <button
                             onClick={() => setMobileTab('ai')}
                             className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
-                                mobileTab === 'ai' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00]' : 'text-white/40 hover:text-white/70'
+                                mobileTab === 'ai' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00] bg-white/[0.02]' : 'text-white/40 hover:text-white/70'
                             }`}
                         >
                             <Sparkles size={14} /> ИИ-ОЦЕНКА
@@ -230,20 +246,39 @@ const ContactOverlay = () => {
                         <button
                             onClick={() => setMobileTab('form')}
                             className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
-                                mobileTab === 'form' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00]' : 'text-white/40 hover:text-white/70'
+                                mobileTab === 'form' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00] bg-white/[0.02]' : 'text-white/40 hover:text-white/70'
                             }`}
                         >
                             <Mail size={14} /> ЗАЯВКА
                         </button>
-                        <button onClick={() => navigate('/')} className="px-4 text-gray-600 hover:text-white outline-none">
-                            <X size={16} />
-                        </button>
                     </div>
 
                     {/* Active Tab Content */}
-                    <div className="h-[55vh] min-h-[450px]">
+                    <div className="h-[55vh] min-h-[420px]">
                         {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
                     </div>
+                </div>
+            </div>
+
+            {/* Footer */}
+            <div className="relative z-10 w-full max-w-2xl mt-12 md:mt-16 flex flex-col items-center">
+                <div className="flex items-center gap-4 text-white/40 mb-4 opacity-50">
+                    <div className="h-[1px] w-12 bg-white/20" />
+                    <span className="text-[10px] tracking-[0.4em] uppercase">KIME PRODUCTION</span>
+                    <div className="h-[1px] w-12 bg-white/20" />
+                </div>
+                
+                <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-xs md:text-sm tracking-widest uppercase font-light text-white/60">
+                    <a href="mailto:hello@kime.xyz" className="hover:text-white hover:text-shadow transition-colors text-[#ffaa44] drop-shadow-md">hello@kime.xyz</a>
+                    <span className="hidden md:inline text-white/20">|</span>
+                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Telegram</a>
+                    <span className="hidden md:inline text-white/20">|</span>
+                    <a href="tel:+79990000000" className="hover:text-white transition-colors">+7 (999) 000-00-00</a>
+                    <span className="hidden md:inline text-white/20">|</span>
+                    <span className="text-white/40">Москва</span>
+                </div>
+                <div className="mt-8 text-[9px] text-white/20 uppercase tracking-widest text-center">
+                    &copy; {new Date().getFullYear()} Kime Studio. All rights reserved.
                 </div>
             </div>
         </div>

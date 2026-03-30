@@ -397,23 +397,23 @@ const ProjectsOverlay = () => {
     return (
         <div className="w-full h-screen pointer-events-none flex flex-col relative overflow-hidden">
             
-            {/* Bottom Fixed Header - Enhanced aesthetics */}
+            {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="absolute bottom-6 md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center"
+                className="absolute top-28 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center"
             >
                 <div className="relative mb-2 mt-2">
                     {/* Decorative background glow */}
-                    <div className="absolute inset-0 bg-[#ffaa44]/10 blur-[60px] rounded-full scale-[2.0]" />
-                    <h1 className="relative text-2xl md:text-3xl font-normal md:font-extralight tracking-[0.2em] md:tracking-[0.5em] text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-500 mb-3 uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                    <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[60px] rounded-full scale-[2.0] md:scale-100" />
+                    <h1 className="relative text-xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                         ИЗБРАННЫЕ РАБОТЫ
                     </h1>
-                    <div className="flex items-center justify-center gap-3 opacity-80">
-                        <div className="h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
-                        <p className="text-[7px] md:text-[8px] tracking-[0.5em] text-[#ffaa44] uppercase font-medium">Архив цифровых артефактов</p>
-                        <div className="h-[1px] w-8 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
+                    <div className="flex items-center justify-center gap-3 opacity-90">
+                        <div className="h-[1px] w-6 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
+                        <p className="text-[8px] md:text-[8px] tracking-[0.4em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">Архив цифровых артефактов</p>
+                        <div className="h-[1px] w-6 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
                     </div>
                 </div>
             </motion.div>

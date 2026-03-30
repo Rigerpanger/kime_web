@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Scene from './components/World/Scene';
 import Header from './components/Layout/Header';
@@ -13,6 +13,7 @@ import ServicesOverlay from './components/Sections/ServicesOverlay';
 import ProjectsOverlay from './components/Sections/ProjectsOverlay';
 import About from './components/Sections/About';
 import ContactOverlay from './components/Sections/ContactOverlay';
+import MobileScrollStack from './components/Layout/MobileScrollStack';
 
 import Login from './components/Admin/Login';
 import Dashboard from './components/Admin/Dashboard';
@@ -29,6 +30,13 @@ import useAuthStore from './store/useAuthStore';
 const AppLayout = () => {
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const setSculptureConfig = useAppStore(s => s.setSculptureConfig);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchSculptureConfig = async () => {
@@ -48,7 +56,7 @@ const AppLayout = () => {
     return (
         <div className="relative w-full h-screen bg-black overflow-hidden font-sans selection:bg-white/20">
             <RouteManager />
-            <ScrollNavigator />
+            {!isMobile && <ScrollNavigator />}
             {showStudioEditor && <StudioEditor />}
 
             {/* 1. Persistent 3D Layer */}
@@ -57,21 +65,25 @@ const AppLayout = () => {
             </div>
 
             {/* 2. UI Layer (Glass Overlay) */}
-            <div className="absolute inset-0 z-10 pointer-events-none overflow-y-auto">
+            <div className={`absolute inset-0 z-10 pointer-events-none ${isMobile ? 'overflow-hidden' : 'overflow-y-auto'}`}>
                 <div className="pointer-events-auto">
                     <Header />
                 </div>
 
                 <main className="pointer-events-auto min-h-screen">
-                    <Routes>
-                        <Route path="/" element={<HomeOverlay />} />
-                        <Route path="/services" element={<ServicesOverlay />} />
-                        <Route path="/services/:slug" element={<ServicesOverlay />} />
-                        <Route path="/projects" element={<ProjectsOverlay />} />
-                        <Route path="/projects/:slug" element={<ProjectsOverlay />} />
-                        <Route path="/about" element={<About />} />
-                        <Route path="/contact" element={<ContactOverlay />} />
-                    </Routes>
+                    {isMobile ? (
+                        <MobileScrollStack />
+                    ) : (
+                        <Routes>
+                            <Route path="/" element={<HomeOverlay />} />
+                            <Route path="/services" element={<ServicesOverlay />} />
+                            <Route path="/services/:slug" element={<ServicesOverlay />} />
+                            <Route path="/projects" element={<ProjectsOverlay />} />
+                            <Route path="/projects/:slug" element={<ProjectsOverlay />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/contact" element={<ContactOverlay />} />
+                        </Routes>
+                    )}
                 </main>
             </div>
         </div>
@@ -86,7 +98,7 @@ const App = () => {
     }, [initializeAuth]);
 
     return (
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<Login />} />
