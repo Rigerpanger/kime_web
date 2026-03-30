@@ -407,7 +407,7 @@ const ProjectsOverlay = () => {
                 <div className="relative mb-2 mt-2">
                     {/* Decorative background glow */}
                     <div className="absolute inset-0 bg-[#ffaa44]/10 blur-[60px] rounded-full scale-[2.0]" />
-                    <h1 className="relative text-xl md:text-3xl font-extralight tracking-[0.4em] md:tracking-[0.5em] text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-500 mb-3 uppercase drop-shadow-lg">
+                    <h1 className="relative text-2xl md:text-3xl font-normal md:font-extralight tracking-[0.2em] md:tracking-[0.5em] text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-100 to-gray-500 mb-3 uppercase drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                         ИЗБРАННЫЕ РАБОТЫ
                     </h1>
                     <div className="flex items-center justify-center gap-3 opacity-80">

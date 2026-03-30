@@ -93,8 +93,70 @@ const About = () => {
             image: "https://images.unsplash.com/photo-1596443686812-2f45229eebc3?q=80&w=600&auto=format&fit=crop"
         }
     ];
-
     const displayCertificates = certificates.length > 0 ? certificates : defaultCertificates;
+
+    const MobileAbout = ({ content, displayCertificates }) => (
+        <div className="w-full h-full overflow-y-auto no-scrollbar pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-24 relative">
+            <div className="flex flex-col">
+                 <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
+                 <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
+                    {content.slide1_text1}
+                 </p>
+                 <p className="text-gray-300 font-light leading-relaxed text-base border-l-2 border-[#ffaa44]/50 pl-5">
+                    {content.slide1_text2}
+                 </p>
+            </div>
+
+            <div className="flex flex-col">
+                <span className="text-[#ffaa44] text-xs uppercase tracking-[0.5em] mb-4 font-bold">Наш подход</span>
+                <h3 className="text-3xl font-thin text-white uppercase mb-6 leading-tight">
+                    {content.slide2_title}
+                </h3>
+                <p className="text-gray-300 text-lg font-light leading-relaxed">
+                    {content.slide2_text}
+                </p>
+            </div>
+
+            <div className="flex flex-col">
+                <div className="w-full aspect-[4/5] bg-zinc-900 rounded-2xl overflow-hidden grayscale mb-8 relative shadow-2xl">
+                    <img 
+                        src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} 
+                        alt="Director" 
+                        className="w-full h-full object-cover opacity-80"
+                    />
+                </div>
+                <span className="text-white/30 text-xs uppercase tracking-[0.4em] mb-4">Видение и лидерство</span>
+                <blockquote className="text-3xl font-thin italic text-white/90 leading-tight mb-8">
+                    {content.slide3_quote}
+                </blockquote>
+                <div>
+                    <p className="text-white uppercase tracking-widest text-sm font-bold mb-1">{content.slide3_name}</p>
+                    <p className="text-[#ffaa44] uppercase tracking-widest text-xs">{content.slide3_role}</p>
+                </div>
+            </div>
+
+            <div className="flex flex-col">
+                <h2 className="text-3xl font-thin tracking-widest uppercase mb-4 text-white leading-tight">Нам доверяют</h2>
+                <div className="h-1 w-16 bg-[#ffaa44] mb-10" />
+                
+                <div className="flex flex-col gap-4">
+                    {displayCertificates.map((cert, index) => (
+                        <div key={index} className="flex flex-col p-6 rounded-2xl bg-white/5 border border-white/10 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
+                                <Award size={80} />
+                            </div>
+                            <h4 className="text-white text-xl font-medium tracking-wide mb-3">{cert.company} {cert.division}</h4>
+                            <p className="text-white/50 text-xs leading-relaxed uppercase tracking-wider pr-8">{cert.position}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+            
+            <div className="mt-4 pb-12 w-full">
+                <LogoTicker />
+            </div>
+        </div>
+    );
 
     const slides = [
         // Slide 1: About Text + Brands
@@ -322,35 +384,36 @@ const About = () => {
             <div className="container mx-auto px-6 md:px-24 pointer-events-auto relative h-full flex flex-col justify-center items-center">
                 
                 {/* Content Area */}
-                <div className="w-full h-full flex items-center justify-center pt-36 md:pt-44 pb-20 md:pb-24">
-                    <AnimatePresence mode="wait">
-                        {slides[currentSlide]}
-                    </AnimatePresence>
+                <div className="w-full h-full flex items-center justify-center pt-8 md:pt-44 pb-4 md:pb-24">
+                    {isMobile ? (
+                        <MobileAbout content={content} displayCertificates={displayCertificates} />
+                    ) : (
+                        <AnimatePresence mode="wait">
+                            {slides[currentSlide]}
+                        </AnimatePresence>
+                    )}
                 </div>
 
 
                 {/* Bottom Navigation Info */}
-                <div className="absolute bottom-6 md:bottom-3 flex flex-col items-center gap-4 text-white pointer-events-auto z-30">
-                    <div className="flex gap-3 items-center h-4">
-                        {[...Array(totalSlides)].map((_, i) => (
-                            <button 
-                                key={i}
-                                onClick={() => setCurrentSlide(i)}
-                                className={`h-[2px] transition-all duration-500 outline-none ${i === currentSlide ? 'w-10 bg-white' : 'w-5 bg-white/40 hover:bg-white/60'}`}
-                            />
-                        ))}
+                {!isMobile && (
+                    <div className="absolute bottom-6 md:bottom-3 flex flex-col items-center gap-4 text-white pointer-events-auto z-30">
+                        <div className="flex gap-3 items-center h-4">
+                            {[...Array(totalSlides)].map((_, i) => (
+                                <button 
+                                    key={i}
+                                    onClick={() => setCurrentSlide(i)}
+                                    className={`h-[2px] transition-all duration-500 outline-none ${i === currentSlide ? 'w-10 bg-white' : 'w-5 bg-white/40 hover:bg-white/60'}`}
+                                />
+                            ))}
+                        </div>
+                        <span className="text-[10px] uppercase tracking-[0.5em] text-gray-400 font-medium pb-2">
+                            {currentSlide + 1} / {totalSlides}
+                        </span>
                     </div>
-                    <span className="text-[10px] uppercase tracking-[0.5em] text-gray-400 font-medium pb-2">
-                        {currentSlide + 1} / {totalSlides}
-                    </span>
-                </div>
+                )}
             </div>
 
-            {/* Mobile Navigation controls */}
-            <div className="absolute bottom-8 left-0 w-full flex justify-between px-8 md:hidden pointer-events-auto">
-                <button onClick={prevSlide} className="text-white/50 outline-none"><ChevronLeft size={32} /></button>
-                <button onClick={nextSlide} className="text-white/50 outline-none"><ChevronRight size={32} /></button>
-            </div>
             {/* Lightbox / Fullscreen Modal */}
             <AnimatePresence>
                 {selectedFullCert && (

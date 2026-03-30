@@ -71,7 +71,7 @@ const ContactOverlay = () => {
     const inputClasses = (fieldName) => `
         w-full bg-black/60 shadow-inner border 
         ${focusedField === fieldName ? 'border-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.1)]' : 'border-white/10'} 
-        rounded-lg px-4 py-3 text-white text-sm outline-none 
+        rounded-lg px-4 py-3.5 text-white text-[16px] outline-none 
         focus:bg-black/80 transition-all duration-300
     `;
 
@@ -88,10 +88,10 @@ const ContactOverlay = () => {
             <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[90%] rounded-lg p-3 text-[12px] leading-relaxed border ${
+                        <div className={`max-w-[90%] rounded-lg p-3 text-[14px] leading-relaxed border ${
                             msg.role === 'user' 
                                 ? 'bg-[#ffcc00]/10 border-[#ffcc00]/10 text-[#ffcc00] rounded-tr-none' 
-                                : 'bg-white/5 border-white/5 text-gray-300 rounded-tl-none'
+                                : 'bg-white/5 border-white/5 text-gray-200 rounded-tl-none'
                         }`}>
                             {msg.content}
                         </div>
@@ -115,7 +115,7 @@ const ContactOverlay = () => {
                         onChange={(e) => setGptInput(e.target.value)}
                         disabled={isThinking}
                         placeholder="Опишите ваш проект..." 
-                        className="w-full bg-black/30 shadow-inner border border-white/10 rounded-lg pl-3 pr-10 py-3 text-xs md:text-sm text-white outline-none focus:border-[#ffcc00]/50 transition-all disabled:opacity-50"
+                        className="w-full bg-black/30 shadow-inner border border-white/10 rounded-lg pl-4 pr-12 py-3.5 text-[16px] text-white outline-none focus:border-[#ffcc00]/50 transition-all disabled:opacity-50"
                     />
                     <button 
                         type="submit" 
@@ -153,7 +153,7 @@ const ContactOverlay = () => {
                         <User size={12} strokeWidth={1.5} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('name')} pl-8`} placeholder="ИМЯ" />
+                        className={`${inputClasses('name')} pl-10`} placeholder="ИМЯ" />
                 </div>
 
                 <div className="relative group">
@@ -161,7 +161,7 @@ const ContactOverlay = () => {
                         <Mail size={12} strokeWidth={1.5} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('contact')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('contact')} pl-8`} placeholder="ТЕЛЕГРАМ / EMAIL" />
+                        className={`${inputClasses('contact')} pl-10`} placeholder="ТЕЛЕГРАМ / EMAIL" />
                 </div>
 
                 <div className="relative group">
@@ -169,15 +169,15 @@ const ContactOverlay = () => {
                         <DollarSign size={12} strokeWidth={1.5} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('budget')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('budget')} pl-8`} placeholder="БЮДЖЕТ" />
+                        className={`${inputClasses('budget')} pl-10`} placeholder="БЮДЖЕТ" />
                 </div>
 
                 <div className="relative group">
                     <div className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-[#ffcc00] transition-colors">
                         <MessageSquare size={12} strokeWidth={1.5} />
                     </div>
-                    <textarea rows="2" onFocus={() => setFocusedField('message')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('message')} pl-8 resize-none`} placeholder="ОПИСАНИЕ ЗАДАЧИ..." />
+                    <textarea rows="3" onFocus={() => setFocusedField('message')} onBlur={() => setFocusedField(null)}
+                        className={`${inputClasses('message')} pl-10 resize-none pt-3`} placeholder="ОПИСАНИЕ ЗАДАЧИ..." />
                 </div>
 
                 <div className="pt-4">

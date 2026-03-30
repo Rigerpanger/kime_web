@@ -47,7 +47,7 @@ const ServicesOverlay = () => {
     }, [activeSlug]);
 
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center pt-20 pb-4 px-8 md:px-16 animate-fade-in overflow-y-auto no-scrollbar">
+        <div className="w-full h-full flex flex-col items-center justify-center pt-32 md:pt-20 pb-4 px-8 md:px-16 animate-fade-in overflow-y-auto no-scrollbar">
             {/* Title */}
             <h1 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-8 md:mb-10 opacity-70 text-center mt-6">
                 Наши направления
