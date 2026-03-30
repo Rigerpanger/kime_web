@@ -377,15 +377,15 @@ const ProjectsOverlay = () => {
                 <>
                     <button 
                         onClick={() => paginate(-1)} 
-                        className={`absolute z-40 pointer-events-auto rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 transition-all duration-500 group ${isMobile ? 'left-2 top-1/2 -translate-y-1/2 p-2' : 'left-4 md:left-12 top-1/2 -translate-y-1/2 p-2.5 md:p-3'}`}
+                        className={`absolute z-40 pointer-events-auto flex items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group ${isMobile ? 'left-2 top-1/2 -translate-y-1/2 w-10 h-10' : 'left-4 md:left-12 top-1/2 -translate-y-1/2 w-12 h-12'}`}
                     >
-                        <ChevronLeft size={isMobile ? 16 : 20} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
+                        <ChevronLeft size={isMobile ? 18 : 24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
                     </button>
                     <button 
                         onClick={() => paginate(1)} 
-                        className={`absolute z-40 pointer-events-auto rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 transition-all duration-500 group ${isMobile ? 'right-2 top-1/2 -translate-y-1/2 p-2' : 'right-4 md:left-12 top-1/2 -translate-y-1/2 p-2.5 md:p-3'}`}
+                        className={`absolute z-40 pointer-events-auto flex items-center justify-center rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group ${isMobile ? 'right-2 top-1/2 -translate-y-1/2 w-10 h-10' : 'right-4 md:right-12 top-1/2 -translate-y-1/2 w-12 h-12'}`}
                     >
-                        <ChevronRight size={isMobile ? 16 : 20} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
+                        <ChevronRight size={isMobile ? 18 : 24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
                 </>
             )}
