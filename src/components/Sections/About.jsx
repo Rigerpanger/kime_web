@@ -93,11 +93,31 @@ const About = () => {
             image: "https://images.unsplash.com/photo-1596443686812-2f45229eebc3?q=80&w=600&auto=format&fit=crop"
         }
     ];
+
     const displayCertificates = certificates.length > 0 ? certificates : defaultCertificates;
 
-    const MobileAbout = ({ content, displayCertificates }) => (
-        <div className="w-full h-full overflow-y-auto no-scrollbar pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-24 relative">
-            <div className="flex flex-col">
+    const MobileAbout = ({ content, displayCertificates }) => {
+        
+        // Lock scroll globally so the user doesn't jump pages while reading the longread
+        const handleScrollEvent = (e) => {
+            const { scrollTop, scrollHeight, clientHeight } = e.target;
+            const isAtTop = scrollTop <= 5;
+            const isAtBottom = Math.abs(scrollHeight - clientHeight - scrollTop) <= 5;
+
+            if (isAtTop || isAtBottom) {
+                setScrollLocked(false);
+            } else {
+                setScrollLocked(true);
+            }
+        };
+
+        return (
+            <div 
+                className="w-full h-full overflow-y-auto no-scrollbar pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-24 relative"
+                onScroll={handleScrollEvent}
+                onTouchStart={handleScrollEvent} // Edge case re-evaluation on touch
+            >
+                <div className="flex flex-col">
                  <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
                  <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
                     {content.slide1_text1}
@@ -156,7 +176,8 @@ const About = () => {
                 <LogoTicker />
             </div>
         </div>
-    );
+        );
+    };
 
     const slides = [
         // Slide 1: About Text + Brands
