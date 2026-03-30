@@ -11,7 +11,9 @@ const ScrollNavigator = () => {
     useEffect(() => {
         let isScrolling = false;
         let touchStartY = 0;
+        let touchStartX = 0;
         let touchEndY = 0;
+        let touchEndX = 0;
 
         const handleScroll = (deltaY) => {
             const state = useAppStore.getState();
@@ -44,21 +46,35 @@ const ScrollNavigator = () => {
 
         const onTouchStart = (e) => { 
             touchStartY = e.touches[0].clientY; 
+            touchStartX = e.touches[0].clientX;
             touchEndY = e.touches[0].clientY; 
+            touchEndX = e.touches[0].clientX;
         };
         
         const onTouchMove = (e) => {
             touchEndY = e.touches[0].clientY;
+            touchEndX = e.touches[0].clientX;
         };
 
         const onTouchEnd = () => {
             if (!touchStartY || !touchEndY) return;
             const deltaY = touchStartY - touchEndY;
-            if (Math.abs(deltaY) > 50) {
+            const deltaX = touchStartX - touchEndX;
+
+            // Ignore vertical navigation if the swipe is primarily horizontal (gallery)
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                touchStartY = 0;
+                touchStartX = 0;
+                return;
+            }
+
+            if (Math.abs(deltaY) > 60) {
                 handleScroll(deltaY);
             }
             touchStartY = 0;
+            touchStartX = 0;
             touchEndY = 0;
+            touchEndX = 0;
         };
 
         window.addEventListener('wheel', onWheel, { passive: false });

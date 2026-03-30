@@ -41,22 +41,23 @@ const Hero = () => {
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
+                    className="md:bg-transparent bg-black/30 backdrop-blur-md md:backdrop-blur-none p-8 md:p-0 rounded-3xl border border-white/10 md:border-none shadow-2xl md:shadow-none"
                 >
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-                        We Create <br />
-                        <span className="bg-gradient-to-r from-neonBlue to-neonPurple bg-clip-text text-transparent">
-                            Digital Reality
+                    <h1 className="text-4xl md:text-7xl font-bold mb-6 tracking-tight text-white leading-tight">
+                        Создаем <br />
+                        <span className="bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+                            Цифровую Реальность
                         </span>
                     </h1>
-                    <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-                        Web • AR/VR • Multimedia. We fuse creativity and technology to build immersive experiences.
+                    <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto mb-10 font-light">
+                        Web • AR/VR • Multimedia. Мы объединяем креатив и технологии для создания иммерсивного опыта.
                     </p>
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
-                        <Button className="group">
-                            Start a Project <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        <Button className="group bg-[#ffcc00] text-black border-none hover:bg-[#ffaa00]">
+                            Начать проект <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Button>
-                        <Button variant="outline">
-                            View Portfolio
+                        <Button variant="outline" className="border-white/20 text-white hover:bg-white/5">
+                            Портфолио
                         </Button>
                     </div>
                 </motion.div>

@@ -75,8 +75,8 @@ const ContactOverlay = () => {
         focus:bg-black/80 transition-all duration-300
     `;
 
-    // === AI Chat Panel ===
-    const AiPanel = () => (
+    // === AI Chat Panel Render ===
+    const renderAiPanel = () => (
         <div className="flex flex-col h-full">
             <div className="p-3 border-b border-white/5 flex items-center gap-2 shrink-0">
                 <div className="w-5 h-5 rounded bg-[#ffcc00]/10 border border-[#ffcc00]/20 flex items-center justify-center text-[#ffcc00]">
@@ -129,8 +129,8 @@ const ContactOverlay = () => {
         </div>
     );
 
-    // === Request Form Panel ===
-    const FormPanel = ({ showClose = false }) => (
+    // === Request Form Panel Render ===
+    const renderFormPanel = (showClose = false) => (
         <div className="flex flex-col p-4 md:p-6 h-full overflow-y-auto">
             <div className="mb-3 relative flex justify-between items-start shrink-0">
                 <div>
@@ -207,11 +207,11 @@ const ContactOverlay = () => {
                 <div className="hidden md:flex flex-row h-[380px]">
                     {/* Left: AI */}
                     <div className="w-1/2 flex flex-col border-r border-white/5 bg-white/[0.01]">
-                        <AiPanel />
+                        {renderAiPanel()}
                     </div>
                     {/* Right: Form */}
                     <div className="w-1/2 flex flex-col">
-                        <FormPanel showClose={false} />
+                        {renderFormPanel(false)}
                     </div>
                 </div>
 
@@ -242,7 +242,7 @@ const ContactOverlay = () => {
 
                     {/* Active Tab Content */}
                     <div className="h-[55vh] min-h-[450px]">
-                        {mobileTab === 'ai' ? <AiPanel /> : <FormPanel />}
+                        {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
                     </div>
                 </div>
             </div>

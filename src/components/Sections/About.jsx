@@ -97,6 +97,7 @@ const About = () => {
     const displayCertificates = certificates.length > 0 ? certificates : defaultCertificates;
 
     const MobileAbout = ({ content, displayCertificates }) => {
+        const [expandedCert, setExpandedCert] = useState(null);
         
         // Lock scroll globally so the user doesn't jump pages while reading the longread
         const handleScrollEvent = (e) => {
@@ -117,7 +118,7 @@ const About = () => {
                 onScroll={handleScrollEvent}
                 onTouchStart={handleScrollEvent} // Edge case re-evaluation on touch
             >
-                <div className="flex flex-col">
+                <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
                  <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
                  <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
                     {content.slide1_text1}
@@ -127,7 +128,7 @@ const About = () => {
                  </p>
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
                 <span className="text-[#ffaa44] text-xs uppercase tracking-[0.5em] mb-4 font-bold">Наш подход</span>
                 <h3 className="text-3xl font-thin text-white uppercase mb-6 leading-tight">
                     {content.slide2_title}
@@ -161,18 +162,57 @@ const About = () => {
                 
                 <div className="flex flex-col gap-4">
                     {displayCertificates.map((cert, index) => (
-                        <div key={index} className="flex flex-col p-6 rounded-2xl bg-white/5 border border-white/10 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-4 opacity-[0.03]">
-                                <Award size={80} />
+                        <div 
+                            key={index} 
+                            onClick={() => setExpandedCert(expandedCert === index ? null : index)}
+                            className={`flex flex-col p-6 rounded-2xl bg-black/40 backdrop-blur-md border transition-all duration-500 cursor-pointer overflow-hidden ${
+                                expandedCert === index ? 'border-[#ffaa44]/50' : 'border-white/10'
+                            }`}
+                        >
+                            <div className="flex justify-between items-center w-full">
+                                <div className="flex-1">
+                                    <h4 className="text-white text-xl font-medium tracking-wide mb-1 transition-colors">{cert.company} {cert.division}</h4>
+                                    <p className="text-white/50 text-[10px] leading-relaxed uppercase tracking-widest">{cert.division ? cert.position : (cert.company + ' Team')}</p>
+                                </div>
+                                <div className={`transition-transform duration-500 ${expandedCert === index ? 'rotate-180 text-[#ffaa44]' : 'text-white/20'}`}>
+                                    <Award size={24} strokeWidth={1} />
+                                </div>
                             </div>
-                            <h4 className="text-white text-xl font-medium tracking-wide mb-3">{cert.company} {cert.division}</h4>
-                            <p className="text-white/50 text-xs leading-relaxed uppercase tracking-wider pr-8">{cert.position}</p>
+
+                            <AnimatePresence>
+                                {expandedCert === index && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                        animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
+                                        exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="w-full aspect-[210/297] rounded-xl overflow-hidden grayscale border border-white/10 bg-white/5">
+                                            <img 
+                                                src={cert.image_url} 
+                                                alt="Certificate" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedFullCert(cert);
+                                            }}
+                                            className="w-full mt-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 text-[10px] uppercase tracking-widest font-bold hover:bg-white/10 active:scale-95 transition-all"
+                                        >
+                                            Смотреть полностью
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ))}
                 </div>
             </div>
             
-            <div className="mt-4 pb-12 w-full">
+            <div className="mt-12 pb-24 w-full">
                 <LogoTicker />
             </div>
         </div>

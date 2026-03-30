@@ -66,13 +66,13 @@ const LogoTicker = () => {
                         {tickerItems.map((partner, index) => (
                             <div 
                                 key={`${partner.id || partner.name}-${index}`}
-                                className="flex-shrink-0 flex items-center justify-center grayscale brightness-200 transform scale-75 md:scale-100 origin-center"
+                                className="flex-shrink-0 flex items-center justify-center grayscale brightness-200 transform scale-[2.2] md:scale-100 origin-center mx-12 md:mx-0"
                             >
                                 <img 
                                     src={partner.logo_url} 
                                     alt={partner.name} 
                                     style={{ width: partner.width || 160, height: 'auto' }}
-                                    className="object-contain max-h-8 md:max-h-14"
+                                    className="object-contain max-h-12 md:max-h-14"
                                 />
                             </div>
                         ))}
