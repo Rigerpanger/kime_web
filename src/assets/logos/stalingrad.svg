@@ -1,0 +1,5 @@
+<svg width="220" height="40" viewBox="0 0 220 40" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="12,20 18,38 2,26 22,26 6,38" fill="white" transform="translate(0, -10)" />
+  <text x="35" y="15" font-family="Arial, sans-serif" font-weight="700" font-size="10" fill="white" letter-spacing="1">МУЗЕЙ-ЗАПОВЕДНИК</text>
+  <text x="35" y="32" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="white" letter-spacing="2">СТАЛИНГРАДСКАЯ БИТВА</text>
+</svg>

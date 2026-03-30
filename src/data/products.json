@@ -1,0 +1,20 @@
+[
+    {
+        "id": "prod-01",
+        "title": "KIME Core",
+        "status": "Live",
+        "pitch": "Our internal procedural generation engine for 3D assets."
+    },
+    {
+        "id": "prod-02",
+        "title": "Flux CMS",
+        "status": "Prototype",
+        "pitch": "Headless CMS designed specifically for WebGL narratives."
+    },
+    {
+        "id": "prod-03",
+        "title": "Neural Texture Lab",
+        "status": "Concept",
+        "pitch": "AI tool for generating PBR materials from text prompts."
+    }
+]
