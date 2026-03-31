@@ -58,7 +58,7 @@ const cardVariants = {
 const MobileNativeGallery = ({ projects, onProjectSelect }) => {
     return (
         <div 
-            className="absolute inset-x-0 top-1/2 -translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
+            className="absolute inset-x-0 top-[52%] -translate-y-1/2 w-full h-[420px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
         >
             {projects.map((project, idx) => (
                 <div 
@@ -402,17 +402,17 @@ const ProjectsOverlay = () => {
                 initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="absolute top-28 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center"
+                className="absolute top-36 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center"
             >
                 <div className="relative mb-2 mt-2">
                     {/* Decorative background glow */}
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[60px] rounded-full scale-[2.0] md:scale-100" />
-                    <h1 className="relative text-xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.4em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                         ИЗБРАННЫЕ РАБОТЫ
                     </h1>
                     <div className="flex items-center justify-center gap-3 opacity-90">
                         <div className="h-[1px] w-6 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
-                        <p className="text-[8px] md:text-[8px] tracking-[0.4em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">Архив цифровых артефактов</p>
+                        <p className="text-[10px] md:text-[8px] tracking-[0.3em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">Архив цифровых артефактов</p>
                         <div className="h-[1px] w-6 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
                     </div>
                 </div>

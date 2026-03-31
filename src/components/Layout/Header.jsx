@@ -63,7 +63,7 @@ const Header = () => {
 
     return (
         <>
-            <header className="fixed top-6 left-0 w-full z-50 flex justify-center pointer-events-none transition-all duration-500 px-4">
+            <header className="fixed top-4 md:top-6 left-0 w-full z-50 flex justify-center pointer-events-none transition-all duration-500 px-4">
                 <div className="pointer-events-auto w-full md:w-auto rounded-full border border-white/10 bg-black/40 backdrop-blur-xl px-6 md:px-12 py-3 md:py-4 flex justify-between items-center md:gap-16 shadow-2xl shadow-black/50">
                     
                     {/* Logo */}

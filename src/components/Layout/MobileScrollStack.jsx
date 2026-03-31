@@ -31,7 +31,14 @@ const MobileScrollStack = () => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const path = entry.target.getAttribute('data-path');
-                    if (currentPathRef.current !== path) {
+                    
+                    // Only navigate if the current section has legitimately changed.
+                    // This protects sub-routes (like /services/item-1) from being reset by the observer.
+                    const isNewSection = path === '/' 
+                        ? location.pathname !== '/' 
+                        : !location.pathname.startsWith(path);
+
+                    if (isNewSection && currentPathRef.current !== path) {
                         currentPathRef.current = path;
                         navigate(path, { replace: true });
                     }

@@ -130,7 +130,7 @@ const About = () => {
                     />
                 </div>
                 <span className="text-white drop-shadow-md text-sm font-medium uppercase tracking-[0.4em] mb-4">Видение и лидерство</span>
-                <blockquote className="text-xl md:text-2xl font-light italic text-white/95 leading-relaxed mb-8">
+                <blockquote className="text-xl md:text-2xl font-normal italic text-white/95 leading-relaxed mb-8 drop-shadow-sm">
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
@@ -307,7 +307,7 @@ const About = () => {
             </div>
             <div className="flex flex-col justify-center">
                 <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4 drop-shadow-md">Видение и лидерство</span>
-                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-wide">
+                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-normal italic text-white/95 leading-relaxed mb-6 tracking-tight drop-shadow-sm">
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
