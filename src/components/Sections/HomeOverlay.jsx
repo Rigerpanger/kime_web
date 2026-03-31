@@ -3,12 +3,12 @@ import { ChevronDown } from 'lucide-react';
 
 const HomeOverlay = () => {
     return (
-        <div className="w-full h-full pointer-events-none relative flex flex-col justify-center items-center">
-            {/* Softened gradient - Multi-stop to prevent harsh lines */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-80" />
+        <div className="w-full min-h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-24 md:pb-32">
+            {/* Smoother, multi-layered gradient to eliminate harsh lines */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
             
             <div className="w-full px-8 flex flex-col items-center justify-center pointer-events-auto relative z-10">
-                <div className="flex flex-col items-center text-center space-y-6">
+                <div className="flex flex-col items-center text-center space-y-4">
                     <p className="text-sm md:text-lg tracking-[0.5em] md:tracking-[0.8em] text-[#ffaa44] uppercase font-bold drop-shadow-lg">
                         СТУДИЯ КИМЭ
                     </p>

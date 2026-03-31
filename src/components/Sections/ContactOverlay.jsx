@@ -195,7 +195,7 @@ const ContactOverlay = () => {
     );
 
     return (
-        <div className="w-full min-h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-start md:justify-center items-center px-4 pt-32 pb-48 md:py-12 relative z-50 bg-black/10">
+        <div className="w-full min-h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-start md:justify-center items-center px-4 pt-32 pb-12 md:py-12 relative z-50 bg-black/10">
             
             {/* Close Overlay - visually disabled on mobile since it's inline in scroll */}
             <div className="absolute inset-0 z-0 hidden md:block cursor-pointer" onClick={() => navigate('/')} />

@@ -85,16 +85,16 @@ const MobileScrollStack = () => {
     return (
         <div 
             ref={containerRef}
-            className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-proximity scroll-smooth no-scrollbar"
+            className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar"
         >
             {sections.map(section => (
                 <div 
                     key={section.id} 
                     id={`section-${section.id}`}
                     data-path={section.path}
-                    className="mobile-scroll-section w-full snap-start relative flex items-center justify-center min-h-[100dvh]"
+                    className="mobile-scroll-section w-full snap-start relative min-h-[100dvh] shrink-0"
                 >
-                    <div className="w-full h-full relative z-10 pointer-events-auto">
+                    <div className="w-full min-h-[100dvh] relative z-10 pointer-events-auto">
                         {section.component}
                     </div>
                 </div>
