@@ -193,25 +193,25 @@ const ContactOverlay = () => {
     );
 
     return (
-        <div className="w-full min-h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-start md:justify-center items-center px-4 pt-10 md:pt-28 pb-10 md:pb-4 relative z-50 bg-black/10">
+        <div className="w-full h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-center items-center px-4 py-6 md:py-12 relative z-50 bg-black/10">
             
             {/* Close Overlay */}
             <div className="absolute inset-0 z-0 hidden md:block cursor-pointer" onClick={() => navigate('/')} />
 
-            <div className="relative z-10 w-full max-w-3xl flex flex-col items-center">
+            <div className="relative z-10 w-full max-w-3xl flex flex-col items-center max-h-full">
                 
                 {/* Visual Header */}
-                <div className="text-center mb-5 md:mb-5">
-                    <h2 className="text-xl md:text-2xl font-thin text-white uppercase tracking-[0.4em] leading-tight transition-all">
+                <div className="text-center mb-4 md:mb-5 shrink-0">
+                    <h2 className="text-lg md:text-2xl font-thin text-white uppercase tracking-[0.4em] leading-tight transition-all">
                         Оценить <span className="text-[#ffaa44] font-normal">проект</span>
                     </h2>
                 </div>
 
                 {/* Main Modal - Ultra Premium Glass */}
-                <div className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform">
+                <div className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform flex flex-col max-h-[70vh] md:max-h-none">
                     
                     {/* DESKTOP VIEW */}
-                    <div className="hidden md:flex flex-row h-[324px]">
+                    <div className="hidden md:flex flex-row h-[324px] shrink-0">
                         <div className="w-1/2 flex flex-col border-r border-white/5">
                             {renderAiPanel()}
                         </div>
@@ -221,22 +221,22 @@ const ContactOverlay = () => {
                     </div>
 
                     {/* MOBILE VIEW */}
-                    <div className="md:hidden flex flex-col">
+                    <div className="md:hidden flex flex-col h-full">
                         <div className="flex border-b border-white/5 shrink-0 bg-black/20">
                             <button onClick={() => setMobileTab('ai')}
-                                className={`flex-1 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
+                                className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
                                     mobileTab === 'ai' ? 'text-[#ffcc00] bg-white/[0.03]' : 'text-white/30 hover:text-white/60'
                                 }`}>
                                 <Sparkles size={14} /> ИИ
                             </button>
                             <button onClick={() => setMobileTab('form')}
-                                className={`flex-1 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
+                                className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
                                     mobileTab === 'form' ? 'text-[#ffcc00] bg-white/[0.03]' : 'text-white/30 hover:text-white/60'
                                 }`}>
                                 <Mail size={14} /> Форма
                             </button>
                         </div>
-                        <div className="h-[60vh] min-h-[440px]">
+                        <div className="flex-grow overflow-hidden">
                             {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
                         </div>
                     </div>

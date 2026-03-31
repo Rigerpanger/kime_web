@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 
 const HomeOverlay = () => {
     return (
-        <div className="w-full min-h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32">
+        <div className="w-full h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32">
             
             <div className="w-full px-8 flex flex-col items-center justify-center pointer-events-auto relative z-10">
                 <div className="flex flex-col items-center text-center space-y-4">

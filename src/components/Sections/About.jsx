@@ -123,7 +123,7 @@ const About = () => {
                     </p>
                 </div>
 
-                <div className="flex flex-col relative">
+                <div className="flex flex-col relative w-full">
                     <div className="w-full aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale mb-10 relative shadow-2xl border border-white/5">
                         <img 
                             src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} 
@@ -133,9 +133,9 @@ const About = () => {
                     </div>
 
                     {/* Glass Plate for Content */}
-                    <div className="flex flex-col bg-white/[0.03] backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 shadow-2xl relative">
+                    <div className="flex flex-col bg-white/[0.03] backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 shadow-2xl relative w-full">
                         <span className="text-[#ffaa44] drop-shadow-md text-[10px] font-bold uppercase tracking-[0.5em] mb-6">Мастерство и надежность</span>
-                        <blockquote className="text-xl md:text-2xl font-light italic text-white leading-relaxed mb-8 opacity-95 tracking-tight">
+                        <blockquote className="text-xl font-light italic text-white leading-relaxed mb-8 opacity-95 tracking-tight truncate-multiline">
                             "{content.slide3_quote}"
                         </blockquote>
                         <div>
@@ -218,13 +218,11 @@ const About = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{
                 opacity: 1,
-                y: 0,
-                marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
+                y: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
             transition={{
-                marginTop: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 },
-                y: { duration: 0.5 }
+                y: { duration: 0.8, ease: "easeOut" },
+                opacity: { duration: 0.5 }
             }}
             exit={{ opacity: 0, y: -10 }}
             className="flex flex-col h-full max-w-4xl w-full relative pt-4 md:pt-8"
@@ -272,13 +270,11 @@ const About = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{
                 opacity: 1,
-                y: 0,
-                marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
+                y: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
             transition={{
-                marginTop: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 },
-                y: { duration: 0.5 }
+                y: { duration: 0.8, ease: "easeOut" },
+                opacity: { duration: 0.5 }
             }}
             exit={{ opacity: 0, y: -10 }}
             className="flex flex-col h-full max-w-4xl w-full pt-8 md:pt-12"
@@ -298,16 +294,14 @@ const About = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{
                 opacity: 1,
-                y: 0,
-                marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
+                y: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
             transition={{
-                marginTop: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 },
-                y: { duration: 0.5 }
+                y: { duration: 0.8, ease: "easeOut" },
+                opacity: { duration: 0.5 }
             }}
             exit={{ opacity: 0, y: -10 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start h-full w-full max-w-5xl pt-8 md:pt-12"
+            className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start h-full w-full max-w-5xl"
         >
             <div className="h-[40vh] md:h-[55vh] flex justify-end">
                 <div className="w-[85%] h-full bg-zinc-900 rounded-xl overflow-hidden grayscale border border-white/5 relative group">
@@ -334,7 +328,14 @@ const About = () => {
         <motion.div
             key="about-certificates"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{
+                opacity: 1,
+                y: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
+            }}
+            transition={{
+                y: { duration: 0.8, ease: "easeOut" },
+                opacity: { duration: 0.5 }
+            }}
             exit={{ opacity: 0, y: -10 }}
             className="flex flex-col justify-center h-full max-w-6xl w-full"
         >
@@ -442,13 +443,15 @@ const About = () => {
             <div className={`container mx-auto px-6 md:px-24 pointer-events-auto relative flex flex-col ${isMobile ? 'h-auto py-10 justify-start items-center' : 'h-full justify-center items-center'}`}>
 
                 {/* Content Area */}
-                <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-4 pb-4' : 'h-full items-center justify-center pt-8 md:pt-32 pb-4 md:pb-24'}`}>
+                <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-10 pb-10' : 'flex-grow items-center justify-center overflow-hidden'}`}>
                     {isMobile ? (
                         <MobileAbout content={content} displayCertificates={displayCertificates} />
                     ) : (
-                        <AnimatePresence mode="wait">
-                            {slides[currentSlide]}
-                        </AnimatePresence>
+                        <div className="w-full h-full flex flex-col items-center justify-center relative">
+                            <AnimatePresence mode="wait">
+                                {slides[currentSlide]}
+                            </AnimatePresence>
+                        </div>
                     )}
                 </div>
 

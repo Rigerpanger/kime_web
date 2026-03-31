@@ -70,7 +70,7 @@ const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange })
         <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="absolute inset-x-0 top-[48%] -translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
+            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0"
         >
             {projects.map((project, idx) => (
                 <div 
@@ -413,14 +413,14 @@ const ProjectsOverlay = () => {
     const showNavigation = projects.length > perPage;
 
     return (
-        <div className="w-full min-h-[100dvh] pointer-events-none flex flex-col relative">
+        <div className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative">
             
             {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
                 initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="absolute top-32 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12"
+                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0`}
             >
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
@@ -472,7 +472,7 @@ const ProjectsOverlay = () => {
 
             {/* Main Content Area (Split Mobile/Desktop) */}
             {isMobile ? (
-                <>
+                <div className="flex-grow flex flex-col justify-around py-4">
                     <MobileNativeGallery 
                         projects={projects} 
                         onProjectSelect={handleProjectSelect} 
@@ -484,7 +484,7 @@ const ProjectsOverlay = () => {
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={projects[activeIndex]?.id}
-                        className="absolute bottom-12 inset-x-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3"
+                        className="relative mx-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3 mb-6"
                     >
                         <div className="flex justify-between items-start gap-4">
                            <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>
@@ -506,7 +506,7 @@ const ProjectsOverlay = () => {
                             </div>
                         </div>
                     </motion.div>
-                </>
+                </div>
             ) : (
                 <div className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20">
                     <div 
