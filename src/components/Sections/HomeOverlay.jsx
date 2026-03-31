@@ -3,7 +3,7 @@ import { ChevronDown } from 'lucide-react';
 
 const HomeOverlay = () => {
     return (
-        <div className="w-full min-h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-24 md:pb-32">
+        <div className="w-full min-h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32">
             {/* Smoother, multi-layered gradient to eliminate harsh lines */}
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-90" />
             

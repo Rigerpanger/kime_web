@@ -425,12 +425,12 @@ const ProjectsOverlay = () => {
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[60px] rounded-full scale-[2.0] md:scale-100" />
-                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.4em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-tight">
-                        ИЗБРАННЫЕ РАБОТЫ
+                    <h1 className="relative text-[22px] md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.25em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none whitespace-nowrap">
+                        НАШИ РАБОТЫ
                     </h1>
                     <div className="flex items-center justify-center gap-3 opacity-90">
                         <div className="h-[1px] w-4 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
-                        <p className="text-[9px] md:text-[8px] tracking-[0.3em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">Архив цифровых артефактов</p>
+                        <p className="text-[9px] md:text-[8px] tracking-[0.2em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">То, что вправе показать</p>
                         <div className="h-[1px] w-4 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
                     </div>
                 </div>

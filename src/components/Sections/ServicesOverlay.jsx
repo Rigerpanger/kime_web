@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Box, Gamepad2, Glasses, Cpu, Code } from 'lucide-react';
 import useAppStore from '../../store/useAppStore';
 import servicesData from '../../data/services.json';
@@ -66,18 +67,27 @@ const ServicesOverlay = () => {
                     ))}
                 </div>
 
-                <div className="w-full md:w-[55%] min-h-[250px] flex items-center pr-4 md:pr-12">
-                    {activeService && (
-                        <div className="p-8 md:p-10 border border-white/10 bg-black/40 backdrop-blur-md rounded-3xl animate-fade-in-right flex flex-col justify-center relative group shadow-2xl">
-                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                            <h2 className="text-xl md:text-2xl font-light text-white mb-6 leading-tight tracking-wide">
-                                {activeService.title}
-                            </h2>
-                            <p className="text-gray-200 text-base md:text-lg leading-relaxed font-light opacity-95">
-                                {activeService.description}
-                            </p>
-                        </div>
-                    )}
+                <div className="w-full md:w-[55%] min-h-[320px] md:min-h-[350px] flex items-start pr-4 md:pr-12">
+                    <AnimatePresence mode="wait">
+                        {activeService && (
+                            <motion.div 
+                                key={activeService.id}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -10 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                                className="w-full p-8 md:p-10 border border-white/10 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col justify-start relative group shadow-2xl min-h-[200px]"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                                <h2 className="text-xl md:text-2xl font-light text-white mb-6 leading-tight tracking-wide">
+                                    {activeService.title}
+                                </h2>
+                                <p className="text-gray-200 text-base md:text-lg leading-relaxed font-light opacity-95">
+                                    {activeService.description}
+                                </p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>
