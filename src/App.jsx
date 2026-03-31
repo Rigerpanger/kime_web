@@ -54,7 +54,7 @@ const AppLayout = () => {
     }, [setSculptureConfig]);
 
     return (
-        <div className="relative w-full h-screen bg-black overflow-hidden font-sans selection:bg-white/20">
+        <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
             <RouteManager />
             {!isMobile && <ScrollNavigator />}
             {showStudioEditor && <StudioEditor />}
@@ -65,7 +65,7 @@ const AppLayout = () => {
             </div>
 
             {/* 2. UI Layer (Glass Overlay) */}
-            <div className={`absolute inset-0 z-10 pointer-events-none ${isMobile ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+            <div className="absolute inset-0 z-10 pointer-events-none overflow-y-auto">
                 <div className="pointer-events-auto">
                     <Header />
                 </div>

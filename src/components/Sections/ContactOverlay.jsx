@@ -69,29 +69,31 @@ const ContactOverlay = () => {
     };
 
     const inputClasses = (fieldName) => `
-        w-full bg-black/60 shadow-inner border 
+        w-full bg-black/40 border 
         ${focusedField === fieldName ? 'border-[#ffcc00] shadow-[0_0_15px_rgba(255,204,0,0.1)]' : 'border-white/10'} 
-        rounded-lg px-4 py-3.5 text-white text-[16px] outline-none 
-        focus:bg-black/80 transition-all duration-300
+        rounded-lg px-3 py-1.5 text-white text-[12px] outline-none 
+        focus:bg-black/60 transition-all duration-300
     `;
 
     // === AI Chat Panel Render ===
     const renderAiPanel = () => (
-        <div className="flex flex-col h-full">
-            <div className="p-3 border-b border-white/5 flex items-center gap-2 shrink-0">
-                <div className="w-5 h-5 rounded bg-[#ffcc00]/10 border border-[#ffcc00]/20 flex items-center justify-center text-[#ffcc00]">
-                    <Sparkles size={12} />
+        <div className="flex flex-col h-full bg-black/20">
+            <div className="p-3 border-b border-white/5 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-[#ffcc00]/10 border border-[#ffcc00]/20 flex items-center justify-center text-[#ffcc00]">
+                        <Sparkles size={10} />
+                    </div>
+                    <h2 className="text-[9px] uppercase tracking-[0.2em] font-bold text-white/70">ОЦЕНЩИК</h2>
                 </div>
-                <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-white leading-none">ИИ-ОЦЕНЩИК</h2>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 no-scrollbar">
                 {messages.map((msg, idx) => (
                     <div key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[90%] rounded-lg p-3 text-[14px] leading-relaxed border ${
+                        <div className={`max-w-[90%] rounded-xl p-3 text-[11px] leading-relaxed border ${
                             msg.role === 'user' 
-                                ? 'bg-[#ffcc00]/10 border-[#ffcc00]/10 text-[#ffcc00] rounded-tr-none' 
-                                : 'bg-white/5 border-white/5 text-gray-200 rounded-tl-none'
+                                ? 'bg-[#ffcc00]/10 border-[#ffcc00]/20 text-[#ffcc00] rounded-tr-none' 
+                                : 'bg-white/[0.03] border-white/5 text-gray-400 rounded-tl-none'
                         }`}>
                             {msg.content}
                         </div>
@@ -99,28 +101,28 @@ const ContactOverlay = () => {
                 ))}
                 {isThinking && (
                     <div className="flex w-full justify-start">
-                        <div className="max-w-[90%] rounded-lg p-2 bg-white/5 border border-white/5 text-gray-500 rounded-tl-none flex items-center gap-2 text-[8px]">
-                            <Loader2 size={10} className="animate-spin" /> АНАЛИЗИРУЮ...
+                        <div className="max-w-[85%] rounded-xl p-2 bg-white/[0.02] border border-white/5 text-gray-500 rounded-tl-none flex items-center gap-2 text-[7px] uppercase tracking-widest">
+                            <Loader2 size={10} className="animate-spin text-[#ffcc00]" /> Думаю...
                         </div>
                     </div>
                 )}
                 <div ref={chatEndRef} />
             </div>
 
-            <div className="p-3 border-t border-white/5 bg-black/40 shrink-0">
+            <div className="p-3 border-t border-white/5 bg-black/20 shrink-0">
                 <form onSubmit={handleGptEstimate} className="relative">
                     <input 
                         type="text" 
                         value={gptInput}
                         onChange={(e) => setGptInput(e.target.value)}
                         disabled={isThinking}
-                        placeholder="Опишите ваш проект..." 
-                        className="w-full bg-black/30 shadow-inner border border-white/10 rounded-lg pl-4 pr-12 py-3.5 text-[16px] text-white outline-none focus:border-[#ffcc00]/50 transition-all disabled:opacity-50"
+                        placeholder="Опишите проект..." 
+                        className="w-full bg-white/[0.02] border border-white/10 rounded-lg pl-3 pr-10 py-2.5 text-[13px] text-white outline-none focus:border-[#ffcc00]/40 transition-all placeholder:text-white/10"
                     />
                     <button 
                         type="submit" 
                         disabled={isThinking || !gptInput.trim()}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-gray-500 hover:text-[#ffcc00] transition-colors disabled:opacity-50"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-white/20 hover:text-[#ffcc00] transition-colors disabled:opacity-20"
                     >
                         <Send size={12} />
                     </button>
@@ -131,155 +133,127 @@ const ContactOverlay = () => {
 
     // === Request Form Panel Render ===
     const renderFormPanel = (showClose = false) => (
-        <div className="flex flex-col p-4 md:p-6 h-full overflow-y-auto">
+        <div className="flex flex-col p-4 md:p-5 h-full overflow-y-auto no-scrollbar">
             <div className="mb-3 relative flex justify-between items-start shrink-0">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse shadow-[0_0_5px_#ffcc00]" />
-                        <span className="text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-medium text-[#ffcc00]">ЗАЯВКА</span>
+                        <div className="w-1 h-1 rounded-full bg-[#ffcc00] shadow-[0_0_5px_#ffcc00]" />
+                        <span className="text-[7px] uppercase tracking-[0.4em] font-bold text-[#ffcc00]/70">Заявка</span>
                     </div>
-                    <h1 className="text-xl md:text-2xl font-light text-white tracking-tight">Есть задача?</h1>
+                    <h1 className="text-base md:text-lg font-thin text-white tracking-tight uppercase">Есть задача?</h1>
                 </div>
                 {showClose && (
-                    <button onClick={() => navigate('/')} className="text-gray-500 hover:text-white p-1 outline-none">
-                        <X size={18} />
+                    <button onClick={() => navigate('/')} className="text-white/20 hover:text-white p-2 transition-colors">
+                        <X size={16} />
                     </button>
                 )}
             </div>
 
             <form className="space-y-2 flex-1" onSubmit={(e) => e.preventDefault()}>
                 <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ffcc00] transition-colors">
-                        <User size={12} strokeWidth={1.5} />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#ffcc00] transition-colors">
+                        <User size={12} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('name')} pl-10`} placeholder="ИМЯ" />
+                        className={`${inputClasses('name')} pl-9`} placeholder="Ваше имя" />
                 </div>
 
                 <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ffcc00] transition-colors">
-                        <Mail size={12} strokeWidth={1.5} />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#ffcc00] transition-colors">
+                        <Mail size={12} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('contact')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('contact')} pl-10`} placeholder="ТЕЛЕГРАМ / EMAIL" />
+                        className={`${inputClasses('contact')} pl-9`} placeholder="Telegram / Email" />
                 </div>
 
                 <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ffcc00] transition-colors">
-                        <DollarSign size={12} strokeWidth={1.5} />
+                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#ffcc00] transition-colors">
+                        <DollarSign size={12} />
                     </div>
                     <input type="text" onFocus={() => setFocusedField('budget')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('budget')} pl-10`} placeholder="БЮДЖЕТ" />
+                        className={`${inputClasses('budget')} pl-9`} placeholder="Бюджет" />
                 </div>
 
                 <div className="relative group">
-                    <div className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-[#ffcc00] transition-colors">
-                        <MessageSquare size={12} strokeWidth={1.5} />
+                    <div className="absolute left-3 top-3 text-white/20 group-focus-within:text-[#ffcc00] transition-colors">
+                        <MessageSquare size={12} />
                     </div>
-                    <textarea rows="3" onFocus={() => setFocusedField('message')} onBlur={() => setFocusedField(null)}
-                        className={`${inputClasses('message')} pl-10 resize-none pt-3`} placeholder="ОПИСАНИЕ ЗАДАЧИ..." />
+                    <textarea rows="2" onFocus={() => setFocusedField('message')} onBlur={() => setFocusedField(null)}
+                        className={`${inputClasses('message')} pl-9 resize-none pt-2.5`} placeholder="О проекте..." />
                 </div>
 
-                <div className="pt-4">
-                    <button className="w-full group relative overflow-hidden bg-[#ffcc00] text-black py-3.5 rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:bg-[#ffaa00] hover:shadow-[0_0_20px_rgba(255,204,0,0.3)] outline-none">
-                        <span className="text-xs font-black uppercase tracking-[0.2em] relative z-10">ОТПРАВИТЬ</span>
+                <div className="pt-2">
+                    <button className="w-full group relative overflow-hidden bg-[#ffcc00] text-black py-3 rounded-lg flex items-center justify-center gap-2 transition-all duration-500 hover:bg-[#ffaa00] hover:shadow-[0_10px_25px_rgba(255,204,0,0.15)] outline-none">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] relative z-10">Отправить</span>
                         <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </form>
-
-            <div className="mt-3 pt-3 flex items-center gap-4 border-t border-white/5 shrink-0">
-                <a href="mailto:hello@kime.xyz" className="text-[7px] font-bold tracking-[0.2em] text-white/30 hover:text-[#ffcc00] transition-colors uppercase">hello@kime.xyz</a>
-            </div>
         </div>
     );
 
     return (
-        <div className="w-full min-h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-start md:justify-center items-center px-4 pt-32 pb-12 md:py-12 relative z-50 bg-black/10">
+        <div className="w-full min-h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-start md:justify-center items-center px-4 pt-10 md:pt-28 pb-10 md:pb-4 relative z-50 bg-black/10">
             
-            {/* Close Overlay - visually disabled on mobile since it's inline in scroll */}
+            {/* Close Overlay */}
             <div className="absolute inset-0 z-0 hidden md:block cursor-pointer" onClick={() => navigate('/')} />
 
-            {/* Header / Intro Text (Outside Modal) */}
-            <div className="relative z-10 w-full max-w-2xl text-center mb-8 md:mb-12">
-                <div className="inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse shadow-[0_0_5px_#ffcc00]" />
-                    <span className="text-[9px] md:text-[10px] uppercase tracking-[0.3em] font-medium text-white/80">Готовы начать?</span>
-                </div>
+            <div className="relative z-10 w-full max-w-3xl flex flex-col items-center">
                 
-                <h2 className="text-3xl md:text-5xl font-thin text-white uppercase tracking-widest leading-tight mb-6">
-                    Оценить <span className="text-[#ffaa44] font-normal drop-shadow-md border-b-2 border-dashed border-[#ffaa44]/30 pb-1">проект</span>
-                </h2>
-                
-                <p className="text-sm md:text-base font-light text-gray-200 leading-relaxed max-w-xl mx-auto px-2 md:px-0">
-                    Попросите нашего ИИ задать вопросы для понимания стоимости и формирования задачи. Затем переключитесь на соседнюю вкладку и отправьте эту задачу нашей команде.
-                </p>
-            </div>
-
-            {/* Main Modal */}
-            <div className="relative z-10 w-full max-w-2xl bg-[#050505]/70 backdrop-blur-xl border border-white/20 shadow-[0_0_50px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.1),0_0_10px_rgba(255,255,255,0.05)] rounded-2xl md:rounded-3xl overflow-hidden transform">
-                
-                {/* ── DESKTOP: side-by-side "book" layout ── */}
-                <div className="hidden md:flex flex-row h-[420px]">
-                    {/* Left: AI */}
-                    <div className="w-1/2 flex flex-col border-r border-white/5 bg-white/[0.01]">
-                        {renderAiPanel()}
-                    </div>
-                    {/* Right: Form */}
-                    <div className="w-1/2 flex flex-col">
-                        {renderFormPanel(false)}
-                    </div>
+                {/* Visual Header */}
+                <div className="text-center mb-5 md:mb-5">
+                    <h2 className="text-xl md:text-2xl font-thin text-white uppercase tracking-[0.4em] leading-tight transition-all">
+                        Оценить <span className="text-[#ffaa44] font-normal">проект</span>
+                    </h2>
                 </div>
 
-                {/* ── MOBILE: tabbed layout ── */}
-                <div className="md:hidden flex flex-col">
-                    {/* Tab Bar */}
-                    <div className="flex border-b border-white/10 shrink-0 bg-black/40">
-                        <button
-                            onClick={() => setMobileTab('ai')}
-                            className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
-                                mobileTab === 'ai' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00] bg-white/[0.02]' : 'text-white/40 hover:text-white/70'
-                            }`}
-                        >
-                            <Sparkles size={14} /> ИИ-ОЦЕНКА
-                        </button>
-                        <button
-                            onClick={() => setMobileTab('form')}
-                            className={`flex-1 py-4 text-[10px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center justify-center gap-2 outline-none ${
-                                mobileTab === 'form' ? 'text-[#ffcc00] border-b-2 border-[#ffcc00] bg-white/[0.02]' : 'text-white/40 hover:text-white/70'
-                            }`}
-                        >
-                            <Mail size={14} /> ЗАЯВКА
-                        </button>
+                {/* Main Modal - Ultra Premium Glass */}
+                <div className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform">
+                    
+                    {/* DESKTOP VIEW */}
+                    <div className="hidden md:flex flex-row h-[324px]">
+                        <div className="w-1/2 flex flex-col border-r border-white/5">
+                            {renderAiPanel()}
+                        </div>
+                        <div className="w-1/2 flex flex-col">
+                            {renderFormPanel(false)}
+                        </div>
                     </div>
 
-                    {/* Active Tab Content */}
-                    <div className="h-[55vh] min-h-[420px]">
-                        {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
+                    {/* MOBILE VIEW */}
+                    <div className="md:hidden flex flex-col">
+                        <div className="flex border-b border-white/5 shrink-0 bg-black/20">
+                            <button onClick={() => setMobileTab('ai')}
+                                className={`flex-1 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
+                                    mobileTab === 'ai' ? 'text-[#ffcc00] bg-white/[0.03]' : 'text-white/30 hover:text-white/60'
+                                }`}>
+                                <Sparkles size={14} /> ИИ
+                            </button>
+                            <button onClick={() => setMobileTab('form')}
+                                className={`flex-1 py-5 text-[10px] font-bold uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 outline-none ${
+                                    mobileTab === 'form' ? 'text-[#ffcc00] bg-white/[0.03]' : 'text-white/30 hover:text-white/60'
+                                }`}>
+                                <Mail size={14} /> Форма
+                            </button>
+                        </div>
+                        <div className="h-[60vh] min-h-[440px]">
+                            {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Footer */}
-            <div className="relative z-10 w-full max-w-2xl mt-16 md:mt-24 flex flex-col items-center">
-                <div className="flex items-center gap-4 text-white/60 mb-6 transition-opacity">
-                    <div className="h-[1px] w-12 bg-[#ffaa44]/40" />
-                    <span className="text-[11px] tracking-[0.5em] uppercase font-bold text-[#ffaa44]/80">СТУДИЯ КИМЭ</span>
-                    <div className="h-[1px] w-12 bg-[#ffaa44]/40" />
-                </div>
-                
-                <div className="flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 text-sm md:text-base tracking-widest uppercase font-medium text-white/90">
-                    <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">hello@kime.xyz</a>
-                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">Telegram</a>
-                    <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">+7 (999) 000-00-00</a>
-                </div>
-
-                <div className="mt-6 text-[10px] text-white/40 tracking-[0.4em] uppercase font-bold opacity-80">
-                    МОСКВА, РОССИЯ
-                </div>
-
-                <div className="mt-12 text-[10px] text-white/20 uppercase tracking-widest text-center font-light">
-                    &copy; {new Date().getFullYear()} Kime Studio. All rights reserved.
+                {/* Footer Signature */}
+                <div className="mt-8 md:mt-8 flex flex-col items-center">
+                    <div className="flex flex-col md:flex-row items-center justify-center gap-x-16 gap-y-4 text-[10px] tracking-[0.4em] uppercase font-bold text-white/20">
+                        <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all">hello@kime.xyz</a>
+                        <div className="hidden md:block w-1 h-1 rounded-full bg-white/10" />
+                        <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-all">Telegram</a>
+                        <div className="hidden md:block w-1 h-1 rounded-full bg-white/10" />
+                        <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-all">+7 (999) 000-00-00</a>
+                    </div>
+                    <div className="mt-4 text-[8px] text-white/5 tracking-[0.6em] uppercase font-bold">
+                        &copy; {new Date().getFullYear()} Kime Studio &bull; Moscow
+                    </div>
                 </div>
             </div>
         </div>

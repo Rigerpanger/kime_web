@@ -413,7 +413,7 @@ const ProjectsOverlay = () => {
     const showNavigation = projects.length > perPage;
 
     return (
-        <div className="w-full h-screen pointer-events-none flex flex-col relative overflow-hidden">
+        <div className="w-full min-h-[100dvh] pointer-events-none flex flex-col relative">
             
             {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
@@ -425,13 +425,13 @@ const ProjectsOverlay = () => {
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[60px] rounded-full scale-[2.0] md:scale-100" />
-                    <h1 className="relative text-[22px] md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.25em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none whitespace-nowrap">
+                    <h1 className="relative text-[32px] md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.2em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none whitespace-nowrap transition-all">
                         НАШИ РАБОТЫ
                     </h1>
-                    <div className="flex items-center justify-center gap-3 opacity-90">
-                        <div className="h-[1px] w-4 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
-                        <p className="text-[9px] md:text-[8px] tracking-[0.2em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">То, что вправе показать</p>
-                        <div className="h-[1px] w-4 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
+                    <div className="flex items-center justify-center gap-3 opacity-95">
+                        <div className="h-[1px] w-6 md:w-16 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
+                        <p className="text-[13px] md:text-[8px] tracking-[0.3em] md:tracking-[0.5em] text-[#ffaa44] uppercase font-bold drop-shadow-md">То, что вправе показать</p>
+                        <div className="h-[1px] w-6 md:w-16 bg-gradient-to-l from-transparent to-[#ffaa44]/50" />
                     </div>
                 </div>
             </motion.div>
@@ -481,10 +481,10 @@ const ProjectsOverlay = () => {
                     
                     {/* [8.2] Active Project Glass Info-Plate */}
                     <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={projects[activeIndex]?.id}
-                        className="absolute bottom-12 inset-x-8 z-40 pointer-events-auto bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-4"
+                        className="absolute bottom-20 inset-x-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3"
                     >
                         <div className="flex justify-between items-start gap-4">
                            <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>

@@ -85,7 +85,7 @@ const MobileScrollStack = () => {
     return (
         <div 
             ref={containerRef}
-            className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar"
+            className="fixed inset-0 w-full overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar z-0"
         >
             {sections.map(section => (
                 <div 

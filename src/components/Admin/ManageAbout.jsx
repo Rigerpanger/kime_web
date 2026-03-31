@@ -34,7 +34,9 @@ const ManageAbout = () => {
         slide3_role: 'Основатель & Креативный директор',
         slide3_photo: '',
         verticalOffsetMobile: -148,
-        verticalOffsetDesktop: -236
+        verticalOffsetDesktop: -236,
+        logoOffsetMobile: 32,
+        logoOffsetDesktop: 48
     });
     const [certificates, setCertificates] = useState([]);
     const [savingText, setSavingText] = useState(false);
@@ -373,6 +375,46 @@ const ManageAbout = () => {
                                     <input type="range" min="-600" max="600" step="1" className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white"
                                         value={textContent.verticalOffsetMobile}
                                         onChange={e => setTextContent({ ...textContent, verticalOffsetMobile: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                            </div>
+                            
+                            {/* Logo Offsets Row */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-10 pt-10 border-t border-white/5">
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <label className="text-[9px] uppercase tracking-widest text-[#ffcc00]/70 font-bold">Отступ логотипов (Desktop)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="number"
+                                                className="bg-transparent border-b border-white/10 text-[10px] font-mono text-[#ffcc00] w-12 text-right focus:outline-none focus:border-[#ffcc00]"
+                                                value={textContent.logoOffsetDesktop}
+                                                onChange={e => setTextContent({ ...textContent, logoOffsetDesktop: parseInt(e.target.value) || 0 })}
+                                            />
+                                            <span className="text-[9px] text-gray-600">px</span>
+                                        </div>
+                                    </div>
+                                    <input type="range" min="-200" max="600" step="1" className="w-full h-1 bg-[#ffcc00]/10 rounded-lg appearance-none cursor-pointer accent-[#ffcc00]"
+                                        value={textContent.logoOffsetDesktop}
+                                        onChange={e => setTextContent({ ...textContent, logoOffsetDesktop: parseInt(e.target.value) })}
+                                    />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <label className="text-[9px] uppercase tracking-widest text-[#ffcc00]/70 font-bold">Отступ логотипов (Mobile)</label>
+                                        <div className="flex items-center gap-2">
+                                            <input 
+                                                type="number"
+                                                className="bg-transparent border-b border-white/10 text-[10px] font-mono text-[#ffcc00] w-12 text-right focus:outline-none focus:border-[#ffcc00]"
+                                                value={textContent.logoOffsetMobile}
+                                                onChange={e => setTextContent({ ...textContent, logoOffsetMobile: parseInt(e.target.value) || 0 })}
+                                            />
+                                            <span className="text-[9px] text-gray-600">px</span>
+                                        </div>
+                                    </div>
+                                    <input type="range" min="-200" max="600" step="1" className="w-full h-1 bg-[#ffcc00]/10 rounded-lg appearance-none cursor-pointer accent-[#ffcc00]"
+                                        value={textContent.logoOffsetMobile}
+                                        onChange={e => setTextContent({ ...textContent, logoOffsetMobile: parseInt(e.target.value) })}
                                     />
                                 </div>
                             </div>

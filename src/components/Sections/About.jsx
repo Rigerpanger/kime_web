@@ -23,7 +23,9 @@ const About = () => {
         slide3_name: 'Александр Ким',
         slide3_role: 'Основатель & Креативный директор',
         verticalOffsetMobile: -148,
-        verticalOffsetDesktop: -236
+        verticalOffsetDesktop: -236,
+        logoOffsetMobile: 32,
+        logoOffsetDesktop: 48
     });
 
     const [certificates, setCertificates] = useState([]);
@@ -100,7 +102,7 @@ const About = () => {
         const [expandedCert, setExpandedCert] = useState(null);
 
         return (
-            <div className="w-full pointer-events-auto px-2 pt-24 pb-12 flex flex-col gap-10 relative">
+            <div className="w-full pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-10 relative">
                 <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
                     <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
                     <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
@@ -133,7 +135,7 @@ const About = () => {
                     {/* Glass Plate for Content */}
                     <div className="flex flex-col bg-white/[0.03] backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 shadow-2xl relative">
                         <span className="text-[#ffaa44] drop-shadow-md text-[10px] font-bold uppercase tracking-[0.5em] mb-6">Мастерство и надежность</span>
-                        <blockquote className="text-xl md:text-2xl font-light italic text-white leading-relaxed mb-8 opacity-95">
+                        <blockquote className="text-xl md:text-2xl font-light italic text-white leading-relaxed mb-8 opacity-95 tracking-tight">
                             "{content.slide3_quote}"
                         </blockquote>
                         <div>
@@ -198,11 +200,11 @@ const About = () => {
                     </div>
                 </div>
 
-                <div className="mt-2 pb-6 w-full flex flex-col items-center">
+                <div className="mt-4 pb-2 w-full flex flex-col items-center">
                     <LogoTicker />
-                    <div className="mt-12 flex flex-col items-center opacity-40 animate-bounce">
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-1">Направления</span>
-                        <ChevronRight size={20} className="text-gray-500 rotate-90" />
+                    <div className="mt-6 flex flex-col items-center opacity-40 animate-bounce">
+                        <span className="text-[9px] uppercase tracking-[0.3em] text-white/50 mb-1">Направления</span>
+                        <ChevronRight size={18} className="text-gray-500 rotate-90" />
                     </div>
                 </div>
             </div>
@@ -246,12 +248,20 @@ const About = () => {
                         </p>
                     </div>
                 </div>
-            </div>
 
-            <div className="w-full relative justify-end mt-auto pb-16">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                <div className="pt-4">
-                    <LogoTicker />
+                {/* Raised Logo Ticker - Now in-flow with text */}
+                <div 
+                    className="w-full relative"
+                    style={{ 
+                        marginTop: isMobile 
+                            ? `${content.logoOffsetMobile || 0}px` 
+                            : `${content.logoOffsetDesktop || 0}px` 
+                    }}
+                >
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                    <div>
+                        <LogoTicker />
+                    </div>
                 </div>
             </div>
         </motion.div>,
@@ -310,7 +320,7 @@ const About = () => {
             </div>
             <div className="flex flex-col justify-center">
                 <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4 drop-shadow-md">Видение и лидерство</span>
-                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-wide">
+                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-tight">
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
@@ -432,7 +442,7 @@ const About = () => {
             <div className={`container mx-auto px-6 md:px-24 pointer-events-auto relative flex flex-col ${isMobile ? 'h-auto py-10 justify-start items-center' : 'h-full justify-center items-center'}`}>
 
                 {/* Content Area */}
-                <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-4 pb-4' : 'h-full items-center justify-center pt-8 md:pt-44 pb-4 md:pb-24'}`}>
+                <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-4 pb-4' : 'h-full items-center justify-center pt-8 md:pt-32 pb-4 md:pb-24'}`}>
                     {isMobile ? (
                         <MobileAbout content={content} displayCertificates={displayCertificates} />
                     ) : (
