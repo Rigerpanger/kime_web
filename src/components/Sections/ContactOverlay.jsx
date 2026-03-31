@@ -211,7 +211,7 @@ const ContactOverlay = () => {
                     Оценить <span className="text-[#ffaa44] font-normal drop-shadow-md border-b-2 border-dashed border-[#ffaa44]/30 pb-1">проект</span>
                 </h2>
                 
-                <p className="text-sm md:text-base font-light text-gray-400 leading-relaxed max-w-xl mx-auto px-2 md:px-0">
+                <p className="text-sm md:text-base font-light text-gray-200 leading-relaxed max-w-xl mx-auto px-2 md:px-0">
                     Попросите нашего ИИ задать вопросы для понимания стоимости и формирования задачи. Затем переключитесь на соседнюю вкладку и отправьте эту задачу нашей команде.
                 </p>
             </div>

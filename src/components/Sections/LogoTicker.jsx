@@ -47,7 +47,7 @@ const LogoTicker = () => {
         : [];
 
     return (
-        <div className="h-[180px] md:h-[220px] py-6 overflow-hidden w-full opacity-70 hover:opacity-100 transition-opacity duration-500">
+        <div className="h-[110px] md:h-[200px] py-2 overflow-hidden w-full opacity-70 hover:opacity-100 transition-opacity duration-500">
             <div className="relative flex h-full items-center overflow-x-hidden">
                 <AnimatePresence>
                     <motion.div 

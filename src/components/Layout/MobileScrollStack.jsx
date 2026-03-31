@@ -92,9 +92,9 @@ const MobileScrollStack = () => {
                     key={section.id} 
                     id={`section-${section.id}`}
                     data-path={section.path}
-                    className="mobile-scroll-section w-full snap-start relative min-h-[100dvh] shrink-0"
+                    className="mobile-scroll-section w-full snap-start relative min-h-[100dvh] flex flex-col"
                 >
-                    <div className="w-full min-h-[100dvh] relative z-10 pointer-events-auto">
+                    <div className="w-full relative z-10 pointer-events-auto flex-1">
                         {section.component}
                     </div>
                 </div>

@@ -100,7 +100,7 @@ const About = () => {
         const [expandedCert, setExpandedCert] = useState(null);
 
         return (
-            <div className="w-full pointer-events-auto px-2 pt-24 pb-24 flex flex-col gap-16 relative">
+            <div className="w-full pointer-events-auto px-2 pt-24 pb-12 flex flex-col gap-10 relative">
                 <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
                     <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
                     <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
@@ -198,11 +198,11 @@ const About = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 pb-12 w-full flex flex-col items-center">
+                <div className="mt-2 pb-6 w-full flex flex-col items-center">
                     <LogoTicker />
-                    <div className="mt-24 flex flex-col items-center opacity-60 animate-bounce">
-                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">Направления</span>
-                        <ChevronRight size={24} className="text-gray-500 rotate-90" />
+                    <div className="mt-12 flex flex-col items-center opacity-40 animate-bounce">
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-1">Направления</span>
+                        <ChevronRight size={20} className="text-gray-500 rotate-90" />
                     </div>
                 </div>
             </div>
