@@ -36,7 +36,7 @@ const About = () => {
                 .select('content_json')
                 .eq('section_key', 'about_page')
                 .single();
-            
+
             if (contentData) {
                 setContent(prev => ({ ...prev, ...contentData.content_json }));
             }
@@ -46,7 +46,7 @@ const About = () => {
                 .from('certificates')
                 .select('*')
                 .order('order_index', { ascending: true });
-            
+
             if (certsData && certsData.length > 0) {
                 setCertificates(certsData);
             }
@@ -102,121 +102,124 @@ const About = () => {
         return (
             <div className="w-full pointer-events-auto px-2 pt-24 pb-24 flex flex-col gap-16 relative">
                 <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
-                 <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
-                 <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
-                    {content.slide1_text1}
-                 </p>
-                 <p className="text-gray-300 font-light leading-relaxed text-base border-l-2 border-[#ffaa44]/50 pl-5">
-                    {content.slide1_text2}
-                 </p>
-            </div>
-
-            <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
-                <span className="text-[#ffaa44] text-xs uppercase tracking-[0.5em] mb-4 font-bold">Наш подход</span>
-                <h3 className="text-3xl font-thin text-white uppercase mb-6 leading-tight">
-                    {content.slide2_title}
-                </h3>
-                <p className="text-gray-300 text-lg font-light leading-relaxed">
-                    {content.slide2_text}
-                </p>
-            </div>
-
-            <div className="flex flex-col">
-                <div className="w-full aspect-[4/5] bg-zinc-900 rounded-2xl overflow-hidden grayscale mb-8 relative shadow-2xl">
-                    <img 
-                        src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} 
-                        alt="Director" 
-                        className="w-full h-full object-cover opacity-80"
-                    />
+                    <h2 className="text-4xl font-thin mb-8 text-white uppercase tracking-wider leading-tight">{content.slide1_title}</h2>
+                    <p className="text-white text-lg font-light leading-relaxed tracking-wide mb-8 opacity-95">
+                        {content.slide1_text1}
+                    </p>
+                    <p className="text-gray-300 font-light leading-relaxed text-base border-l-2 border-[#ffaa44]/50 pl-5">
+                        {content.slide1_text2}
+                    </p>
                 </div>
-                <span className="text-white drop-shadow-md text-sm font-medium uppercase tracking-[0.4em] mb-4">Видение и лидерство</span>
-                <blockquote className="text-xl md:text-2xl font-normal italic text-white/95 leading-relaxed mb-8 drop-shadow-sm">
-                    "{content.slide3_quote}"
-                </blockquote>
-                <div>
-                    <p className="text-white uppercase tracking-widest text-sm font-bold mb-1">{content.slide3_name}</p>
-                    <p className="text-[#ffaa44] uppercase tracking-widest text-xs">{content.slide3_role}</p>
+
+                <div className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl">
+                    <span className="text-[#ffaa44] text-xs uppercase tracking-[0.5em] mb-4 font-bold">Наш подход</span>
+                    <h3 className="text-3xl font-thin text-white uppercase mb-6 leading-tight">
+                        {content.slide2_title}
+                    </h3>
+                    <p className="text-gray-300 text-lg font-light leading-relaxed">
+                        {content.slide2_text}
+                    </p>
                 </div>
-            </div>
 
-            <div className="flex flex-col">
-                <h2 className="text-3xl font-thin tracking-widest uppercase mb-4 text-white leading-tight">Нам доверяют</h2>
-                <div className="h-1 w-16 bg-[#ffaa44] mb-10" />
-                
-                <div className="flex flex-col gap-4">
-                    {displayCertificates.map((cert, index) => (
-                        <div 
-                            key={index} 
-                            onClick={() => setExpandedCert(expandedCert === index ? null : index)}
-                            className={`flex flex-col p-6 rounded-2xl bg-black/40 backdrop-blur-md border transition-all duration-500 cursor-pointer overflow-hidden ${
-                                expandedCert === index ? 'border-[#ffaa44]/50' : 'border-white/10'
-                            }`}
-                        >
-                            <div className="flex justify-between items-center w-full">
-                                <div className="flex-1">
-                                    <h4 className="text-white text-xl font-medium tracking-wide mb-1 transition-colors">{cert.company} {cert.division}</h4>
-                                    <p className="text-white/50 text-[10px] leading-relaxed uppercase tracking-widest">{cert.division ? cert.position : (cert.company + ' Team')}</p>
-                                </div>
-                                <div className={`transition-transform duration-500 ${expandedCert === index ? 'rotate-180 text-[#ffaa44]' : 'text-white/20'}`}>
-                                    <Award size={24} strokeWidth={1} />
-                                </div>
-                            </div>
+                <div className="flex flex-col relative">
+                    <div className="w-full aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale mb-10 relative shadow-2xl border border-white/5">
+                        <img 
+                            src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} 
+                            alt="Director" 
+                            className="w-full h-full object-cover opacity-80"
+                        />
+                    </div>
 
-                            <AnimatePresence>
-                                {expandedCert === index && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                                        animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
-                                        exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                                        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                        className="overflow-hidden"
-                                    >
-                                        <div className="w-full aspect-[210/297] rounded-xl overflow-hidden grayscale border border-white/10 bg-white/5">
-                                            <img 
-                                                src={cert.image_url} 
-                                                alt="Certificate" 
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSelectedFullCert(cert);
-                                            }}
-                                            className="w-full mt-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 text-[10px] uppercase tracking-widest font-bold hover:bg-white/10 active:scale-95 transition-all"
-                                        >
-                                            Смотреть полностью
-                                        </button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                    {/* Glass Plate for Content */}
+                    <div className="flex flex-col bg-white/[0.03] backdrop-blur-2xl p-8 rounded-[2rem] border border-white/10 shadow-2xl relative">
+                        <span className="text-[#ffaa44] drop-shadow-md text-[10px] font-bold uppercase tracking-[0.5em] mb-6">Мастерство и надежность</span>
+                        <blockquote className="text-xl md:text-2xl font-light italic text-white leading-relaxed mb-8 opacity-95">
+                            "{content.slide3_quote}"
+                        </blockquote>
+                        <div>
+                            <p className="text-white uppercase tracking-widest text-sm font-bold mb-1">{content.slide3_name}</p>
+                            <p className="text-[#ffaa44]/80 uppercase tracking-widest text-[10px] font-medium">{content.slide3_role}</p>
                         </div>
-                    ))}
+                    </div>
+                </div>
+
+                <div className="flex flex-col">
+                    <h2 className="text-3xl font-thin tracking-widest uppercase mb-4 text-white leading-tight">Нам доверяют</h2>
+                    <div className="h-1 w-16 bg-[#ffaa44] mb-10" />
+
+                    <div className="flex flex-col gap-4">
+                        {displayCertificates.map((cert, index) => (
+                            <div
+                                key={index}
+                                onClick={() => setExpandedCert(expandedCert === index ? null : index)}
+                                className={`flex flex-col p-6 rounded-2xl bg-black/40 backdrop-blur-md border transition-all duration-500 cursor-pointer overflow-hidden ${expandedCert === index ? 'border-[#ffaa44]/50' : 'border-white/10'
+                                    }`}
+                            >
+                                <div className="flex justify-between items-center w-full">
+                                    <div className="flex-1">
+                                        <h4 className="text-white text-xl font-medium tracking-wide mb-1 transition-colors">{cert.company} {cert.division}</h4>
+                                        <p className="text-white/50 text-[10px] leading-relaxed uppercase tracking-widest">{cert.division ? cert.position : (cert.company + ' Team')}</p>
+                                    </div>
+                                    <div className={`transition-transform duration-500 ${expandedCert === index ? 'rotate-180 text-[#ffaa44]' : 'text-white/20'}`}>
+                                        <Award size={24} strokeWidth={1} />
+                                    </div>
+                                </div>
+
+                                <AnimatePresence>
+                                    {expandedCert === index && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                            animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
+                                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="w-full aspect-[210/297] rounded-xl overflow-hidden grayscale border border-white/10 bg-white/5">
+                                                <img
+                                                    src={cert.image_url}
+                                                    alt="Certificate"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedFullCert(cert);
+                                                }}
+                                                className="w-full mt-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/50 text-[10px] uppercase tracking-widest font-bold hover:bg-white/10 active:scale-95 transition-all"
+                                            >
+                                                Смотреть полностью
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-8 pb-12 w-full flex flex-col items-center">
+                    <LogoTicker />
+                    <div className="mt-24 flex flex-col items-center opacity-60 animate-bounce">
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">Направления</span>
+                        <ChevronRight size={24} className="text-gray-500 rotate-90" />
+                    </div>
                 </div>
             </div>
-            
-            <div className="mt-8 pb-12 w-full flex flex-col items-center">
-                <LogoTicker />
-                <div className="mt-24 flex flex-col items-center opacity-60 animate-bounce">
-                    <span className="text-[10px] uppercase tracking-[0.3em] text-white/50 mb-2">Направления</span>
-                    <ChevronRight size={24} className="text-gray-500 rotate-90" />
-                </div>
-            </div>
-        </div>
         );
     };
 
     const slides = [
         // Slide 1: About Text + Brands
-        <motion.div 
+        <motion.div
             key="about-main"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-                opacity: 1, 
+            animate={{
+                opacity: 1,
                 y: 0,
                 marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
-            transition={{ 
+            transition={{
                 marginTop: { duration: 0.8, ease: "easeOut" },
                 opacity: { duration: 0.5 },
                 y: { duration: 0.5 }
@@ -226,11 +229,11 @@ const About = () => {
         >
             <div className="mb-8 w-full flex flex-col flex-grow">
                 <h2 className="text-3xl md:text-5xl lg:text-5xl font-thin mb-8 text-white uppercase tracking-wider text-center md:text-left">{content.slide1_title}</h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-center w-full relative">
                     {/* Visual protection for text readability */}
                     <div className="absolute -inset-8 bg-black/20 blur-3xl -z-10 rounded-full hidden md:block" />
-                    
+
                     <div className="md:col-span-12 lg:col-span-7">
                         <p className="text-white text-[13px] md:text-base lg:text-lg font-light leading-[1.8] md:leading-relaxed tracking-wide mb-2 opacity-90 text-center md:text-left">
                             {content.slide1_text1}
@@ -244,7 +247,7 @@ const About = () => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="w-full relative justify-end mt-auto pb-16">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 <div className="pt-4">
@@ -254,15 +257,15 @@ const About = () => {
         </motion.div>,
 
         // Slide 2: Approach/Team (Simplified)
-        <motion.div 
+        <motion.div
             key="about-team"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-                opacity: 1, 
+            animate={{
+                opacity: 1,
                 y: 0,
                 marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
-            transition={{ 
+            transition={{
                 marginTop: { duration: 0.8, ease: "easeOut" },
                 opacity: { duration: 0.5 },
                 y: { duration: 0.5 }
@@ -280,15 +283,15 @@ const About = () => {
         </motion.div>,
 
         // Slide 3: Director
-        <motion.div 
+        <motion.div
             key="about-vision"
             initial={{ opacity: 0, y: 10 }}
-            animate={{ 
-                opacity: 1, 
+            animate={{
+                opacity: 1,
                 y: 0,
                 marginTop: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
             }}
-            transition={{ 
+            transition={{
                 marginTop: { duration: 0.8, ease: "easeOut" },
                 opacity: { duration: 0.5 },
                 y: { duration: 0.5 }
@@ -298,16 +301,16 @@ const About = () => {
         >
             <div className="h-[40vh] md:h-[55vh] flex justify-end">
                 <div className="w-[85%] h-full bg-zinc-900 rounded-xl overflow-hidden grayscale border border-white/5 relative group">
-                    <img 
-                        src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} 
-                        alt="Director" 
+                    <img
+                        src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"}
+                        alt="Director"
                         className="w-full h-full object-cover opacity-50 group-hover:opacity-80 transition-opacity duration-700"
                     />
                 </div>
             </div>
             <div className="flex flex-col justify-center">
                 <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4 drop-shadow-md">Видение и лидерство</span>
-                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-normal italic text-white/95 leading-relaxed mb-6 tracking-tight drop-shadow-sm">
+                <blockquote className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-wide">
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
@@ -318,7 +321,7 @@ const About = () => {
         </motion.div>,
 
         // Slide 4: Certificates (Editorial Layout)
-        <motion.div 
+        <motion.div
             key="about-certificates"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -333,7 +336,7 @@ const About = () => {
                         <div className="h-px w-20 bg-gradient-to-r from-white/40 to-transparent" />
                     </div>
 
-                    <div 
+                    <div
                         className="space-y-1 max-h-[48vh] overflow-y-auto pr-2 no-scrollbar scroll-smooth"
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}
@@ -344,25 +347,22 @@ const About = () => {
                             <button
                                 key={index}
                                 onMouseEnter={() => setActiveCert(index)}
-                                className={`w-full text-left p-2 px-3.5 rounded-xl transition-all duration-300 group ${
-                                    index === activeCert 
-                                    ? 'bg-white/5 border-l border-white/60' 
-                                    : 'hover:bg-white/[0.03] border-l border-transparent'
-                                }`}
+                                className={`w-full text-left p-2 px-3.5 rounded-xl transition-all duration-300 group ${index === activeCert
+                                        ? 'bg-white/5 border-l border-white/60'
+                                        : 'hover:bg-white/[0.03] border-l border-transparent'
+                                    }`}
                             >
                                 <div className="flex items-start gap-4 w-full group-hover:pl-0.5 transition-all">
                                     <span className={`text-[8px] font-mono mt-1.5 transition-colors ${index === activeCert ? 'text-white' : 'text-white/20'}`}>
                                         {index + 1}
                                     </span>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm md:text-base font-light tracking-wide transition-colors leading-tight ${
-                                            index === activeCert ? 'text-white' : 'text-white/40'
-                                        }`}>
+                                        <p className={`text-sm md:text-base font-light tracking-wide transition-colors leading-tight ${index === activeCert ? 'text-white' : 'text-white/40'
+                                            }`}>
                                             {cert.company} {cert.division}
                                         </p>
-                                        <p className={`text-[8px] uppercase tracking-[0.15em] mt-1 transition-colors leading-relaxed line-clamp-2 ${
-                                            index === activeCert ? 'text-white/40' : 'text-white/10'
-                                        }`}>
+                                        <p className={`text-[8px] uppercase tracking-[0.15em] mt-1 transition-colors leading-relaxed line-clamp-2 ${index === activeCert ? 'text-white/40' : 'text-white/10'
+                                            }`}>
                                             {cert.position}
                                         </p>
                                     </div>
@@ -378,7 +378,7 @@ const About = () => {
                 {/* Right Side: Large Preview */}
                 <div className="hidden lg:flex lg:col-span-6 h-[58vh] justify-center items-center relative translate-y-4">
                     <AnimatePresence mode="wait">
-                        <motion.div 
+                        <motion.div
                             key={activeCert}
                             initial={{ opacity: 0, scale: 0.98, x: 20 }}
                             animate={{ opacity: 1, scale: 1, x: 0 }}
@@ -387,12 +387,12 @@ const About = () => {
                             className="relative h-full aspect-[210/297] p-3"
                         >
                             <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl rounded-2xl border border-white/10" />
-                            <div 
+                            <div
                                 className="h-full w-full relative z-10 rounded-xl overflow-hidden shadow-2xl grayscale hover:grayscale-0 transition-all duration-1000 cursor-zoom-in group/img"
                                 onClick={() => setSelectedFullCert(displayCertificates[activeCert])}
                             >
-                                <img 
-                                    src={displayCertificates[activeCert]?.image_url} 
+                                <img
+                                    src={displayCertificates[activeCert]?.image_url}
                                     alt="Certificate"
                                     className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover/img:scale-105"
                                 />
@@ -403,7 +403,7 @@ const About = () => {
                                     </div>
                                 </div>
                             </div>
-                            
+
                             {/* Decorative background element */}
                             <div className="absolute -inset-10 bg-white/5 blur-3xl rounded-full -z-10 opacity-30" />
                         </motion.div>
@@ -416,13 +416,13 @@ const About = () => {
     return (
         <section id="about" className={`w-full relative flex items-center pointer-events-none ${isMobile ? 'min-h-[100dvh]' : 'h-screen overflow-hidden'}`}>
             {/* Side Navigation */}
-            <button 
+            <button
                 onClick={prevSlide}
                 className="absolute left-4 md:left-6 top-[53%] -translate-y-1/2 z-30 p-4 text-white/40 hover:text-white transition-all pointer-events-auto hidden md:block outline-none hover:scale-110"
             >
                 <ChevronLeft size={56} strokeWidth={1} />
             </button>
-            <button 
+            <button
                 onClick={nextSlide}
                 className="absolute right-4 md:right-6 top-[53%] -translate-y-1/2 z-30 p-4 text-white/40 hover:text-white transition-all pointer-events-auto hidden md:block outline-none hover:scale-110"
             >
@@ -430,7 +430,7 @@ const About = () => {
             </button>
 
             <div className={`container mx-auto px-6 md:px-24 pointer-events-auto relative flex flex-col ${isMobile ? 'h-auto py-10 justify-start items-center' : 'h-full justify-center items-center'}`}>
-                
+
                 {/* Content Area */}
                 <div className={`w-full flex ${isMobile ? 'h-auto justify-center pt-4 pb-4' : 'h-full items-center justify-center pt-8 md:pt-44 pb-4 md:pb-24'}`}>
                     {isMobile ? (
@@ -448,7 +448,7 @@ const About = () => {
                     <div className="absolute bottom-6 md:bottom-3 flex flex-col items-center gap-4 text-white pointer-events-auto z-30">
                         <div className="flex gap-3 items-center h-4">
                             {[...Array(totalSlides)].map((_, i) => (
-                                <button 
+                                <button
                                     key={i}
                                     onClick={() => setCurrentSlide(i)}
                                     className={`h-[2px] transition-all duration-500 outline-none ${i === currentSlide ? 'w-10 bg-white' : 'w-5 bg-white/40 hover:bg-white/60'}`}
@@ -465,7 +465,7 @@ const About = () => {
             {/* Lightbox / Fullscreen Modal */}
             <AnimatePresence>
                 {selectedFullCert && (
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -473,14 +473,14 @@ const About = () => {
                         onClick={() => setSelectedFullCert(null)}
                     >
                         {/* Close Button */}
-                        <button 
+                        <button
                             className="absolute top-6 right-6 md:top-10 md:right-10 z-[110] text-white/50 hover:text-white transition-colors"
                             onClick={() => setSelectedFullCert(null)}
                         >
                             <X size={32} strokeWidth={1.5} />
                         </button>
 
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
@@ -488,13 +488,13 @@ const About = () => {
                             className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-md overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)]"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img 
-                                src={selectedFullCert.image_url} 
-                                alt="Full Certificate" 
+                            <img
+                                src={selectedFullCert.image_url}
+                                alt="Full Certificate"
                                 className="w-full h-full object-contain"
                             />
                         </motion.div>
-                        
+
                         {/* Info Overlay in Modal */}
                         <div className="absolute bottom-10 left-10 hidden md:block max-w-sm pointer-events-none">
                             <p className="text-white/40 text-[10px] uppercase tracking-widest mb-2">{selectedFullCert.company}</p>

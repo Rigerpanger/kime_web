@@ -55,6 +55,16 @@ const MobileScrollStack = () => {
         return () => observer.disconnect();
     }, [navigate]);
 
+    // Reset scroll to top on first mount
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (containerRef.current) {
+                containerRef.current.scrollTo(0, 0);
+            }
+        }, 100);
+        return () => clearTimeout(timer);
+    }, []);
+
     // Handle programmatic navigation (e.g. from the Burger Menu)
     useEffect(() => {
         // Only scroll if the location change wasn't triggered by our own IntersectionObserver
@@ -75,7 +85,7 @@ const MobileScrollStack = () => {
     return (
         <div 
             ref={containerRef}
-            className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar"
+            className="w-full h-[100dvh] overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-proximity scroll-smooth no-scrollbar"
         >
             {sections.map(section => (
                 <div 

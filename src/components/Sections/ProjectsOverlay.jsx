@@ -55,10 +55,22 @@ const cardVariants = {
 // --- Sub-components ---
 
 // --- Mobile Native Gallery Components ---
-const MobileNativeGallery = ({ projects, onProjectSelect }) => {
+const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange }) => {
+    const scrollRef = React.useRef(null);
+
+    const handleScroll = () => {
+        if (!scrollRef.current) return;
+        const scrollLeft = scrollRef.current.scrollLeft;
+        const width = scrollRef.current.offsetWidth;
+        const index = Math.round(scrollLeft / (width * 0.85)); // 0.85 is card width in vw
+        onActiveIndexChange(index);
+    };
+
     return (
         <div 
-            className="absolute inset-x-0 top-[52%] -translate-y-1/2 w-full h-[420px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="absolute inset-x-0 top-[48%] -translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar"
         >
             {projects.map((project, idx) => (
                 <div 
@@ -95,7 +107,6 @@ const MobileNativeGallery = ({ projects, onProjectSelect }) => {
                     </div>
                 </div>
             ))}
-            {/* Spacing for the very last item */}
             <div className="flex-shrink-0 w-[7.5vw] h-full pointer-events-none"></div>
         </div>
     );
@@ -199,8 +210,11 @@ const ArtifactPassport = ({ project, onClose }) => {
                     <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors z-[60]"><X size={24} /></button>
                     {isVideoOpen ? (
                         <div className="w-full flex items-center justify-center pt-8">
-                            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/50 border border-white/10">
-                                <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-50 bg-black/40 rounded-full p-2">
+                            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/50 border border-white/10 shadow-3xl">
+                                <button 
+                                    onClick={() => setIsVideoOpen(false)} 
+                                    className="absolute top-4 right-4 text-white hover:text-[#ffaa44] transition-colors z-[120] bg-black/60 rounded-full p-2 border border-white/10"
+                                >
                                     <X size={24} />
                                 </button>
                                 <iframe 
@@ -215,46 +229,46 @@ const ArtifactPassport = ({ project, onClose }) => {
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
                             <div>
                                 <div 
-                                    className={`aspect-square rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative ${project.video_url ? 'cursor-pointer group' : ''}`}
+                                    className={`aspect-square rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative ${project.video_url ? 'cursor-pointer group' : ''}`}
                                     onClick={() => { if (project.video_url) setIsVideoOpen(true); }}
                                 >
                                      {project.cover ? (
-                                        <img src={project.cover} alt={project.title} className="w-full h-full object-cover text-transparent group-hover:opacity-80 transition-opacity" />
+                                        <img src={project.cover} alt={project.title} className="w-full h-full object-cover text-transparent group-hover:opacity-80 transition-opacity duration-700" />
                                      ) : (
                                         <span className="text-white/10 text-9xl font-bold">{project.title[0]}</span>
                                      )}
                                      {project.video_url && (
                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors z-10">
-                                             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                                             <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-500 shadow-2xl">
                                                  <Play size={32} className="text-white fill-white ml-2" />
                                              </div>
                                          </div>
                                      )}
-                                     <div className="absolute inset-0 border border-white/10 rounded-xl mix-blend-overlay pointer-events-none z-20" />
+                                     <div className="absolute inset-0 border border-white/10 rounded-2xl mix-blend-overlay pointer-events-none z-20" />
                                 </div>
                                 {project.client && (
-                                    <div className="mt-4 text-[10px] uppercase tracking-[0.3em] text-white/40 font-light px-2">
-                                        ЗАКАЗЧИК: <span className="text-white ml-2">{project.client}</span>
+                                    <div className="mt-6 text-[10px] uppercase tracking-[0.4em] text-white/50 font-bold px-2">
+                                        ЗАКАЗЧИК: <span className="text-white ml-2 drop-shadow-sm">{project.client}</span>
                                     </div>
                                 )}
                             </div>
                             <div className="flex flex-col justify-center">
-                                <h2 className="text-3xl md:text-4xl font-thin tracking-wide mb-4 text-white uppercase break-words hyphens-auto" style={{ wordBreak: 'break-word' }}>{project.title}</h2>
+                                <h2 className="text-3xl md:text-5xl font-thin tracking-wide mb-6 text-white uppercase break-words hyphens-auto drop-shadow-xl" style={{ wordBreak: 'break-word', lineHeight: '1.1' }}>{project.title}</h2>
                                 <div className="flex flex-wrap gap-2 mb-8 md:mb-10">
                                     {project.tags.map(t => (
-                                        <span key={t} className="text-[9px] md:text-[10px] uppercase tracking-widest text-[#ffaa44] border border-[#ffaa44]/20 px-3 py-1 rounded-full bg-[#ffaa44]/5">
+                                        <span key={t} className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-[#ffaa44] border border-[#ffaa44]/30 px-4 py-1.5 rounded-full bg-[#ffaa44]/10 backdrop-blur-sm font-bold shadow-sm">
                                             {t}
                                         </span>
                                     ))}
                                 </div>
-                                <div className="space-y-6 md:space-y-8 text-gray-300 font-light leading-relaxed text-xs md:text-sm">
-                                    <div><h4 className="text-[9px] md:text-[10px] font-medium uppercase tracking-widest text-gray-500 mb-1 md:mb-2">ЗАДАЧА</h4><p className="opacity-80 break-words hyphens-auto">{project.challenge}</p></div>
-                                    <div><h4 className="text-[9px] md:text-[10px] font-medium uppercase tracking-widest text-gray-500 mb-1 md:mb-2">РЕШЕНИЕ</h4><p className="opacity-80 break-words hyphens-auto">{project.solution}</p></div>
-                                    <div><h4 className="text-[9px] md:text-[10px] font-medium uppercase tracking-widest text-gray-500 mb-1 md:mb-2">ОПИСАНИЕ</h4><p className="opacity-80 text-white font-normal break-words hyphens-auto">{project.short_description || project.result}</p></div>
-                                    <div className="border-t border-white/10 pt-5 md:pt-6 mt-6 md:mt-8">
-                                        <h4 className="text-[9px] md:text-[10px] font-medium uppercase tracking-widest text-gray-500 mb-2 md:mb-3">ТЕХНОЛОГИИ</h4>
-                                        <div className="flex flex-wrap gap-3 md:gap-4 text-xs tracking-wider text-gray-400">
-                                            {project.tech.map(t => <span key={t}>{t}</span>)}
+                                <div className="space-y-8 md:space-y-10 text-gray-200 font-light leading-relaxed text-sm md:text-base">
+                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">ЗАДАЧА</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.challenge}</p></div>
+                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">РЕШЕНИЕ</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.solution}</p></div>
+                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">ОПИСАНИЕ</h4><p className="opacity-100 text-white font-normal break-words hyphens-auto leading-relaxed">{project.short_description || project.result}</p></div>
+                                    <div className="border-t border-white/10 pt-8 md:pt-10 mt-8 md:mt-10">
+                                        <h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-3 md:mb-4">ТЕХНОЛОГИИ</h4>
+                                        <div className="flex flex-wrap gap-4 md:gap-6 text-xs md:text-sm tracking-[0.2em] text-white/70 uppercase">
+                                            {project.tech.map(t => <span key={t} className="bg-white/5 px-3 py-1 rounded-sm border border-white/5">{t}</span>)}
                                         </div>
                                     </div>
                                 </div>
@@ -355,8 +369,11 @@ const ProjectsOverlay = () => {
         return () => setIsModalOpen(false);
     }, [selectedProject, setIsModalOpen]);
 
+    const [activeIndex, setActiveIndex] = useState(0);
+
     const handleProjectSelect = (project) => {
         setSelectedProject(project);
+        setScrollLocked(true); // Explicitly lock scroll on background
         if (project && project.slug) {
             navigate(`/projects/${project.slug}`);
         }
@@ -364,6 +381,7 @@ const ProjectsOverlay = () => {
 
     const handleCloseModal = () => {
         setSelectedProject(null);
+        setScrollLocked(false); // Unlock
         navigate('/projects');
     };
 
@@ -402,12 +420,12 @@ const ProjectsOverlay = () => {
                 initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="absolute top-36 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center"
+                className="absolute top-36 md:top-auto md:bottom-10 w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12"
             >
-                <div className="relative mb-2 mt-2">
+                <div className="relative mb-2 mt-2 w-full max-w-[80vw]">
                     {/* Decorative background glow */}
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[60px] rounded-full scale-[2.0] md:scale-100" />
-                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.4em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-3 uppercase tracking-[0.4em] md:tracking-[0.8em] drop-shadow-xl md:drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] truncate">
                         ИЗБРАННЫЕ РАБОТЫ
                     </h1>
                     <div className="flex items-center justify-center gap-3 opacity-90">
@@ -454,7 +472,41 @@ const ProjectsOverlay = () => {
 
             {/* Main Content Area (Split Mobile/Desktop) */}
             {isMobile ? (
-                <MobileNativeGallery projects={projects} onProjectSelect={handleProjectSelect} />
+                <>
+                    <MobileNativeGallery 
+                        projects={projects} 
+                        onProjectSelect={handleProjectSelect} 
+                        onActiveIndexChange={setActiveIndex}
+                    />
+                    
+                    {/* [8.2] Active Project Glass Info-Plate */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        key={projects[activeIndex]?.id}
+                        className="absolute bottom-16 inset-x-8 z-40 pointer-events-auto bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-4"
+                    >
+                        <div className="flex justify-between items-start gap-4">
+                           <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>
+                           <div className="flex flex-wrap gap-2 shrink-0">
+                               {projects[activeIndex]?.tech?.slice(0, 2).map(t => (
+                                   <span key={t} className="text-[8px] text-[#ffaa44] font-bold uppercase tracking-wider">{t}</span>
+                               ))}
+                           </div>
+                        </div>
+                        <p className="text-gray-300 text-xs font-light leading-relaxed line-clamp-2">
+                            {projects[activeIndex]?.challenge}
+                        </p>
+                        <div className="flex justify-between items-center mt-2 border-t border-white/5 pt-3">
+                            <span className="text-[8px] text-white/30 uppercase tracking-[0.3em] font-bold">Сдвиньте для просмотра</span>
+                            <div className="flex gap-1">
+                                {projects.map((_, i) => (
+                                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#ffaa44]' : 'w-1.5 bg-white/10'}`} />
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                </>
             ) : (
                 <div className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20">
                     <div 

@@ -261,23 +261,24 @@ const ContactOverlay = () => {
             </div>
 
             {/* Footer */}
-            <div className="relative z-10 w-full max-w-2xl mt-12 md:mt-16 flex flex-col items-center">
-                <div className="flex items-center gap-4 text-white/40 mb-4 opacity-50">
-                    <div className="h-[1px] w-12 bg-white/20" />
-                    <span className="text-[10px] tracking-[0.4em] uppercase">KIME PRODUCTION</span>
-                    <div className="h-[1px] w-12 bg-white/20" />
+            <div className="relative z-10 w-full max-w-2xl mt-16 md:mt-24 flex flex-col items-center">
+                <div className="flex items-center gap-4 text-white/60 mb-6 transition-opacity">
+                    <div className="h-[1px] w-12 bg-[#ffaa44]/40" />
+                    <span className="text-[11px] tracking-[0.5em] uppercase font-bold text-[#ffaa44]/80">СТУДИЯ КИМЭ</span>
+                    <div className="h-[1px] w-12 bg-[#ffaa44]/40" />
                 </div>
                 
-                <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-xs md:text-sm tracking-widest uppercase font-light text-white/60">
-                    <a href="mailto:hello@kime.xyz" className="hover:text-white hover:text-shadow transition-colors text-[#ffaa44] drop-shadow-md">hello@kime.xyz</a>
-                    <span className="hidden md:inline text-white/20">|</span>
-                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Telegram</a>
-                    <span className="hidden md:inline text-white/20">|</span>
-                    <a href="tel:+79990000000" className="hover:text-white transition-colors">+7 (999) 000-00-00</a>
-                    <span className="hidden md:inline text-white/20">|</span>
-                    <span className="text-white/40">Москва</span>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-x-12 gap-y-6 text-sm md:text-base tracking-widest uppercase font-medium text-white/90">
+                    <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">hello@kime.xyz</a>
+                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">Telegram</a>
+                    <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-colors border-b border-white/10 pb-1">+7 (999) 000-00-00</a>
                 </div>
-                <div className="mt-8 text-[9px] text-white/20 uppercase tracking-widest text-center">
+
+                <div className="mt-6 text-[10px] text-white/40 tracking-[0.4em] uppercase font-bold opacity-80">
+                    МОСКВА, РОССИЯ
+                </div>
+
+                <div className="mt-12 text-[10px] text-white/20 uppercase tracking-widest text-center font-light">
                     &copy; {new Date().getFullYear()} Kime Studio. All rights reserved.
                 </div>
             </div>

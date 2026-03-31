@@ -47,17 +47,17 @@ const LogoTicker = () => {
         : [];
 
     return (
-        <div className="h-[104px] py-2 overflow-hidden w-full opacity-60 hover:opacity-100 transition-opacity duration-500">
-            <div className="relative flex overflow-x-hidden">
+        <div className="h-[180px] md:h-[220px] py-6 overflow-hidden w-full opacity-70 hover:opacity-100 transition-opacity duration-500">
+            <div className="relative flex h-full items-center overflow-x-hidden">
                 <AnimatePresence>
                     <motion.div 
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1, x: [0, -2000] }}
-                        className="flex whitespace-nowrap gap-16 md:gap-32 items-center py-4"
+                        animate={{ opacity: 1, x: [0, -2800] }}
+                        className="flex whitespace-nowrap gap-20 md:gap-40 items-center"
                         transition={{ 
                             x: {
                                 repeat: Infinity, 
-                                duration: 40, 
+                                duration: 35, 
                                 ease: "linear" 
                             },
                             opacity: { duration: 1 }
@@ -66,12 +66,12 @@ const LogoTicker = () => {
                         {tickerItems.map((partner, index) => (
                             <div 
                                 key={`${partner.id || partner.name}-${index}`}
-                                className="flex-shrink-0 flex items-center justify-center grayscale brightness-200"
+                                className="flex-shrink-0 flex items-center justify-center grayscale brightness-200 px-4"
                             >
                                 <img 
                                     src={partner.logo_url} 
                                     alt={partner.name} 
-                                    className="object-contain w-[140px] md:w-[160px] max-h-12 md:max-h-14"
+                                    className="object-contain w-[180px] md:w-[260px] max-h-16 md:max-h-24"
                                 />
                             </div>
                         ))}
