@@ -23,17 +23,26 @@ const LogoTicker = () => {
 
     useEffect(() => {
         const fetchPartners = async () => {
-            const { data, error } = await supabase
-                .from('partners')
-                .select('*')
-                .order('order_index', { ascending: true });
-            
-            if (!error && data && data.length > 0) {
-                setPartners(data);
-            } else {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const response = await fetch(`${apiUrl}/api/partners`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        setPartners(data);
+                    } else {
+                        setPartners(fallbackPartners);
+                    }
+                } else {
+                    setPartners(fallbackPartners);
+                }
+            } catch (error) {
+                console.error('Error fetching partners:', error);
                 setPartners(fallbackPartners);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchPartners();

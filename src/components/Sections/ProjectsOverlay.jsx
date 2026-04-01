@@ -343,14 +343,15 @@ const ProjectsOverlay = () => {
 
     useEffect(() => {
         const fetchProjects = async () => {
-            const { data, error } = await supabase
-                .from('projects')
-                .select('*')
-                .order('sort_order', { ascending: true });
-            
-            if (error) console.error('Error fetching projects:', error);
-            else {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const response = await fetch(`${apiUrl}/api/projects`);
+                
+                if (!response.ok) throw new Error('API Error');
+                
+                const data = await response.json();
                 setProjects(data || []);
+                
                 // If there's a slug in the URL, find the project and select it
                 if (urlSlug && data) {
                     const project = data.find(p => p.slug === urlSlug);
@@ -358,8 +359,11 @@ const ProjectsOverlay = () => {
                         setSelectedProject(project);
                     }
                 }
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
         fetchProjects();
     }, [urlSlug]);

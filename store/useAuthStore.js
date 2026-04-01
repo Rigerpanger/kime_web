@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 
 const useAuthStore = create((set) => ({
-  session: null, 
-  user: null,    
+  session: null, // Теперь храним объект с токеном
+  user: null,    // Инфо о пользователе
   loading: true,
 
   initializeAuth: async () => {

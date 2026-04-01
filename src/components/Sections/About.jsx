@@ -32,25 +32,26 @@ const About = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-            // Fetch content
-            const { data: contentData } = await supabase
-                .from('site_content')
-                .select('content_json')
-                .eq('section_key', 'about_page')
-                .single();
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                
+                // Fetch content
+                const contentResponse = await fetch(`${apiUrl}/api/content/about_page`);
+                if (contentResponse.ok) {
+                    const contentData = await contentResponse.json();
+                    setContent(prev => ({ ...prev, ...contentData }));
+                }
 
-            if (contentData) {
-                setContent(prev => ({ ...prev, ...contentData.content_json }));
-            }
-
-            // Fetch certificates
-            const { data: certsData } = await supabase
-                .from('certificates')
-                .select('*')
-                .order('order_index', { ascending: true });
-
-            if (certsData && certsData.length > 0) {
-                setCertificates(certsData);
+                // Fetch certificates
+                const certsResponse = await fetch(`${apiUrl}/api/certificates`);
+                if (certsResponse.ok) {
+                    const certsData = await certsResponse.json();
+                    if (certsData && certsData.length > 0) {
+                        setCertificates(certsData);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching about data:', error);
             }
         };
         fetchData();

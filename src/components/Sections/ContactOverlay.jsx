@@ -30,39 +30,25 @@ const ContactOverlay = () => {
         setIsThinking(true);
 
         try {
-            const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
             
-            if (!apiKey) {
-                setMessages(prev => [...prev, { role: 'assistant', content: 'Ошибка: API ключ не настроен. Обратитесь к администратору.' }]);
-                setIsThinking(false);
-                return;
-            }
-
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            const response = await fetch(`${apiUrl}/api/chat`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${apiKey}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'gpt-4o-mini',
-                    messages: [
-                        { 
-                            role: 'system', 
-                            content: 'Ты профессиональный оценщик стоимости IT и дизайн проектов в креативном агентстве КИМЭ. КИМЭ делает премиальные 3D сайты, брендинг и цифровые инсталляции. На основе описания от пользователя, дай примерную рыночную оценку стоимости (в рублях или долларах) и сроков. Отвечай коротко, стильно и профессионально. В конце каждого сообщения ты ОБЯЗАН добавлять дисклеймер, что "Финальная стоимость определяется только после детального обсуждения с командой КИМЭ".' 
-                        },
-                        ...newMessages.map(msg => ({ role: msg.role, content: msg.content }))
-                    ]
+                    messages: newMessages.map(msg => ({ role: msg.role, content: msg.content }))
                 })
             });
 
-            if (!response.ok) throw new Error('API Error');
+            if (!response.ok) throw new Error('Proxy Server Error');
 
             const data = await response.json();
             setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
         } catch (error) {
             console.error('GPT Error:', error);
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Связь с сервером прервалась. Попробуйте позже или оставьте заявку напрямую.' }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Ой, связь с ИИ немного затянулась. Попробуйте еще раз или напишите нам напрямую!' }]);
         } finally {
             setIsThinking(false);
         }

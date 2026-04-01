@@ -1,0 +1,183 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+import pg from 'pg';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const { Pool } = pg;
+const app = express();
+const PORT = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
+
+const pool = new Pool({
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST || 'localhost',
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT || 5432,
+});
+
+app.use(cors({ origin: '*' }));
+app.use(express.json());
+
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
+app.use('/uploads', express.static(uploadsDir));
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage });
+
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Access denied' });
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Invalid token' });
+        req.user = user;
+        next();
+    });
+};
+
+// --- FILE UPLOAD ---
+app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file' });
+    res.json({ url: `/uploads/${req.file.filename}` });
+});
+
+// --- PROJECTS CRUD ---
+app.get('/api/projects', async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC');
+    res.json(rows);
+});
+app.post('/api/projects', authenticateToken, async (req, res) => {
+    const p = req.body;
+    const { rows } = await pool.query(
+        'INSERT INTO projects (title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+        [p.title, p.slug, p.challenge, p.solution, p.result, p.short_description, p.client, p.cover, p.video_url, p.tags, p.tech, p.sort_order]
+    );
+    res.json(rows[0]);
+});
+app.put('/api/projects/:id', authenticateToken, async (req, res) => {
+    const p = req.body;
+    const { rows } = await pool.query(
+        'UPDATE projects SET title=$1, slug=$2, challenge=$3, solution=$4, result=$5, short_description=$6, client=$7, cover=$8, video_url=$9, tags=$10, tech=$11, sort_order=$12 WHERE id=$13 RETURNING *',
+        [p.title, p.slug, p.challenge, p.solution, p.result, p.short_description, p.client, p.cover, p.video_url, p.tags, p.tech, p.sort_order, req.params.id]
+    );
+    res.json(rows[0]);
+});
+app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
+    await pool.query('DELETE FROM projects WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+});
+
+// --- SITE CONTENT ---
+app.get('/api/content/:key', async (req, res) => {
+    const { rows } = await pool.query('SELECT content_json FROM site_content WHERE section_key = $1', [req.params.key]);
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(rows[0].content_json);
+});
+app.post('/api/content/:key', authenticateToken, async (req, res) => {
+    const { rows } = await pool.query(
+        'INSERT INTO site_content (section_key, content_json) VALUES ($1, $2) ON CONFLICT (section_key) DO UPDATE SET content_json = $2, updated_at = NOW() RETURNING *',
+        [req.params.key, req.body]
+    );
+    res.json(rows[0]);
+});
+
+// --- CERTIFICATES CRUD ---
+app.get('/api/certificates', async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
+    res.json(rows);
+});
+app.post('/api/certificates', authenticateToken, async (req, res) => {
+    const c = req.body;
+    const { rows } = await pool.query(
+        'INSERT INTO certificates (company, division, position, image_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [c.company, c.division, c.position, c.image_url, c.order_index]
+    );
+    res.json(rows[0]);
+});
+app.put('/api/certificates/:id', authenticateToken, async (req, res) => {
+    const c = req.body;
+    const { rows } = await pool.query(
+        'UPDATE certificates SET company=$1, division=$2, position=$3, image_url=$4, order_index=$5 WHERE id=$6 RETURNING *',
+        [c.company, c.division, c.position, c.image_url, c.order_index, req.params.id]
+    );
+    res.json(rows[0]);
+});
+app.delete('/api/certificates/:id', authenticateToken, async (req, res) => {
+    await pool.query('DELETE FROM certificates WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+});
+
+// --- PARTNERS CRUD ---
+app.get('/api/partners', async (req, res) => {
+    const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
+    res.json(rows);
+});
+app.post('/api/partners', authenticateToken, async (req, res) => {
+    const p = req.body;
+    const { rows } = await pool.query(
+        'INSERT INTO partners (name, logo_url, width, order_index) VALUES ($1, $2, $3, $4) RETURNING *',
+        [p.name, p.logo_url, p.width, p.order_index]
+    );
+    res.json(rows[0]);
+});
+app.delete('/api/partners/:id', authenticateToken, async (req, res) => {
+    await pool.query('DELETE FROM partners WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+});
+
+// --- AUTH ---
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (rows.length === 0) return res.status(401).json({ error: 'User not found' });
+        const isMatch = await bcrypt.compare(password, rows[0].password_hash);
+        if (!isMatch) return res.status(401).json({ error: 'Wrong password' });
+        const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, JWT_SECRET, { expiresIn: '72h' });
+        res.json({ token, user: { id: rows[0].id, email: rows[0].email } });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/auth/setup-admin', async (req, res) => {
+    try {
+        const { email, password, secret } = req.body;
+        if (secret !== 'KIME_SETUP_SECRET') return res.status(403).json({ error: 'Denied' });
+        const hash = await bcrypt.hash(password, 10);
+        await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [email, hash]);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- AI Chat ---
+app.post('/api/chat', async (req, res) => {
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
+            body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'КИМЭ Агентство.' }, ...req.body.messages] })
+        });
+        res.json(await response.json());
+    } catch (error) { res.status(500).json({ error: 'AI failed' }); }
+});
+
+app.listen(PORT, () => console.log(`Kime API Server started on port ${PORT}`));
