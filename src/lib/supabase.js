@@ -14,7 +14,8 @@ const createProxy = (table) => {
         single: function() { return this.then(res => ({ data: res.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : null, error: res.error })); },
         
         then: function(onSuccess) {
-            return fetch(`/${this._table}`)
+            const apiUrl = import.meta.env.VITE_API_URL || '/api';
+            return fetch(`${apiUrl}/${this._table}`)
                 .then(res => {
                     if (!res.ok) throw new Error('API Error');
                     return res.json();
