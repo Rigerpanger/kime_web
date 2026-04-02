@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "server/*"
-          target: "/var/www/kimeproducti_usr/data/www/kime-api"
+          target: "/var/www/kimeproducti_usr/data/www/kimeproduction.ru"
           strip_components: 0
 
       - name: Initialize Server (First time/Updates)
@@ -54,10 +54,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           envs: DB_USER,DB_PASSWORD,DB_NAME,JWT_SECRET,OPENAI_API_KEY
           script: |
-            mkdir -p /var/www/kimeproducti_usr/data/www/kime-api/server
-            cd /var/www/kimeproducti_usr/data/www/kime-api/server
+            cd /var/www/kimeproducti_usr/data/www/kimeproduction.ru/server
             npm install
-            # Спрячем пароль внутри кавычек, чтобы спецсимволы не сломали скрипт
+            
+            # Спрячем пароль внутри кавычек
             echo "DB_USER=\"$DB_USER\"" > .env
             echo "DB_PASSWORD=\"$DB_PASSWORD\"" >> .env
             echo "DB_NAME=\"$DB_NAME\"" >> .env
@@ -65,7 +65,11 @@ jobs:
             echo "JWT_SECRET=\"$JWT_SECRET\"" >> .env
             echo "OPENAI_API_KEY=\"$OPENAI_API_KEY\"" >> .env
             
-            pm2 delete kime-api || true
+            # Убиваем старые зависшие процессы Node.js, которые могли занять 3001 порт
+            killall node || true
+            
+            # Разбираемся с PM2
+            pm2 delete all || true
             pm2 start index.js --name kime-api
         env:
           DB_USER: ${{ secrets.DB_USER }}
