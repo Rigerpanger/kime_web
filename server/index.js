@@ -83,12 +83,21 @@ const initDB = async () => {
                 order_index INTEGER DEFAULT 0
             );
         `);
-        // --- One-time Cleanup: Replace localhost URLs with relative ones (from previous failed attempts) ---
-        await pool.query("UPDATE projects SET cover = REPLACE(cover, 'http://localhost:3001/api/', '/api/') WHERE cover LIKE 'http://localhost:3001/api/%'");
-        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, 'http://localhost:3001/api/', '/api/') WHERE logo_url LIKE 'http://localhost:3001/api/%'");
-        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, 'http://localhost:3001/api/', '/api/') WHERE image_url LIKE 'http://localhost:3001/api/%'");
+        // --- One-time Cleanup: Replace ALL old paths (relative, localhost or local /uploads) with new Proxy paths ---
+        await pool.query("UPDATE projects SET cover = REPLACE(cover, '/api/uploads/', '/api/m/') WHERE cover LIKE '%/api/uploads/%'");
+        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '/api/uploads/', '/api/m/') WHERE logo_url LIKE '%/api/uploads/%'");
+        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '/api/uploads/', '/api/m/') WHERE image_url LIKE '%/api/uploads/%'");
+        
+        // Also fix the dot vs underscore in existing filenames in DB
+        // (This is a simplified fix, we'll try to guess and replace known extensions)
+        await pool.query("UPDATE projects SET cover = REPLACE(cover, '.jpg', '_jpg') WHERE cover LIKE '%.jpg'");
+        await pool.query("UPDATE projects SET cover = REPLACE(cover, '.png', '_png') WHERE cover LIKE '%.png'");
+        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '.jpg', '_jpg') WHERE logo_url LIKE '%.jpg'");
+        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '.png', '_png') WHERE logo_url LIKE '%.png'");
+        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '.jpg', '_jpg') WHERE image_url LIKE '%.jpg'");
+        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '.png', '_png') WHERE image_url LIKE '%.png'");
 
-        console.log('✅ Database tables verified/created and data paths cleaned up');
+        console.log('✅ Database paths fixed to use Smart Proxy');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
     }
@@ -102,6 +111,19 @@ const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
 app.use('/api/uploads', express.static(uploadsDir));
+
+// --- SMART MEDIA PROXY (Bypass Nginx static intercept) ---
+app.get('/api/m/:id', (req, res) => {
+    try {
+        const filename = req.params.id.replace('_', '.');
+        const filePath = path.join(uploadsDir, filename);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath); // Express automatically sets Content-Type based on extension
+        } else {
+            res.status(404).json({ error: 'File not found' });
+        }
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 // --- DEBUG UPLOADS ---
 app.get('/api/debug-uploads', (req, res) => {
@@ -139,7 +161,9 @@ const authenticateToken = (req, res, next) => {
 // --- FILE UPLOAD ---
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
-    res.json({ url: `/uploads/${req.file.filename}` });
+    // Replace dot with underscore so Nginx doesn't intercept it as a static file
+    const proxyFilename = req.file.filename.replace('.', '_');
+    res.json({ url: `/m/${proxyFilename}` });
 });
 
 // --- PROJECTS CRUD ---
