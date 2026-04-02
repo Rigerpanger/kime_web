@@ -26,7 +26,7 @@ const useAuthStore = create((set) => ({
   },
 
   signIn: async (email, password) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     
     const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',

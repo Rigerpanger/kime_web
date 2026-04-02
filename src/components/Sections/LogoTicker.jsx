@@ -24,7 +24,7 @@ const LogoTicker = () => {
     useEffect(() => {
         const fetchPartners = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
                 const response = await fetch(`${apiUrl}/partners`);
                 
                 if (response.ok) {

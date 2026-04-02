@@ -83,7 +83,12 @@ const initDB = async () => {
                 order_index INTEGER DEFAULT 0
             );
         `);
-        console.log('✅ Database tables verified/created');
+        // --- One-time Cleanup: Replace localhost URLs with relative ones (from previous failed attempts) ---
+        await pool.query("UPDATE projects SET cover = REPLACE(cover, 'http://localhost:3001/api/', '/api/') WHERE cover LIKE 'http://localhost:3001/api/%'");
+        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, 'http://localhost:3001/api/', '/api/') WHERE logo_url LIKE 'http://localhost:3001/api/%'");
+        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, 'http://localhost:3001/api/', '/api/') WHERE image_url LIKE 'http://localhost:3001/api/%'");
+
+        console.log('✅ Database tables verified/created and data paths cleaned up');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
     }

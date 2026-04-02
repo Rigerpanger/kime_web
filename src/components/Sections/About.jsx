@@ -33,7 +33,7 @@ const About = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
                 
                 // Fetch content
                 const contentResponse = await fetch(`${apiUrl}/content/about_page`);
