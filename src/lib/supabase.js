@@ -1,6 +1,14 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Этот файл теперь возвращает "заглушку", чтобы сайт не падал без Supabase.
+// В будущем мы перепишем запросы на наш новый API.
+export const supabase = {
+    from: () => ({
+        select: () => Promise.resolve({ data: [], error: null, count: 0 }),
+        insert: () => Promise.resolve({ data: [], error: null }),
+        update: () => Promise.resolve({ data: [], error: null }),
+        delete: () => Promise.resolve({ data: [], error: null }),
+    }),
+    auth: {
+        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    }
+};
