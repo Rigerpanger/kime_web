@@ -23,7 +23,7 @@ jobs:
       - name: Build Project
         run: npm run build
         env:
-          VITE_API_URL: "http://${{ secrets.SERVER_IP }}:3001"
+          VITE_API_URL: "/api"
           # Больше не нужны ключи Supabase для сборки фронтенда!
 
       - name: Deploy Frontend
