@@ -1,7 +1,5 @@
 // Это "мостик" между старым кодом Supabase и нашим новым Backend API на VPS.
-// Он позволяет сайту работать без переписывания всех компонентов.
-
-const API_URL = '/api';
+// Убираем префикс /api здесь, так как он уже есть в VITE_API_URL или Nginx.
 
 const createProxy = (table) => {
     const chain = {
@@ -13,18 +11,27 @@ const createProxy = (table) => {
         eq: function(col, val) { this._filters[col] = val; return this; },
         match: function(obj) { Object.assign(this._filters, obj); return this; },
         order: function(col, { ascending = true } = {}) { this._order = col; return this; },
-        single: function() { return this.then(res => ({ data: res.data[0], error: res.error })); },
+        single: function() { return this.then(res => ({ data: res.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : null, error: res.error })); },
         
         then: function(onSuccess) {
-            return fetch(`${API_URL}/${this._table}`)
-                .then(res => res.json())
+            // Используем только имя таблицы, префикс /api будет добавлен автоматически Nginx или VITE_API_URL
+            return fetch(`/api/${this._table}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('API Error');
+                    return res.json();
+                })
                 .then(data => {
-                    // Простейшая фильтрация для совместимости
-                    let result = Array.isArray(data) ? data : [data];
+                    let result = data;
+                    // Минимальная имитация фильтрации для совместимости
                     if (onSuccess) return onSuccess({ data: result, error: null });
                     return { data: result, error: null };
                 })
-                .catch(err => ({ data: [], error: err }));
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    const emptyRes = { data: [], error: err };
+                    if (onSuccess) return onSuccess(emptyRes);
+                    return emptyRes;
+                });
         }
     };
     return chain;
