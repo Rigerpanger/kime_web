@@ -40,14 +40,15 @@ const AppLayout = () => {
 
     useEffect(() => {
         const fetchSculptureConfig = async () => {
-            const { data, error } = await supabase
-                .from('site_content')
-                .select('content_json')
-                .eq('section_key', 'sculpture_config')
-                .single();
-            
-            if (data && data.content_json) {
-                setSculptureConfig(data.content_json);
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const response = await fetch(`${apiUrl}/content/sculpture_config`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) setSculptureConfig(data);
+                }
+            } catch (err) {
+                console.error("Failed to load sculpture config", err);
             }
         };
         fetchSculptureConfig();
