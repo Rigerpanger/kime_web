@@ -14,8 +14,7 @@ const createProxy = (table) => {
         single: function() { return this.then(res => ({ data: res.data ? (Array.isArray(res.data) ? res.data[0] : res.data) : null, error: res.error })); },
         
         then: function(onSuccess) {
-            // Используем только имя таблицы, префикс /api будет добавлен автоматически Nginx или VITE_API_URL
-            return fetch(`/api/${this._table}`)
+            return fetch(`/${this._table}`)
                 .then(res => {
                     if (!res.ok) throw new Error('API Error');
                     return res.json();
