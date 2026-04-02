@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "dist/*"
-          target: "/var/www/fastuser/data/www/kimeproduction.ru"
+          target: "/var/www/kimeproducti_usr/data/www/kimeproduction.ru"
           strip_components: 1
 
       - name: Deploy Backend
@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "server/*"
-          target: "/var/www/fastuser/data/www/kime-api"
+          target: "/var/www/kimeproducti_usr/data/www/kime-api"
           strip_components: 0
 
       - name: Initialize Server (First time/Updates)
@@ -53,8 +53,8 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            mkdir -p /var/www/fastuser/data/www/kime-api/server
-            cd /var/www/fastuser/data/www/kime-api/server
+            mkdir -p /var/www/kimeproducti_usr/data/www/kime-api/server
+            cd /var/www/kimeproducti_usr/data/www/kime-api/server
             npm install
             # Создаем .env для сервера на лету из секретов GitHub
             echo "DB_USER=${{ secrets.DB_USER }}" > .env
