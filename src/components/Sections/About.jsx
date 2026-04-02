@@ -36,14 +36,14 @@ const About = () => {
                 const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
                 
                 // Fetch content
-                const contentResponse = await fetch(`${apiUrl}/api/content/about_page`);
+                const contentResponse = await fetch(`${apiUrl}/content/about_page`);
                 if (contentResponse.ok) {
                     const contentData = await contentResponse.json();
                     setContent(prev => ({ ...prev, ...contentData }));
                 }
 
                 // Fetch certificates
-                const certsResponse = await fetch(`${apiUrl}/api/certificates`);
+                const certsResponse = await fetch(`${apiUrl}/certificates`);
                 if (certsResponse.ok) {
                     const certsData = await certsResponse.json();
                     if (certsData && certsData.length > 0) {

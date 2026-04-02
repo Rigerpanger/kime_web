@@ -36,9 +36,9 @@ const ManageAbout = () => {
         setLoading(true);
         try {
             const [pRes, cRes, certRes] = await Promise.all([
-                fetch(`${apiUrl}/api/partners`),
-                fetch(`${apiUrl}/api/content/about_page`),
-                fetch(`${apiUrl}/api/certificates`)
+                fetch(`${apiUrl}/partners`),
+                fetch(`${apiUrl}/content/about_page`),
+                fetch(`${apiUrl}/certificates`)
             ]);
             
             if (pRes.ok) setPartners(await pRes.json());

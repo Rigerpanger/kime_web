@@ -21,7 +21,7 @@ const ManageProjects = () => {
     const [editingProject, setEditingProject] = useState(null);
     const { session } = useAuthStore();
     
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
     const [formData, setFormData] = useState({
         title: '',
@@ -44,7 +44,7 @@ const ManageProjects = () => {
     const fetchProjects = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${apiUrl}/api/projects`);
+            const response = await fetch(`${apiUrl}/projects`);
             if (response.ok) {
                 const data = await response.json();
                 setProjects(data || []);
@@ -93,7 +93,7 @@ const ManageProjects = () => {
         if (!window.confirm('Вы уверены, что хотите удалить этот проект?')) return;
         
         try {
-            const response = await fetch(`${apiUrl}/api/projects/${project.id}`, {
+            const response = await fetch(`${apiUrl}/projects/${project.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${session?.token}` }
             });
@@ -118,7 +118,7 @@ const ManageProjects = () => {
         const data = new FormData();
         data.append('image', file);
 
-        const response = await fetch(`${apiUrl}/api/upload`, {
+        const response = await fetch(`${apiUrl}/upload`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${session?.token}` },
             body: data
@@ -152,7 +152,7 @@ const ManageProjects = () => {
             };
 
             const method = editingProject ? 'PUT' : 'POST';
-            const url = editingProject ? `${apiUrl}/api/projects/${editingProject.id}` : `${apiUrl}/api/projects`;
+            const url = editingProject ? `${apiUrl}/projects/${editingProject.id}` : `${apiUrl}/projects`;
 
             const response = await fetch(url, {
                 method: method,

@@ -30,9 +30,9 @@ const ContactOverlay = () => {
         setIsThinking(true);
 
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
             
-            const response = await fetch(`${apiUrl}/api/chat`, {
+            const response = await fetch(`${apiUrl}/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

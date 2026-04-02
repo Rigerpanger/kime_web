@@ -12,6 +12,15 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+console.log('-------------------------------------------');
+console.log('🚀 SERVER STARTUP CHECK:');
+console.log('DB_USER:', process.env.DB_USER || '❌ MISSING');
+console.log('DB_NAME:', process.env.DB_NAME || '❌ MISSING');
+console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '✅ PRESENT (MASKED)' : '❌ MISSING (FATAL)');
+console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ OK' : '❌ MISSING');
+console.log('PORT:', process.env.PORT || '3001 (Default)');
+console.log('-------------------------------------------');
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
