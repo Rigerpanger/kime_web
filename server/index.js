@@ -32,7 +32,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
 const pool = new Pool({
     user: 'kimeproducti_usr',
     host: '127.0.0.1',
-    database: 'kimeproducti_db',
+    database: 'kime_db',
     password: 'O)1%eFPrk@UfKdpG',
     port: 5432,
 });
