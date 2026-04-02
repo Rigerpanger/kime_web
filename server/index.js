@@ -101,6 +101,20 @@ app.use(express.json());
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
+app.use('/api/uploads', express.static(uploadsDir));
+
+// --- DEBUG UPLOADS ---
+app.get('/api/debug-uploads', (req, res) => {
+    try {
+        const files = fs.readdirSync(uploadsDir);
+        res.json({ 
+            exists: fs.existsSync(uploadsDir), 
+            path: uploadsDir, 
+            files,
+            total: files.length 
+        });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir),
