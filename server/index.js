@@ -26,7 +26,7 @@ const __dirname = path.dirname(__filename);
 
 const { Pool } = pg;
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3005;
 const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
 
 const pool = new Pool({
@@ -36,6 +36,59 @@ const pool = new Pool({
     password: 'O)1%eFPrk@UfKdpG',
     port: 5432,
 });
+
+// --- INITIALIZE DATABASE ---
+const initDB = async () => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS site_content (
+                section_key VARCHAR(50) PRIMARY KEY,
+                content_json JSONB NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS projects (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                slug VARCHAR(255) UNIQUE NOT NULL,
+                challenge TEXT,
+                solution TEXT,
+                result TEXT,
+                short_description TEXT,
+                client VARCHAR(255),
+                cover VARCHAR(255),
+                video_url VARCHAR(255),
+                tags JSONB,
+                tech JSONB,
+                sort_order INTEGER DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS certificates (
+                id SERIAL PRIMARY KEY,
+                company VARCHAR(255),
+                division VARCHAR(255),
+                position VARCHAR(255),
+                image_url VARCHAR(255),
+                order_index INTEGER DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS partners (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255),
+                logo_url VARCHAR(255),
+                width INTEGER DEFAULT 100,
+                order_index INTEGER DEFAULT 0
+            );
+        `);
+        console.log('✅ Database tables verified/created');
+    } catch (err) {
+        console.error('❌ Database initialization error:', err.message);
+    }
+};
+initDB();
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -72,8 +125,10 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
 
 // --- PROJECTS CRUD ---
 app.get('/api/projects', async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC');
-    res.json(rows);
+    try {
+        const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/projects', authenticateToken, async (req, res) => {
     const p = req.body;
@@ -98,9 +153,11 @@ app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
 
 // --- SITE CONTENT ---
 app.get('/api/content/:key', async (req, res) => {
-    const { rows } = await pool.query('SELECT content_json FROM site_content WHERE section_key = $1', [req.params.key]);
-    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
-    res.json(rows[0].content_json);
+    try {
+        const { rows } = await pool.query('SELECT content_json FROM site_content WHERE section_key = $1', [req.params.key]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+        res.json(rows[0].content_json);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/content/:key', authenticateToken, async (req, res) => {
     const { rows } = await pool.query(
@@ -112,8 +169,10 @@ app.post('/api/content/:key', authenticateToken, async (req, res) => {
 
 // --- CERTIFICATES CRUD ---
 app.get('/api/certificates', async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
-    res.json(rows);
+    try {
+        const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/certificates', authenticateToken, async (req, res) => {
     const c = req.body;
@@ -138,8 +197,10 @@ app.delete('/api/certificates/:id', authenticateToken, async (req, res) => {
 
 // --- PARTNERS CRUD ---
 app.get('/api/partners', async (req, res) => {
-    const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
-    res.json(rows);
+    try {
+        const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/partners', authenticateToken, async (req, res) => {
     const p = req.body;
