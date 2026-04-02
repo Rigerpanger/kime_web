@@ -216,6 +216,13 @@ app.delete('/api/partners/:id', authenticateToken, async (req, res) => {
 });
 
 // --- AUTH ---
+app.get('/api/auth/users', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT id, email FROM users');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
