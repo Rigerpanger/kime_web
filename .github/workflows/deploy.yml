@@ -65,7 +65,8 @@ jobs:
             echo "JWT_SECRET=\"$JWT_SECRET\"" >> .env
             echo "OPENAI_API_KEY=\"$OPENAI_API_KEY\"" >> .env
             
-            pm2 restart kime-api --update-env || pm2 start index.js --name kime-api
+            pm2 delete kime-api || true
+            pm2 start index.js --name kime-api
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
