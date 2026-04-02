@@ -30,11 +30,11 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
 
 const pool = new Pool({
-    user: process.env.DB_USER || 'kimeproducti_usr',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'kimeproducti_db',
-    password: process.env.DB_PASSWORD || 'O)1%eFPrk@UfKdpG',
-    port: process.env.DB_PORT || 5432,
+    user: 'kimeproducti_usr',
+    host: '127.0.0.1',
+    database: 'kimeproducti_db',
+    password: 'O)1%eFPrk@UfKdpG',
+    port: 5432,
 });
 
 app.use(cors({ origin: '*' }));
