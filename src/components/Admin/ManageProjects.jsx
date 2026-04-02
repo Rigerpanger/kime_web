@@ -21,7 +21,7 @@ const ManageProjects = () => {
     const [editingProject, setEditingProject] = useState(null);
     const { session } = useAuthStore();
     
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     const [formData, setFormData] = useState({
         title: '',

@@ -7,7 +7,7 @@ import {
 
 const ManageAbout = () => {
     const { session } = useAuthStore();
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
     
     const [partners, setPartners] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ const ManageAbout = () => {
     const handleTextSave = async () => {
         setSavingText(true);
         try {
-            const response = await fetch(`${apiUrl}/api/content/about_page`, {
+            const response = await fetch(`${apiUrl}/content/about_page`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const ManageAbout = () => {
     const uploadFile = async (file) => {
         const data = new FormData();
         data.append('image', file);
-        const response = await fetch(`${apiUrl}/api/upload`, {
+        const response = await fetch(`${apiUrl}/upload`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${session?.token}` },
             body: data

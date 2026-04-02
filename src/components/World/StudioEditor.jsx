@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import useAppStore from '../../store/useAppStore';
-import { supabase } from '../../lib/supabase';
+import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Lightbulb, Plus, Trash2, Upload } from 'lucide-react';
 
 const AzimuthDial = ({ value, onChange }) => {
@@ -60,6 +60,9 @@ const AzimuthDial = ({ value, onChange }) => {
 };
 
 const StudioEditor = () => {
+    const { session } = useAuthStore();
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    
     const config = useAppStore(s => s.sculptureConfig);
     const setConfig = useAppStore(s => s.setSculptureConfig);
     const activeLightId = useAppStore(s => s.activeLightId);
@@ -84,25 +87,26 @@ const StudioEditor = () => {
 
         setUploadingHdri(true);
         try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `custom-hdri-${Date.now()}.${fileExt}`;
-            
-            const { error: uploadError } = await supabase.storage
-                .from('hdri')
-                .upload(fileName, file);
+            if (!session?.token) throw new Error("Только администратор может загружать файлы");
 
-            if (uploadError) throw uploadError;
+            const data = new FormData();
+            data.append('image', file);
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('hdri')
-                .getPublicUrl(fileName);
+            const response = await fetch(`${apiUrl}/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session.token}` },
+                body: data
+            });
 
-            setConfig({ hdriUrl: publicUrl });
+            const resData = await response.json();
+            if (!response.ok) throw new Error(resData.error || 'Upload failed');
+
+            setConfig({ hdriUrl: apiUrl + resData.url });
             setSaved(false);
             alert('HDRI Uploaded successfully!');
         } catch (error) {
             console.error('HDRI upload error:', error);
-            alert(`HDRI Upload Failed: ${error.message || 'Unknown error. Check Supabase RLS policies.'}`);
+            alert(`HDRI Upload Failed: ${error.message}`);
         } finally {
             setUploadingHdri(false);
             e.target.value = ''; // reset input
@@ -112,15 +116,22 @@ const StudioEditor = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            const { error } = await supabase
-                .from('site_content')
-                .upsert({
-                    section_key: 'sculpture_config',
-                    content_json: config,
-                    updated_at: new Date()
-                }, { onConflict: 'section_key' });
+            if (!session?.token) throw new Error("Вы не авторизованы как администратор. Войдите в панель управления.");
 
-            if (error) throw error;
+            const response = await fetch(`${apiUrl}/content/sculpture_config`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.token}` 
+                },
+                body: JSON.stringify({ content_json: config })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'Failed to save');
+            }
+
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         } catch (error) {
