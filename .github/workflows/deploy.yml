@@ -53,23 +53,22 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
           envs: DB_USER,DB_PASSWORD,DB_NAME,JWT_SECRET,OPENAI_API_KEY
+          script: |
+            mkdir -p /var/www/kimeproducti_usr/data/www/kime-api/server
+            cd /var/www/kimeproducti_usr/data/www/kime-api/server
+            npm install
+            # Спрячем пароль внутри кавычек, чтобы спецсимволы не сломали скрипт
+            echo "DB_USER=\"$DB_USER\"" > .env
+            echo "DB_PASSWORD=\"$DB_PASSWORD\"" >> .env
+            echo "DB_NAME=\"$DB_NAME\"" >> .env
+            echo "DB_HOST=localhost" >> .env
+            echo "JWT_SECRET=\"$JWT_SECRET\"" >> .env
+            echo "OPENAI_API_KEY=\"$OPENAI_API_KEY\"" >> .env
+            
+            pm2 restart kime-api || pm2 start index.js --name kime-api
         env:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          script: |
-            mkdir -p /var/www/kimeproducti_usr/data/www/kime-api/server
-            cd /var/www/kimeproducti_usr/data/www/kime-api/server
-            npm install
-            # Создаем .env безопасно через переменные окружения
-            echo "DB_USER=$DB_USER" > .env
-            echo "DB_PASSWORD=$DB_PASSWORD" >> .env
-            echo "DB_NAME=$DB_NAME" >> .env
-            echo "DB_HOST=localhost" >> .env
-            echo "JWT_SECRET=$JWT_SECRET" >> .env
-            echo "OPENAI_API_KEY=$OPENAI_API_KEY" >> .env
-            
-            # Перезапуск сервера через PM2
-            pm2 restart kime-api || pm2 start index.js --name kime-api
