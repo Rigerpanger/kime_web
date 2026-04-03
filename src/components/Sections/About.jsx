@@ -218,7 +218,7 @@ const About = () => {
         // Slide 1: About Text + Brands
         <motion.div
             key="about-main"
-            initial={{ opacity: 0, y: targetY + ((10 - targetY) / 2) }}
+            initial={{ opacity: 0, y: targetY }}
             animate={{
                 opacity: 1,
                 y: targetY
@@ -270,7 +270,7 @@ const About = () => {
         // Slide 2: Approach/Team (Simplified)
         <motion.div
             key="about-team"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: targetY + ((10 - targetY) / 2) }}
             animate={{ 
                 opacity: 1, 
                 y: targetY 
@@ -294,7 +294,7 @@ const About = () => {
         // Slide 3: Director
         <motion.div
             key="about-vision"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: targetY + ((10 - targetY) / 2) }}
             animate={{ 
                 opacity: 1, 
                 y: targetY 
@@ -330,7 +330,7 @@ const About = () => {
         // Slide 4: Certificates (Editorial Layout)
         <motion.div
             key="about-certificates"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: targetY }}
             animate={{
                 opacity: 1,
                 y: targetY
