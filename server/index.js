@@ -203,14 +203,17 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
 // --- AI Chat ---
 app.post(['/chat', '/api/chat'], async (req, res) => {
     try {
-        const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        let apiKeyRaw = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
         
-        if (!apiKey) {
+        if (!apiKeyRaw) {
             return res.status(500).json({ 
                 error: 'SERVER_CONFIG_ERROR', 
                 details: 'OpenAI API Key is not set on the server environment.' 
             });
         }
+
+        // AGGRESSIVE STRIPPING: remove ALL whitespace types and hidden control characters
+        const apiKey = apiKeyRaw.replace(/\s/g, '').replace(/[\n\r\t]/g, '').trim();
 
         // Support for older Node versions without AbortController
         let controller;
