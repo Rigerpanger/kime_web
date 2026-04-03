@@ -155,7 +155,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }}
         >
             <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0" style={{ transform: "translateZ(15px)" }}>
-                {project.tags.map(t => (
+                {(project.tags || []).map(t => (
                     <span key={t} className="text-[7px] md:text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-[#ffaa44]/10 backdrop-blur-xl rounded-sm">
                         {t}
                     </span>
@@ -255,7 +255,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                             <div className="flex flex-col justify-center">
                                 <h2 className="text-3xl md:text-5xl font-thin tracking-wide mb-6 text-white uppercase break-words hyphens-auto drop-shadow-xl" style={{ wordBreak: 'break-word', lineHeight: '1.1' }}>{project.title}</h2>
                                 <div className="flex flex-wrap gap-2 mb-8 md:mb-10">
-                                    {project.tags.map(t => (
+                                    {(project.tags || []).map(t => (
                                         <span key={t} className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-[#ffaa44] border border-[#ffaa44]/30 px-4 py-1.5 rounded-full bg-[#ffaa44]/10 backdrop-blur-sm font-bold shadow-sm">
                                             {t}
                                         </span>
@@ -268,7 +268,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                                     <div className="border-t border-white/10 pt-8 md:pt-10 mt-8 md:mt-10">
                                         <h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-3 md:mb-4">ТЕХНОЛОГИИ</h4>
                                         <div className="flex flex-wrap gap-4 md:gap-6 text-xs md:text-sm tracking-[0.2em] text-white/70 uppercase">
-                                            {project.tech.map(t => <span key={t} className="bg-white/5 px-3 py-1 rounded-sm border border-white/5">{t}</span>)}
+                                            {(project.tech || []).map(t => <span key={t} className="bg-white/5 px-3 py-1 rounded-sm border border-white/5">{t}</span>)}
                                         </div>
                                     </div>
                                 </div>
@@ -306,8 +306,6 @@ const ProjectsOverlay = () => {
                 if (res.ok) setLayout(await res.json());
             } catch (e) {
                 console.error('Layout fetch error:', e);
-            } finally {
-                setIsReady(true);
             }
         };
         fetchLayout();
@@ -322,7 +320,13 @@ const ProjectsOverlay = () => {
         return () => setScrollLocked(false);
     }, [setScrollLocked]);
 
-    if (!isReady) return null;
+    if (!isReady) {
+        return (
+            <div className="fixed inset-0 bg-black flex items-center justify-center z-[200]">
+                <span className="text-white/20 text-[10px] tracking-[0.5em] uppercase font-light animate-pulse">Загрузка</span>
+            </div>
+        );
+    }
 
     const accumulatedDelta = React.useRef(0);
 
@@ -386,6 +390,7 @@ const ProjectsOverlay = () => {
                 console.error('Error fetching projects:', error);
             } finally {
                 setLoading(false);
+                setIsReady(true);
             }
         };
         fetchProjects();
