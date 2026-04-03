@@ -105,8 +105,10 @@ const Settings = () => {
         const handleMouseMove = (e) => {
             if (!dragState) return;
             const deltaY = e.clientY - dragState.startY;
-            // Scale: 1px mouse movement = 4px offset change
-            const offsetDelta = Math.round(deltaY * 4);
+            
+            // Match the scales used in VisualMockup
+            const dynamicScale = deviceMode === 'mobile' ? 2.6 : 2.15;
+            const offsetDelta = Math.round(deltaY * dynamicScale);
             const newValue = dragState.startVal + offsetDelta;
             
             setLayoutSettings(prev => ({
@@ -130,18 +132,22 @@ const Settings = () => {
     }, [dragState]);
 
     const VisualMockup = () => {
+        const isMobile = deviceMode === 'mobile';
         const hKey = `${activeScreen}_header_offset_${deviceMode}`;
         const cKey = `${activeScreen}_content_offset_${deviceMode}`;
         const isAboutS1 = activeScreen === 'about_slide1';
-        const logoKey = deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile';
+        const logoKey = isMobile ? 'logoOffsetMobile' : 'logoOffsetDesktop';
 
-        const hOff = (layoutSettings[hKey] || 0) / 4;
-        const cOff = (layoutSettings[cKey] || 0) / 4;
-        const lOff = (layoutSettings[logoKey] || 0) / 4;
+        // Recalibrated scale factors: Match physical screen vs mockup pixels
+        const scale = isMobile ? 2.6 : 2.15;
+
+        const hOff = (layoutSettings[hKey] || 0) / scale;
+        const cOff = (layoutSettings[cKey] || 0) / scale;
+        const lOff = (layoutSettings[logoKey] || 0) / scale;
 
         return (
-            <div className={`relative transition-all duration-700 bg-[#111] rounded-[2.5rem] border-[8px] border-[#222] shadow-2xl flex flex-col items-center overflow-hidden
-                ${deviceMode === 'desktop' ? 'w-full aspect-video max-w-4xl' : 'w-[280px] h-[580px]'}
+            <div className={`relative transition-all duration-700 bg-[#0a0a0a] rounded-[2.5rem] border-[8px] border-[#1a1a1a] shadow-2xl flex flex-col items-center overflow-hidden
+                ${isMobile ? 'w-[280px] h-[600px]' : 'w-full aspect-video max-w-4xl'}
             `}>
                 {deviceMode === 'mobile' && <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-white/10 rounded-full" />}
                 
@@ -151,7 +157,11 @@ const Settings = () => {
                     />
                 )}
 
-                <div className="w-full h-full p-8 flex flex-col relative">
+                <div className="w-full h-full p-4 flex flex-col justify-center items-center relative">
+                    {/* Viewport Center Line */}
+                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 border-t border-dashed border-white/10 pointer-events-none" />
+                    <div className="absolute top-1/2 left-4 -translate-y-1/2 text-[8px] font-bold text-white/10 uppercase tracking-widest pointer-events-none">Center</div>
+
                     <MockupBlock 
                         y={hOff} 
                         label="ЗАГОЛОВОК" 
@@ -163,12 +173,21 @@ const Settings = () => {
                         onDragStart={(e) => setDragState({ key: hKey, startY: e.clientY, startVal: layoutSettings[hKey] || 0 })}
                     />
 
+                    {/* Realistic spacing mimicking site defaults */}
+                    <div className="h-6 pointer-events-none" />
+
                     <MockupBlock 
                         y={cOff} 
                         label="ОСНОВНОЙ КОНТЕНТ" 
                         icon={<FileText size={14} />}
                         color="amber"
-                        className="mt-12"
+                        // Realistic content height mapping
+                        className={
+                            activeScreen.startsWith('about') ? 'min-h-[100px]' : 
+                            activeScreen === 'services' ? 'min-h-[220px]' : 
+                            activeScreen === 'projects' ? 'min-h-[300px]' : 
+                            'min-h-[150px]'
+                        }
                         itemKey={cKey}
                         isSelected={selectedKey === cKey}
                         onSelect={() => setSelectedKey(cKey)}
@@ -181,7 +200,7 @@ const Settings = () => {
                             label="ЛОГОТИПЫ ПАРТНЕРОВ" 
                             icon={<ImageIcon size={14} />}
                             color="emerald"
-                            className="mt-8"
+                            className="mt-6"
                             itemKey={logoKey}
                             isSelected={selectedKey === logoKey}
                             onSelect={() => setSelectedKey(logoKey)}
