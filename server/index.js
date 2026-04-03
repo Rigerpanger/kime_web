@@ -115,10 +115,14 @@ app.use('/api/uploads', express.static(uploadsDir));
 // --- SMART MEDIA PROXY (Bypass Nginx static intercept) ---
 app.get('/api/m/:id', (req, res) => {
     try {
-        const filename = req.params.id.replace('_', '.');
+        let filename = req.params.id;
+        // Support legacy underscore bypass ONLY if there's no dot in the filename
+        if (!filename.includes('.') && filename.includes('_')) {
+            filename = filename.replace('_', '.');
+        }
         const filePath = path.join(uploadsDir, filename);
         if (fs.existsSync(filePath)) {
-            res.sendFile(filePath); // Express automatically sets Content-Type based on extension
+            res.sendFile(filePath);
         } else {
             res.status(404).json({ error: 'File not found' });
         }
@@ -161,9 +165,17 @@ const authenticateToken = (req, res, next) => {
 // --- FILE UPLOAD ---
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
-    // Replace dot with underscore so Nginx doesn't intercept it as a static file
-    const proxyFilename = req.file.filename.replace('.', '_');
-    res.json({ url: `/m/${proxyFilename}` });
+    
+    let proxyFilename = req.file.filename;
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    
+    // Only replace dots with underscores for standard web static files to bypass Nginx.
+    // We MUST preserve dots for .hdr and .exr because Three.js parsers rely on the exact extension.
+    if (!['.hdr', '.hdri', '.exr'].includes(ext)) {
+        proxyFilename = proxyFilename.replace('.', '_');
+    }
+    
+    res.json({ url: `/api/m/${proxyFilename}` });
 });
 
 // --- PROJECTS CRUD ---
