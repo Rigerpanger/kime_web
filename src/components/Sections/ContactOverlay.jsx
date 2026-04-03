@@ -77,6 +77,7 @@ const ContactOverlay = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
         } catch (error) {
             console.error('GPT Error:', error.message);
+            // Если ошибка случилась, мы всё равно позволяем отправить диалог менеджеру
             setMessages(prev => [...prev, { role: 'assistant', content: 'Ой, связь с ИИ немного затянулась. Но мы всё равно можем продолжить! Просто отправьте диалог менеджеру.' }]);
         } finally {
             setIsThinking(false);
@@ -127,16 +128,38 @@ const ContactOverlay = () => {
                                     </div>
                                 )}
                                 <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-3.5 md:p-2.5 text-[13px] md:text-[11px] leading-relaxed shadow-lg border ${
-                                    msg.role === 'user' ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-sm' : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-sm'
+                                    msg.role === 'user' ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
                                 </div>
                             </motion.div>
                         ))}
+                        
+                        {/* Восстановленные Кнопки Быстрых Действий */}
+                        {messages.length === 1 && !isThinking && (
+                            <div className="flex flex-col gap-2.5 mt-2 md:grid md:grid-cols-2 md:gap-2 md:ml-8 md:mr-8">
+                                {QUICK_ACTIONS.map((act, i) => (
+                                    <motion.button 
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        key={act.id} 
+                                        onClick={() => handleGptEstimate(null, act.prompt)} 
+                                        className="flex items-center justify-start gap-3 md:gap-2.5 bg-white/5 border border-white/20 hover:border-[#ffaa44]/60 hover:bg-[#ffaa44]/15 transition-all duration-300 rounded-[1rem] p-3 md:p-2 text-left w-full group"
+                                    >
+                                        <div className="w-8 h-8 md:w-6 md:h-6 rounded-full bg-black/80 flex items-center justify-center shrink-0 border border-white/10 group-hover:scale-110 transition-all">
+                                            {React.cloneElement(act.icon, { size: 12, className: "text-[#ffaa44]" })}
+                                        </div>
+                                        <span className="text-white font-medium tracking-wide group-hover:text-[#ffaa44] text-[12px] md:text-[9px] uppercase">{act.label}</span>
+                                    </motion.button>
+                                ))}
+                            </div>
+                        )}
+
                         {isThinking && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
                                 <div className="hidden md:block w-8 h-8 shrink-0 mr-4 mt-auto"></div>
-                                <div className="rounded-[1.25rem] p-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-bl-sm flex items-center gap-2 text-[10px] md:text-xs uppercase tracking-widest shadow-md">
+                                <div className="rounded-[1.25rem] p-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] md:text-xs uppercase tracking-widest shadow-md">
                                     <Loader2 size={14} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
@@ -181,6 +204,7 @@ const ContactOverlay = () => {
                         <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
                         <a href="tel:+79990000000">+7 (999) 000-00-00</a>
                     </div>
+                    <div className="text-[8px] text-white/30 tracking-[0.2em] uppercase font-light">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
             </div>
         </div>
