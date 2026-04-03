@@ -8,7 +8,6 @@ const ContactOverlay = () => {
     const navigate = useNavigate();
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     
-    // GPT & Flow State
     const [gptInput, setGptInput] = useState('');
     const [messages, setMessages] = useState([
         { role: 'assistant', content: 'Привет! Я Нейро-Ассистент студии КИМЭ. Готов помочь вам с проектом. Выберите с чего начнем, или просто напишите мне.' }
@@ -97,30 +96,31 @@ const ContactOverlay = () => {
     };
 
     return (
-        <div className="fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[60] bg-black/70 backdrop-blur-sm pt-12 md:pt-16">
+        <div className="fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-4">
+            
             {/* Close Overlay - Clicking outside closes modal */}
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
 
-            <div className="relative z-10 w-full max-w-[800px] flex flex-col items-center">
+            <div className="relative z-10 w-full md:w-[75vw] max-w-[800px] flex flex-col h-full items-center justify-center max-h-[1000px]">
                 
                 {/* Visual Header (Outside) */}
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center mb-5 shrink-0 flex items-center justify-between w-full md:justify-center relative"
+                    className="text-center mb-6 shrink-0 flex items-center justify-center w-full relative"
                 >
                     <div className="flex-grow text-center">
-                        <h2 className="text-xl md:text-3xl font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-lg">
+                        <h2 className="text-xl md:text-3xl font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
-                    {/* Close Button floating top right of header container on mobile, absolute top right on desktop */}
-                    <button onClick={() => navigate('/')} className="md:absolute right-0 text-white/50 hover:text-white transition-colors bg-white/5 p-2 rounded-full border border-white/10 md:bg-transparent md:border-transparent">
+                    {/* Close Button absolute top right */}
+                    <button onClick={() => navigate('/')} className="absolute right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
                         <X size={20} />
                     </button>
                 </motion.div>
 
-                {/* Main Modal - Ultra Premium Glass - WIDER AND SHORTER */}
+                {/* Main Modal - Premium Glass Box */}
                 <motion.div 
                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -129,7 +129,8 @@ const ContactOverlay = () => {
                     onMouseLeave={() => setScrollLocked(false)}
                     onWheel={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}
-                    className="relative w-full md:w-[75vw] max-w-[800px] h-[65dvh] md:h-[460px] bg-[#0c0c0c]/85 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] overflow-hidden flex flex-col"
+                    style={{ maxHeight: 'calc(100vh - 220px)' }}
+                    className="relative w-full h-[60dvh] md:h-auto bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col flex-grow md:flex-grow-0 md:min-h-[400px]"
                 >
                     {/* Chat Area */}
                     <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth">
@@ -141,14 +142,14 @@ const ContactOverlay = () => {
                                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/30 mr-4 mt-auto shadow-[0_0_15px_rgba(255,170,68,0.15)]">
+                                    <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-4 mt-auto shadow-[0_0_15px_rgba(255,170,68,0.2)]">
                                         <Sparkles size={14} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-4 text-[13px] md:text-[14px] leading-relaxed shadow-lg ${
+                                <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-4 text-[13px] md:text-[14px] leading-relaxed shadow-lg border ${
                                     msg.role === 'user' 
-                                        ? 'bg-[#ffaa44]/10 border border-[#ffaa44]/20 text-[#ffaa44] rounded-br-[0.5rem] md:rounded-br-sm' 
-                                        : 'bg-white/[0.04] border border-white/10 text-gray-200 rounded-bl-[0.5rem] md:rounded-bl-sm'
+                                        ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-[0.5rem] md:rounded-br-sm' 
+                                        : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-[0.5rem] md:rounded-bl-sm'
                                 }`}>
                                     {msg.content}
                                 </div>
@@ -165,12 +166,12 @@ const ContactOverlay = () => {
                                         transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center justify-start gap-4 bg-white/[0.03] border border-white/10 hover:border-[#ffaa44]/50 hover:bg-[#ffaa44]/10 hover:translate-x-1.5 transition-all duration-300 rounded-[1.25rem] p-3 md:p-3.5 text-left w-full md:w-max md:min-w-[320px] outline-none group"
+                                        className="flex items-center justify-start gap-4 bg-white/5 border border-white/20 hover:border-[#ffaa44]/60 hover:bg-[#ffaa44]/15 hover:translate-x-2 transition-all duration-300 rounded-[1.25rem] p-3 md:p-4 text-left w-full md:w-max md:min-w-[340px] outline-none group shadow-lg"
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center shrink-0 border border-white/5 group-hover:scale-110 group-hover:bg-black/80 transition-all duration-300 shadow-md">
+                                        <div className="w-10 h-10 rounded-full bg-black/80 flex items-center justify-center shrink-0 border border-white/10 group-hover:scale-110 group-hover:bg-black transition-all duration-300 shadow-xl">
                                             {act.icon}
                                         </div>
-                                        <span className="text-white/90 font-medium tracking-wide group-hover:text-white text-[12px] md:text-[13px] uppercase">{act.label}</span>
+                                        <span className="text-white font-medium tracking-wide group-hover:text-[#ffaa44] text-[12px] md:text-[13px] uppercase transition-colors">{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -179,7 +180,7 @@ const ContactOverlay = () => {
                         {isThinking && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
                                 <div className="hidden md:block w-8 h-8 shrink-0 mr-4 mt-auto"></div>
-                                <div className="rounded-[1.25rem] p-3.5 bg-white/[0.02] border border-white/5 text-gray-500 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] md:text-xs uppercase tracking-widest">
+                                <div className="rounded-[1.25rem] p-3.5 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] md:text-xs uppercase tracking-widest shadow-md">
                                     <Loader2 size={14} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
@@ -188,7 +189,7 @@ const ContactOverlay = () => {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-3 md:p-4 border-t border-white/5 bg-black/40 shrink-0 relative z-20">
+                    <div className="p-3 md:p-4 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
                                 <motion.div 
@@ -199,7 +200,7 @@ const ContactOverlay = () => {
                                 >
                                     <button 
                                         onClick={handleRequestContact}
-                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-black hover:shadow-[0_0_20px_rgba(255,170,68,0.4)] hover:scale-[1.02] transition-all flex items-center gap-2"
+                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-black hover:shadow-[0_0_20px_rgba(255,170,68,0.5)] hover:bg-white hover:scale-[1.02] transition-all flex items-center gap-2"
                                     >
                                         Отправить диалог менеджеру <ArrowRight size={14} strokeWidth={3} />
                                     </button>
@@ -213,7 +214,7 @@ const ContactOverlay = () => {
                                     key="sent"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="w-full flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl md:rounded-3xl"
+                                    className="w-full flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-2xl md:rounded-3xl shadow-lg"
                                 >
                                     <CheckCircle2 size={18} className="text-green-400" />
                                     <span className="text-green-300 font-medium text-[13px] md:text-[14px]">Заявка успешно отправлена!</span>
@@ -233,7 +234,7 @@ const ContactOverlay = () => {
                                         onChange={(e) => setContactInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Telegram (например: @durov)" 
-                                        className="flex-1 w-full bg-white/[0.03] border border-[#ffaa44]/40 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.1)] rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none transition-all placeholder:text-white/30 font-medium"
+                                        className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.15)] rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none transition-all placeholder:text-white/40 font-medium"
                                         autoFocus
                                     />
                                     <button 
@@ -259,12 +260,12 @@ const ContactOverlay = () => {
                                         onChange={(e) => setGptInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Опишите задачу подробнее..." 
-                                        className="flex-1 w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none focus:border-white/30 focus:bg-white/[0.05] transition-all placeholder:text-white/20 font-light"
+                                        className="flex-1 w-full bg-black/40 border border-white/20 rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none focus:border-white/40 focus:bg-white/5 transition-all placeholder:text-white/30 font-light shadow-inner"
                                     />
                                     <button 
                                         type="submit" 
                                         disabled={isThinking || !gptInput.trim()}
-                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl md:rounded-full bg-white/10 hover:bg-white hover:text-black text-white/50 flex items-center justify-center transition-all disabled:opacity-20 border border-white/10"
+                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl md:rounded-full bg-white/10 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all disabled:opacity-20 border border-white/20 shadow-md"
                                     >
                                         <Send size={18} />
                                     </button>
@@ -279,13 +280,13 @@ const ContactOverlay = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="relative z-10 mt-5 md:mt-6 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-[11px] tracking-widest uppercase font-bold text-white/30"
+                    className="relative z-10 mt-6 md:mt-8 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-[11px] tracking-widest uppercase font-bold text-white/40 mb-2"
                 >
-                    <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all">hello@kime.xyz</a>
-                    <div className="hidden md:block w-1 h-1 rounded-full bg-white/10" />
-                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-all">Telegram</a>
-                    <div className="hidden md:block w-1 h-1 rounded-full bg-white/10" />
-                    <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-all">+7 (999) 000-00-00</a>
+                    <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all drop-shadow-md">hello@kime.xyz</a>
+                    <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-all drop-shadow-md">Telegram</a>
+                    <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                    <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-all drop-shadow-md">+7 (999) 000-00-00</a>
                 </motion.div>
             </div>
         </div>
