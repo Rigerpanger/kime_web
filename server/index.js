@@ -180,11 +180,20 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
     try {
         const dbTest = await pool.query('SELECT NOW()');
         const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        
+        let proxyPing = 'Not tested';
+        try {
+            const pingRes = await fetch('https://api.openai-proxy.org/v1/chat/completions', { method: 'OPTIONS' }).catch(e => ({ status: 'FAILED', error: e.message }));
+            proxyPing = pingRes.status === 200 || pingRes.status === 204 ? '✅ REACHABLE' : `❌ ${pingRes.status || 'FAILED'} (${pingRes.error || ''})`;
+        } catch (e) { proxyPing = `❌ ERROR: ${e.message}`; }
+
         res.json({
             status: 'online',
+            node_version: process.version,
             db_connected: !!dbTest.rows[0],
             ai_key_found: !!apiKey,
             ai_key_start: apiKey ? apiKey.substring(0, 10) + '...' : 'MISSING',
+            proxy_reachable: proxyPing,
             port: PORT,
             env_vars: Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY') || k.includes('PORT'))
         });
@@ -199,45 +208,53 @@ app.post(['/chat', '/api/chat'], async (req, res) => {
         if (!apiKey) {
             return res.status(500).json({ 
                 error: 'SERVER_CONFIG_ERROR', 
-                details: 'OpenAI API Key is not set on the server environment. Please ADD OPENAI_API_KEY to your control panel.' 
+                details: 'OpenAI API Key is not set on the server environment.' 
             });
         }
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        // Support for older Node versions without AbortController
+        let controller;
+        let signal;
+        try {
+            if (global.AbortController) {
+                controller = new AbortController();
+                signal = controller.signal;
+                setTimeout(() => controller.abort(), 20000);
+            }
+        } catch (e) { console.warn('AbortController not supported'); }
 
         const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${apiKey}` 
+                'Authorization': `Bearer ${apiKey.trim()}` 
             },
             body: JSON.stringify({ 
                 model: 'gpt-4o-mini', 
                 messages: [
-                    { role: 'system', content: 'Ты - Нейро-Ассистент студии КИМЭ. Твоя цель - консультировать клиентов, помогать составлять ТЗ и оценивать стоимость.' }, 
-                    ...req.body.messages
+                    { role: 'system', content: 'Ты - Нейро-Ассистент студии КИМЭ. Твоя цель - консультировать клиентов.' }, 
+                    ...(req.body.messages || [])
                 ] 
             }),
-            signal: controller.signal
+            signal: signal
         });
         
-        clearTimeout(timeoutId);
-
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
+            const errorText = await response.text();
             return res.status(response.status).json({ 
                 error: 'UPSTREAM_API_ERROR', 
                 status: response.status,
-                details: errorData.error?.message || 'Proxy Error' 
+                details: errorText 
             });
         }
         
         res.json(await response.json());
     } catch (error) { 
+        console.error('❌ AI Handler Exception:', error);
         res.status(500).json({ 
             error: 'AI_HANDLER_EXCEPTION', 
-            details: error.name === 'AbortError' ? 'AI request timed out after 20s' : error.message 
+            details: error.message,
+            type: error.name
         }); 
     }
 });

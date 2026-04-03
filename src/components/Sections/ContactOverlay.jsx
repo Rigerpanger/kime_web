@@ -70,7 +70,8 @@ const ContactOverlay = () => {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => null);
-                throw new Error(errorData?.error || errorData?.details || 'AI Service Error');
+                const fullError = errorData ? `${errorData.error}: ${errorData.details || errorData.message || ''}` : 'AI Service Error';
+                throw new Error(fullError);
             }
 
             const data = await response.json();
