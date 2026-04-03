@@ -255,7 +255,7 @@ const About = () => {
 
                 {/* Raised Logo Ticker - Now in-flow with text */}
                 <div 
-                    className="w-full relative min-h-[60px] md:min-h-[100px] flex items-center justify-center overflow-hidden"
+                    className="w-full relative h-[110px] md:h-[200px] flex items-center justify-center overflow-hidden"
                     style={{ 
                         marginTop: isMobile 
                             ? `${content.logoOffsetMobile || 0}px` 

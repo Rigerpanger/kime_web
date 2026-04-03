@@ -48,7 +48,7 @@ const LogoTicker = () => {
         fetchPartners();
     }, []);
 
-    if (loading) return <div className="h-[104px] w-full" />;
+    if (loading) return <div className="h-[110px] md:h-[200px] w-full" />;
 
     // Ensure we have enough items for a continuous loop
     const tickerItems = partners.length > 0 
