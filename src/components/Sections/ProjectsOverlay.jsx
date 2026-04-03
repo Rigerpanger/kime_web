@@ -83,7 +83,7 @@ const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange })
                         <img src={project.cover} alt="" className="w-full h-full object-cover opacity-80" />
                     ) : (
                         <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-zinc-900 flex items-center justify-center">
-                            <span className="text-white/10 text-[6rem] font-bold select-none">{project.title[0]}</span>
+                            <span className="text-white/10 text-[6rem] font-bold select-none">{project?.title?.[0] || '?'}</span>
                         </div>
                     )}
                     
@@ -142,7 +142,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             {!project.cover && (
                 <div className="absolute inset-0 bg-gradient-to-tr from-zinc-800 to-zinc-900 flex items-center justify-center">
                     <span className="text-white/10 text-[8rem] font-bold leading-none select-none group-hover:text-[#ffaa44]/20 transition-colors duration-500">
-                        {project.title[0]}
+                        {project?.title?.[0] || '?'}
                     </span>
                 </div>
             )}
@@ -235,7 +235,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                                      {project.cover ? (
                                         <img src={project.cover} alt={project.title} className="w-full h-full object-cover text-transparent group-hover:opacity-80 transition-opacity duration-700" />
                                      ) : (
-                                        <span className="text-white/10 text-9xl font-bold">{project.title[0]}</span>
+                                        <span className="text-white/10 text-9xl font-bold">{project?.title?.[0] || '?'}</span>
                                      )}
                                      {project.video_url && (
                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-colors z-10">
@@ -306,6 +306,8 @@ const ProjectsOverlay = () => {
                 if (res.ok) setLayout(await res.json());
             } catch (e) {
                 console.error('Layout fetch error:', e);
+            } finally {
+                setIsReady(true);
             }
         };
         fetchLayout();
@@ -319,14 +321,6 @@ const ProjectsOverlay = () => {
     useEffect(() => {
         return () => setScrollLocked(false);
     }, [setScrollLocked]);
-
-    if (!isReady) {
-        return (
-            <div className="fixed inset-0 bg-black flex items-center justify-center z-[200]">
-                <span className="text-white/20 text-[10px] tracking-[0.5em] uppercase font-light animate-pulse">Загрузка</span>
-            </div>
-        );
-    }
 
     const accumulatedDelta = React.useRef(0);
 
@@ -515,33 +509,35 @@ const ProjectsOverlay = () => {
                     />
                     
                     {/* [8.2] Active Project Glass Info-Plate */}
-                    <motion.div 
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1 }}
-                        style={{ transform: `translateY(${getOff('projects_mobile_info_plate_offset')}px)` }}
-                        key={projects[activeIndex]?.id}
-                        className="relative mx-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3 mb-6"
-                    >
-                        <div className="flex justify-between items-start gap-4">
-                           <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>
-                           <div className="flex flex-wrap gap-2 shrink-0">
-                               {projects[activeIndex]?.tech?.slice(0, 2).map(t => (
-                                   <span key={t} className="text-[8px] text-[#ffaa44] font-bold uppercase tracking-wider">{t}</span>
-                               ))}
-                           </div>
-                        </div>
-                        <p className="text-gray-300 text-xs font-light leading-relaxed line-clamp-2">
-                            {projects[activeIndex]?.challenge}
-                        </p>
-                        <div className="flex justify-between items-center mt-2 border-t border-white/5 pt-3">
-                            <span className="text-[8px] text-white/30 uppercase tracking-[0.3em] font-bold">Сдвиньте для просмотра</span>
-                            <div className="flex gap-1">
-                                {projects.map((_, i) => (
-                                    <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#ffaa44]' : 'w-1.5 bg-white/10'}`} />
-                                ))}
+                    {projects.length > 0 && projects[activeIndex] && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1 }}
+                            style={{ transform: `translateY(${getOff('projects_mobile_info_plate_offset')}px)` }}
+                            key={projects[activeIndex]?.id}
+                            className="relative mx-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3 mb-6"
+                        >
+                            <div className="flex justify-between items-start gap-4">
+                               <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>
+                               <div className="flex flex-wrap gap-2 shrink-0">
+                                   {(projects[activeIndex]?.tech?.slice(0, 2) || []).map(t => (
+                                       <span key={t} className="text-[8px] text-[#ffaa44] font-bold uppercase tracking-wider">{t}</span>
+                                   ))}
+                               </div>
                             </div>
-                        </div>
-                    </motion.div>
+                            <p className="text-gray-300 text-xs font-light leading-relaxed line-clamp-2">
+                                {projects[activeIndex]?.challenge}
+                            </p>
+                            <div className="flex justify-between items-center mt-2 border-t border-white/5 pt-3">
+                                <span className="text-[8px] text-white/30 uppercase tracking-[0.3em] font-bold">Сдвиньте для просмотра</span>
+                                <div className="flex gap-1">
+                                    {projects.map((_, i) => (
+                                        <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === activeIndex ? 'w-4 bg-[#ffaa44]' : 'w-1.5 bg-white/10'}`} />
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
             ) : (
                 <div 
