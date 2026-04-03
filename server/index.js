@@ -204,7 +204,8 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
 // --- AI Chat ---
 app.post(['/chat', '/api/chat'], async (req, res) => {
     try {
-        let apiKeyRaw = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        // Priority: 1. FastPanel/System Env, 2. .env file fallback
+        const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
         
         if (!apiKeyRaw) {
             return res.status(500).json({ 
