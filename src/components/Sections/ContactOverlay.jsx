@@ -77,12 +77,16 @@ const ContactOverlay = () => {
             setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
         } catch (error) {
             console.error('------- AI ASSISTANT ERROR -------');
-            console.error('Message:', error.message);
-            console.error('Stack:', error.stack);
+            console.error(error);
             console.error('----------------------------------');
             
-            // Если ошибка случилась, мы всё равно позволяем отправить диалог менеджеру
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Ой, связь с ИИ немного затянулась. Но мы всё равно можем продолжить! Просто отправьте диалог менеджеру.' }]);
+            let errorMessage = 'Ой, связь с ИИ немного затянулась. ';
+            if (error.message.includes('SERVER_CONFIG_ERROR')) errorMessage += 'Ошибка: Ключ API не найден на сервере.';
+            else if (error.message.includes('UPSTREAM_API_ERROR')) errorMessage += 'Ошибка: Прокси-сервер отклонил запрос (проверьте ключ).';
+            else if (error.message.includes('AI request timed out')) errorMessage += 'Ошибка: Время ожидания истекло.';
+            else errorMessage += `Техническая ошибка: ${error.message}`;
+
+            setMessages(prev => [...prev, { role: 'assistant', content: `${errorMessage} Но мы всё равно можем продолжить! Просто отправьте диалог менеджеру.` }]);
         } finally {
             setIsThinking(false);
         }
