@@ -231,9 +231,9 @@ const About = () => {
                 ease: [0.23, 1, 0.32, 1]
             }}
             exit={{ opacity: 0 }}
-            className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
+            className="flex flex-col max-w-4xl w-full relative"
         >
-            <div className={`mb-8 w-full flex flex-col ${isMobile ? 'h-auto' : 'flex-grow justify-center'}`}>
+            <div className="w-full flex flex-col justify-center">
                 <h2 className="text-3xl md:text-5xl lg:text-5xl font-thin mb-8 text-white uppercase tracking-wider text-center md:text-left">{content.slide1_title}</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-center w-full relative">
@@ -283,7 +283,7 @@ const About = () => {
                 ease: [0.23, 1, 0.32, 1]
             }}
             exit={{ opacity: 0 }}
-            className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
+            className="flex flex-col max-w-4xl w-full relative items-center md:items-start"
         >
             <span className="text-white/20 text-[10px] uppercase tracking-[0.5em] mb-6">Наш подход</span>
             <h3 className="text-2xl md:text-4xl font-thin text-white/90 uppercase mb-6 leading-relaxed max-w-3xl">
@@ -307,7 +307,7 @@ const About = () => {
                 ease: [0.23, 1, 0.32, 1]
             }}
             exit={{ opacity: 0 }}
-            className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start h-full w-full max-w-5xl pt-12 md:pt-20 ${isMobile ? '' : 'content-center'}`}
+            className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center w-full max-w-5xl"
         >
             <div className="h-[40vh] md:h-[55vh] flex justify-end">
                 <div className="w-[85%] h-full bg-zinc-900 rounded-xl overflow-hidden grayscale border border-white/5 relative group">
@@ -343,7 +343,7 @@ const About = () => {
                 ease: [0.23, 1, 0.32, 1]
             }}
             exit={{ opacity: 0 }}
-            className="flex flex-col justify-center h-full max-w-6xl w-full pt-12 md:pt-20"
+            className="flex flex-col items-center justify-center w-full max-w-6xl"
         >
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
                 {/* Left Side: List */}
