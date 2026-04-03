@@ -19,6 +19,30 @@ const ContactOverlay = () => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isThinking]);
 
+    const [layout, setLayout] = useState({});
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+    useEffect(() => {
+        const fetchLayout = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const res = await fetch(`${apiUrl}/content/global_layout`);
+                if (res.ok) setLayout(await res.json());
+            } catch (e) {
+                console.error('Layout fetch error:', e);
+            }
+        };
+        fetchLayout();
+
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const getOff = (key) => layout?.[key] || 0;
+    const hOff = isMobile ? getOff('contact_header_offset_mobile') : getOff('contact_header_offset_desktop');
+    const cOff = isMobile ? getOff('contact_content_offset_mobile') : getOff('contact_content_offset_desktop');
+
     const handleGptEstimate = async (e) => {
         if (e) e.preventDefault();
         if (!gptInput.trim() || isThinking) return;
@@ -187,14 +211,20 @@ const ContactOverlay = () => {
             <div className="relative z-10 w-full max-w-3xl flex flex-col items-center max-h-full">
                 
                 {/* Visual Header */}
-                <div className="text-center mb-4 md:mb-5 shrink-0">
+                <motion.div 
+                    animate={{ y: hOff }}
+                    className="text-center mb-4 md:mb-5 shrink-0"
+                >
                     <h2 className="text-lg md:text-2xl font-thin text-white uppercase tracking-[0.4em] leading-tight transition-all">
                         Оценить <span className="text-[#ffaa44] font-normal">проект</span>
                     </h2>
-                </div>
+                </motion.div>
 
                 {/* Main Modal - Ultra Premium Glass */}
-                <div className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform flex flex-col max-h-[70vh] md:max-h-none">
+                <motion.div 
+                    animate={{ y: cOff }}
+                    className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform flex flex-col max-h-[70vh] md:max-h-none"
+                >
                     
                     {/* DESKTOP VIEW */}
                     <div className="hidden md:flex flex-row h-[324px] shrink-0">
@@ -226,10 +256,13 @@ const ContactOverlay = () => {
                             {mobileTab === 'ai' ? renderAiPanel() : renderFormPanel()}
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* Footer Signature */}
-                <div className="mt-8 md:mt-8 flex flex-col items-center">
+                <motion.div 
+                    animate={{ y: cOff }}
+                    className="mt-8 md:mt-8 flex flex-col items-center"
+                >
                     <div className="flex flex-col md:flex-row items-center justify-center gap-x-16 gap-y-4 text-[10px] tracking-[0.4em] uppercase font-bold text-white/20">
                         <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all">hello@kime.xyz</a>
                         <div className="hidden md:block w-1 h-1 rounded-full bg-white/10" />
@@ -240,7 +273,7 @@ const ContactOverlay = () => {
                     <div className="mt-4 text-[8px] text-white/5 tracking-[0.6em] uppercase font-bold">
                         &copy; {new Date().getFullYear()} Kime Studio &bull; Moscow
                     </div>
-                </div>
+                </motion.div>
             </div>
         </div>
     );

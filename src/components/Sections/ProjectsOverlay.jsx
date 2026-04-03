@@ -295,6 +295,24 @@ const ProjectsOverlay = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const setIsModalOpen = useAppStore(s => s.setIsModalOpen);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
+    const [layout, setLayout] = useState({});
+
+    useEffect(() => {
+        const fetchLayout = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const res = await fetch(`${apiUrl}/content/global_layout`);
+                if (res.ok) setLayout(await res.json());
+            } catch (e) {
+                console.error('Layout fetch error:', e);
+            }
+        };
+        fetchLayout();
+    }, []);
+
+    const getOff = (key) => layout?.[key] || 0;
+    const hOff = isMobile ? getOff('projects_header_offset_mobile') : getOff('projects_header_offset_desktop');
+    const cOff = isMobile ? getOff('projects_content_offset_mobile') : getOff('projects_content_offset_desktop');
 
     // Clean up scroll lock on unmount
     useEffect(() => {
@@ -422,7 +440,7 @@ const ProjectsOverlay = () => {
             {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
                 initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: hOff }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0`}
             >
@@ -476,7 +494,10 @@ const ProjectsOverlay = () => {
 
             {/* Main Content Area (Split Mobile/Desktop) */}
             {isMobile ? (
-                <div className="flex-grow flex flex-col justify-around py-4">
+                <motion.div 
+                    animate={{ y: cOff }}
+                    className="flex-grow flex flex-col justify-around py-4"
+                >
                     <MobileNativeGallery 
                         projects={projects} 
                         onProjectSelect={handleProjectSelect} 
@@ -510,9 +531,12 @@ const ProjectsOverlay = () => {
                             </div>
                         </div>
                     </motion.div>
-                </div>
+                </motion.div>
             ) : (
-                <div className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20">
+                <motion.div 
+                    animate={{ y: cOff }}
+                    className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
+                >
                     <div 
                         className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"
                         onWheel={handleWheel}
@@ -541,7 +565,7 @@ const ProjectsOverlay = () => {
                             </motion.div>
                         </AnimatePresence>
                     </div>
-                </div>
+                </motion.div>
             )}
 
             {/* Details Modal */}

@@ -47,14 +47,44 @@ const ServicesOverlay = () => {
         return found || servicesData[0];
     }, [activeSlug]);
 
-    return (
-        <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar">
-            {/* Title */}
-            <h1 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0">
-                Наши направления
-            </h1>
+    const [layout, setLayout] = React.useState({});
+    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
 
-            <div className="container max-w-5xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto">
+    React.useEffect(() => {
+        const fetchLayout = async () => {
+            try {
+                const apiUrl = import.meta.env.VITE_API_URL || '/api';
+                const res = await fetch(`${apiUrl}/content/global_layout`);
+                if (res.ok) setLayout(await res.json());
+            } catch (e) {
+                console.error('Layout fetch error:', e);
+            }
+        };
+        fetchLayout();
+
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const getOff = (key) => layout?.[key] || 0;
+    const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
+    const cOff = isMobile ? getOff('services_content_offset_mobile') : getOff('services_content_offset_desktop');
+
+    return (
+        <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative">
+            {/* Title */}
+            <motion.h1 
+                animate={{ y: hOff }}
+                className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
+            >
+                Наши направления
+            </motion.h1>
+
+            <motion.div 
+                animate={{ y: cOff }}
+                className="container max-w-5xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
+            >
                 {/* Left Column: List */}
                 <div className="w-full md:w-[45%] space-y-1 pl-4 md:pl-8">
                     {servicesData.map((service, index) => (
@@ -89,7 +119,7 @@ const ServicesOverlay = () => {
                         )}
                     </AnimatePresence>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
