@@ -98,16 +98,44 @@ const Settings = () => {
     ];
 
     // Helper components
+    const [dragState, setDragState] = useState(null); // { key, startY, startVal }
+    const [selectedKey, setSelectedKey] = useState(null);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            if (!dragState) return;
+            const deltaY = e.clientY - dragState.startY;
+            // Scale: 1px mouse movement = 4px offset change
+            const offsetDelta = Math.round(deltaY * 4);
+            const newValue = dragState.startVal + offsetDelta;
+            
+            setLayoutSettings(prev => ({
+                ...prev,
+                [dragState.key]: newValue
+            }));
+        };
+
+        const handleMouseUp = () => {
+            setDragState(null);
+        };
+
+        if (dragState) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [dragState]);
+
     const VisualMockup = () => {
-        const isAbout = activeScreen.startsWith('about');
         const hKey = `${activeScreen}_header_offset_${deviceMode}`;
         const cKey = `${activeScreen}_content_offset_${deviceMode}`;
-        
-        // Specific keys for About Slide 1 (Logo Ticker)
         const isAboutS1 = activeScreen === 'about_slide1';
         const logoKey = deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile';
 
-        const hOff = (layoutSettings[hKey] || 0) / 4; // Scale for mockup
+        const hOff = (layoutSettings[hKey] || 0) / 4;
         const cOff = (layoutSettings[cKey] || 0) / 4;
         const lOff = (layoutSettings[logoKey] || 0) / 4;
 
@@ -115,10 +143,8 @@ const Settings = () => {
             <div className={`relative transition-all duration-700 bg-[#111] rounded-[2.5rem] border-[8px] border-[#222] shadow-2xl flex flex-col items-center overflow-hidden
                 ${deviceMode === 'desktop' ? 'w-full aspect-video max-w-4xl' : 'w-[280px] h-[580px]'}
             `}>
-                {/* Speaker/Notch for mobile */}
                 {deviceMode === 'mobile' && <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-white/10 rounded-full" />}
                 
-                {/* Visual Grid */}
                 {showGrid && (
                     <div className="absolute inset-0 pointer-events-none opacity-20" 
                         style={{ backgroundSize: '20px 20px', backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)' }} 
@@ -126,34 +152,40 @@ const Settings = () => {
                 )}
 
                 <div className="w-full h-full p-8 flex flex-col relative">
-                    {/* Header Block */}
-                    <motion_mockup 
+                    <MockupBlock 
                         y={hOff} 
                         label="ЗАГОЛОВОК" 
                         icon={<Type size={14} />} 
-                        active={true}
                         color="indigo"
+                        itemKey={hKey}
+                        isSelected={selectedKey === hKey}
+                        onSelect={() => setSelectedKey(hKey)}
+                        onDragStart={(e) => setDragState({ key: hKey, startY: e.clientY, startVal: layoutSettings[hKey] || 0 })}
                     />
 
-                    {/* Content Block */}
-                    <motion_mockup 
+                    <MockupBlock 
                         y={cOff} 
                         label="ОСНОВНОЙ КОНТЕНТ" 
                         icon={<FileText size={14} />}
-                        active={true}
                         color="amber"
                         className="mt-12"
+                        itemKey={cKey}
+                        isSelected={selectedKey === cKey}
+                        onSelect={() => setSelectedKey(cKey)}
+                        onDragStart={(e) => setDragState({ key: cKey, startY: e.clientY, startVal: layoutSettings[cKey] || 0 })}
                     />
 
-                    {/* Special Block: Logo Ticker */}
                     {isAboutS1 && (
-                        <motion_mockup 
+                        <MockupBlock 
                             y={lOff} 
                             label="ЛОГОТИПЫ ПАРТНЕРОВ" 
                             icon={<ImageIcon size={14} />}
-                            active={true}
                             color="emerald"
                             className="mt-8"
+                            itemKey={logoKey}
+                            isSelected={selectedKey === logoKey}
+                            onSelect={() => setSelectedKey(logoKey)}
+                            onDragStart={(e) => setDragState({ key: logoKey, startY: e.clientY, startVal: layoutSettings[logoKey] || 0 })}
                         />
                     )}
                 </div>
@@ -161,17 +193,35 @@ const Settings = () => {
         );
     };
 
-    const motion_mockup = ({ y, label, icon, color, className = "" }) => (
-        <div 
-            className={`w-full flex flex-col transition-all duration-300 pointer-events-none ${className}`}
-            style={{ transform: `translateY(${y}px)` }}
-        >
-            <div className={`flex items-center gap-2 p-3 rounded-xl border bg-${color}-500/10 border-${color}-500/30 text-${color}-400 shadow-lg backdrop-blur-sm`}>
-                {icon}
-                <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+    const MockupBlock = ({ y, label, icon, color, className = "", isSelected, onSelect, onDragStart }) => {
+        const colorClasses = {
+            indigo: "bg-indigo-500/20 border-indigo-500/40 text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)]",
+            amber: "bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)]",
+            emerald: "bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]",
+            rose: "bg-rose-500/20 border-rose-500/40 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)]"
+        };
+        
+        const colors = colorClasses[color] || colorClasses.indigo;
+
+        return (
+            <div 
+                className={`w-full flex flex-col transition-all duration-300 relative z-20 cursor-ns-resize group ${className}`}
+                style={{ transform: `translateY(${y}px)` }}
+                onMouseDown={(e) => {
+                    onSelect();
+                    onDragStart(e);
+                }}
+            >
+                <div className={`flex items-center gap-2 p-4 rounded-2xl border backdrop-blur-md transition-all
+                    ${colors} 
+                    ${isSelected ? 'ring-2 ring-white ring-offset-4 ring-offset-black scale-[1.02]' : 'hover:scale-[1.01] hover:bg-white/5'}
+                `}>
+                    {icon}
+                    <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     if (loading) return (
         <AdminLayout>
@@ -278,6 +328,7 @@ const Settings = () => {
                                             value={layoutSettings[`${activeScreen}_header_offset_${deviceMode}`]}
                                             updateFn={updateVal}
                                             color="indigo"
+                                            isSelected={selectedKey === `${activeScreen}_header_offset_${deviceMode}`}
                                         />
                                         <ControlRow 
                                             label="Основной контент" 
@@ -285,6 +336,7 @@ const Settings = () => {
                                             value={layoutSettings[`${activeScreen}_content_offset_${deviceMode}`]}
                                             updateFn={updateVal}
                                             color="amber"
+                                            isSelected={selectedKey === `${activeScreen}_content_offset_${deviceMode}`}
                                         />
                                         {activeScreen === 'about_slide1' && (
                                             <ControlRow 
@@ -293,6 +345,7 @@ const Settings = () => {
                                                 value={layoutSettings[deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile']}
                                                 updateFn={updateVal}
                                                 color="emerald"
+                                                isSelected={selectedKey === (deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile')}
                                             />
                                         )}
                                         {activeScreen === 'projects' && deviceMode === 'mobile' && (
@@ -302,6 +355,7 @@ const Settings = () => {
                                                 value={layoutSettings.projects_mobile_info_plate_offset}
                                                 updateFn={updateVal}
                                                 color="rose"
+                                                isSelected={selectedKey === 'projects_mobile_info_plate_offset'}
                                             />
                                         )}
                                     </div>
@@ -324,11 +378,13 @@ const Settings = () => {
 };
 
 // Sub-component for Control Rows
-const ControlRow = ({ label, currentKey, value = 0, updateFn, color }) => (
-    <div className="space-y-4">
+const ControlRow = ({ label, currentKey, value = 0, updateFn, color, isSelected }) => (
+    <div className={`space-y-4 p-4 rounded-2xl transition-all duration-300 border ${
+        isSelected ? 'bg-white/[0.04] border-white/10 shadow-xl' : 'border-transparent opacity-60'
+    }`}>
         <div className="flex justify-between items-center px-1">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">{label}</span>
-            <span className={`text-[11px] font-mono font-bold text-${color}-400`}>{value} px</span>
+            <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isSelected ? `text-${color}-400` : 'text-white/20'}`}>{label}</span>
+            <span className={`text-[11px] font-mono font-bold ${isSelected ? `text-${color}-400` : 'text-white/40'}`}>{value} px</span>
         </div>
         <div className="flex items-center gap-3">
             <button 
