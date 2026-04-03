@@ -23,8 +23,9 @@ const MobileScrollStack = () => {
     ];
 
     useEffect(() => {
-        currentPathRef.current = location.pathname;
-    }, [location.pathname]);
+        // We only update currentPathRef when we know the source of navigation
+        // (either IntersectionObserver scroll, or programmatic Header click)
+    }, []);
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -80,7 +81,7 @@ const MobileScrollStack = () => {
                  currentPathRef.current = path;
              }
         }
-    }, [location.pathname, sections]);
+    }, [location.pathname]);
 
     return (
         <div 

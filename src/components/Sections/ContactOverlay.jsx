@@ -96,31 +96,31 @@ const ContactOverlay = () => {
     };
 
     return (
-        <div className="fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-4">
+        <div className="absolute md:fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-[100px] md:pt-[120px] pb-4 md:pb-8">
             
-            {/* Close Overlay - Clicking outside closes modal */}
+            {/* Close Overlay */}
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
 
-            <div className="relative z-10 w-full md:w-[75vw] max-w-[800px] flex flex-col h-full items-center justify-center max-h-[1000px]">
+            {/* Bulletproof Boundary Container */}
+            <div className="relative z-10 w-full md:w-[75vw] max-w-[800px] h-full max-h-[850px] flex flex-col justify-center">
                 
                 {/* Visual Header (Outside) */}
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="text-center mb-6 shrink-0 flex items-center justify-center w-full relative"
+                    className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative"
                 >
                     <div className="flex-grow text-center">
                         <h2 className="text-xl md:text-3xl font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
-                    {/* Close Button absolute top right */}
-                    <button onClick={() => navigate('/')} className="absolute right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
+                    <button onClick={() => navigate('/')} className="absolute right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2 md:p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
                         <X size={20} />
                     </button>
                 </motion.div>
 
-                {/* Main Modal - Premium Glass Box */}
+                {/* Main Modal - Flex Shrinking Box */}
                 <motion.div 
                     initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -129,8 +129,7 @@ const ContactOverlay = () => {
                     onMouseLeave={() => setScrollLocked(false)}
                     onWheel={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}
-                    style={{ maxHeight: 'calc(100vh - 220px)' }}
-                    className="relative w-full h-[60dvh] md:h-auto bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col flex-grow md:flex-grow-0 md:min-h-[400px]"
+                    className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col"
                 >
                     {/* Chat Area */}
                     <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth">
@@ -280,7 +279,7 @@ const ContactOverlay = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="relative z-10 mt-6 md:mt-8 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-[11px] tracking-widest uppercase font-bold text-white/40 mb-2"
+                    className="shrink-0 mt-5 md:mt-6 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-[11px] tracking-widest uppercase font-bold text-white/40 mb-2"
                 >
                     <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all drop-shadow-md">hello@kime.xyz</a>
                     <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
