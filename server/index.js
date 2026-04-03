@@ -179,6 +179,22 @@ app.delete('/api/projects/:id', authenticateToken, async (req, res) => {
     res.json({ success: true });
 });
 
+// --- PARTNERS CRUD ---
+app.get('/api/partners', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// --- CERTIFICATES CRUD ---
+app.get('/api/certificates', async (req, res) => {
+    try {
+        const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
+        res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // --- SITE CONTENT ---
 app.get('/api/content/:key', async (req, res) => {
     try {
@@ -195,34 +211,73 @@ app.post('/api/content/:key', authenticateToken, async (req, res) => {
     res.json(rows[0]);
 });
 
+// --- DEBUG STATUS (FOR ADMIN ONLY) ---
+app.get('/api/debug-status', async (req, res) => {
+    try {
+        const dbTest = await pool.query('SELECT NOW()');
+        const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        res.json({
+            status: 'online',
+            db: 'connected',
+            time: dbTest.rows[0].now,
+            ai_key_present: !!apiKey,
+            ai_key_preview: apiKey ? `${apiKey.substring(0, 5)}...` : 'NONE',
+            env_keys: Object.keys(process.env).filter(k => k.includes('KEY') || k.includes('API') || k.includes('PORT'))
+        });
+    } catch (err) { res.status(500).json({ status: 'error', error: err.message }); }
+});
+
 // --- AI Chat ---
 app.post('/api/chat', async (req, res) => {
     try {
-        const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-        if (!apiKey) return res.status(500).json({ error: 'Missing API Key' });
+        const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        
+        if (!apiKey) {
+            console.error('❌ AI ERROR: API Key missing in environment.');
+            return res.status(500).json({ 
+                error: 'SERVER_CONFIG_ERROR', 
+                details: 'OpenAI API Key is not set in Environment. Add OPENAI_API_KEY to your control panel.' 
+            });
+        }
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
 
-        console.log('🤖 Sending AI request via proxy mirror...');
         const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${apiKey}` 
+            },
             body: JSON.stringify({ 
                 model: 'gpt-4o-mini', 
-                messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ и оценивать стоимость.' }, ...req.body.messages] 
+                messages: [
+                    { role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, помогать составлять ТЗ и оценивать стоимость.' }, 
+                    ...req.body.messages
+                ] 
             }),
             signal: controller.signal
         });
         
         clearTimeout(timeoutId);
+
         if (!response.ok) {
             const errorText = await response.text();
-            return res.status(response.status).json({ error: 'OpenAI Error', details: errorText });
+            console.error(`❌ Proxy error (${response.status}):`, errorText);
+            return res.status(response.status).json({ 
+                error: 'UPSTREAM_API_ERROR', 
+                status: response.status,
+                details: errorText 
+            });
         }
+        
         res.json(await response.json());
     } catch (error) { 
-        res.status(500).json({ error: 'AI failed', message: error.message }); 
+        console.error('❌ AI Handler Exception:', error.message);
+        res.status(500).json({ 
+            error: 'AI_HANDLER_EXCEPTION', 
+            details: error.name === 'AbortError' ? 'AI request timed out' : error.message 
+        }); 
     }
 });
 

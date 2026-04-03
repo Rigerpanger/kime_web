@@ -76,7 +76,11 @@ const ContactOverlay = () => {
             const data = await response.json();
             setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
         } catch (error) {
-            console.error('GPT Error:', error.message);
+            console.error('------- AI ASSISTANT ERROR -------');
+            console.error('Message:', error.message);
+            console.error('Stack:', error.stack);
+            console.error('----------------------------------');
+            
             // Если ошибка случилась, мы всё равно позволяем отправить диалог менеджеру
             setMessages(prev => [...prev, { role: 'assistant', content: 'Ой, связь с ИИ немного затянулась. Но мы всё равно можем продолжить! Просто отправьте диалог менеджеру.' }]);
         } finally {
