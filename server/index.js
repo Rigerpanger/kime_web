@@ -196,7 +196,7 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
             ai_key_start: apiKey ? apiKey.substring(0, 10) + '...' : 'MISSING',
             proxy_reachable: proxyPing,
             port: PORT,
-            env_vars: Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY') || k.includes('PORT'))
+            available_env_vars: Object.keys(process.env).sort()
         });
     } catch (err) { res.status(500).json({ status: 'error', details: err.message }); }
 });
@@ -214,8 +214,9 @@ app.post(['/chat', '/api/chat'], async (req, res) => {
             });
         }
 
-        // AGGRESSIVE STRIPPING: remove ALL whitespace types and hidden control characters
-        const apiKey = apiKeyRaw.replace(/\s/g, '').replace(/[\n\r\t]/g, '').trim();
+        // AGGRESSIVE STRIPPING: remove hidden control characters and split if the panel merged lines
+        // We take only the first token (the actual key) and ignore anything that might've merged (like BOT_ADMIN_IDS)
+        const apiKey = apiKeyRaw.split(/[\n\r\s]/)[0].trim();
 
         // Support for older Node versions without AbortController
         let controller;
