@@ -175,7 +175,7 @@ app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) =>
         proxyFilename = proxyFilename.replace('.', '_');
     }
     
-    res.json({ url: `/api/m/${proxyFilename}` });
+    res.json({ url: `/m/${proxyFilename}` });
 });
 
 // --- PROJECTS CRUD ---
