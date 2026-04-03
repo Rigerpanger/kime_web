@@ -507,7 +507,7 @@ const ProjectsOverlay = () => {
                     {/* [8.2] Active Project Glass Info-Plate */}
                     <motion.div 
                         initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        animate={{ opacity: 1, y: getOff('projects_mobile_info_plate_offset') }}
                         key={projects[activeIndex]?.id}
                         className="relative mx-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3 mb-6"
                     >
