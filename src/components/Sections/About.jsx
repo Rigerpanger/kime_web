@@ -227,8 +227,8 @@ const About = () => {
                 y: targetY
             }}
             transition={{
-                opacity: { duration: 0.8, ease: "easeOut" },
-                y: { duration: 0 }
+                duration: 1.2,
+                ease: "easeOut"
             }}
             exit={{ opacity: 0 }}
             className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
@@ -279,8 +279,8 @@ const About = () => {
                 y: targetY
             }}
             transition={{
-                opacity: { duration: 0.8, ease: "easeOut" },
-                y: { duration: 0 }
+                duration: 1.2,
+                ease: "easeOut"
             }}
             exit={{ opacity: 0 }}
             className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
@@ -303,8 +303,8 @@ const About = () => {
                 y: targetY
             }}
             transition={{
-                opacity: { duration: 0.8, ease: "easeOut" },
-                y: { duration: 0 }
+                duration: 1.2,
+                ease: "easeOut"
             }}
             exit={{ opacity: 0 }}
             className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start h-full w-full max-w-5xl pt-12 md:pt-20 ${isMobile ? '' : 'content-center'}`}
@@ -339,8 +339,8 @@ const About = () => {
                 y: targetY
             }}
             transition={{
-                opacity: { duration: 0.8, ease: "easeOut" },
-                y: { duration: 0 }
+                duration: 1.2,
+                ease: "easeOut"
             }}
             exit={{ opacity: 0 }}
             className="flex flex-col justify-center h-full max-w-6xl w-full pt-12 md:pt-20"
