@@ -22,8 +22,8 @@ const About = () => {
         slide3_quote: 'Мы знаем, что у вас не всегда всё идет по плану. Мы понимаем, что задачи могут гореть, а вводные — меняться. Наша работа — быть той точкой опоры, где стресс превращается в качественный результат, а доверие важнее пустых обещаний. За это вы платите, за это мы работаем.',
         slide3_name: 'Александр Ким',
         slide3_role: 'Основатель & Креативный директор',
-        verticalOffsetMobile: -148,
-        verticalOffsetDesktop: -236,
+        verticalOffsetMobile: 0,
+        verticalOffsetDesktop: 0,
         logoOffsetMobile: 32,
         logoOffsetDesktop: 48
     });
