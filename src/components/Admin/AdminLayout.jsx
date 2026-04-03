@@ -27,7 +27,6 @@ const AdminLayout = ({ children }) => {
     const navItems = [
         { icon: LayoutDashboard, label: 'Дашборд', path: '/admin' },
         { icon: Info, label: 'О студии', path: '/admin/about' },
-        { icon: Layers, label: 'Направления', path: '/admin/services' },
         { icon: Briefcase, label: 'Проекты', path: '/admin/projects' },
         { icon: Settings, label: 'Настройки', path: '/admin/settings' },
     ];

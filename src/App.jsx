@@ -19,6 +19,7 @@ import Login from './components/Admin/Login';
 import Dashboard from './components/Admin/Dashboard';
 import ManageProjects from './components/Admin/ManageProjects';
 import ManageAbout from './components/Admin/ManageAbout';
+import Settings from './components/Admin/Settings';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
 
 
@@ -119,8 +120,7 @@ const App = () => {
                     <Route path="/admin" element={<Dashboard />} />
                     <Route path="/admin/projects" element={<ManageProjects />} />
                     <Route path="/admin/about" element={<ManageAbout />} />
-                    <Route path="/admin/services" element={<Dashboard />} /> {/* Placeholder */}
-                    <Route path="/admin/settings" element={<Dashboard />} /> {/* Placeholder */}
+                    <Route path="/admin/settings" element={<Settings />} />
                 </Route>
 
                 {/* Main Site Routes */}

@@ -124,7 +124,7 @@ const StudioEditor = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.token}` 
                 },
-                body: JSON.stringify({ content_json: config })
+                body: JSON.stringify(config)
             });
 
             if (!response.ok) {
