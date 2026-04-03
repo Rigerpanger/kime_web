@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, MessageSquare, ArrowRight, DollarSign, Send, Loader2, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAppStore from '../../store/useAppStore';
 
 const ContactOverlay = () => {
     const navigate = useNavigate();
+    const setScrollLocked = useAppStore(s => s.setScrollLocked);
     
     // GPT & Flow State
     const [gptInput, setGptInput] = useState('');
@@ -25,6 +27,10 @@ const ContactOverlay = () => {
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isThinking]);
+
+    useEffect(() => {
+        return () => setScrollLocked(false);
+    }, [setScrollLocked]);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -121,7 +127,7 @@ const ContactOverlay = () => {
     };
 
     return (
-        <div className="w-full h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-center items-center px-4 py-4 md:py-12 relative z-50 bg-black/40">
+        <div className="w-full h-[100dvh] md:min-h-screen pointer-events-auto flex flex-col justify-center items-center px-4 pt-20 pb-4 md:pt-24 md:pb-8 relative z-[60] bg-black/60">
             {/* Close Overlay */}
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
 
@@ -131,8 +137,7 @@ const ContactOverlay = () => {
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    style={{ transform: `translateY(${hOff}px)` }}
-                    className="text-center mb-4 shrink-0 flex items-center justify-between w-full md:justify-center relative"
+                    className="text-center mb-4 md:mb-6 mt-12 md:mt-0 shrink-0 flex items-center justify-between w-full md:justify-center relative"
                 >
                     <div className="flex-grow text-center">
                         <h2 className="text-xl md:text-3xl font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-lg">
@@ -146,14 +151,17 @@ const ContactOverlay = () => {
 
                 {/* Main Modal - Ultra Premium Glass */}
                 <motion.div 
-                    initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ transform: `translateY(${cOff}px)` }}
-                    className="relative w-full md:w-[85vw] max-w-[800px] h-[80dvh] md:h-[650px] bg-[#0c0c0c]/80 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] overflow-hidden flex flex-col"
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                    onMouseEnter={() => setScrollLocked(true)}
+                    onMouseLeave={() => setScrollLocked(false)}
+                    onWheel={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    className="relative w-[92vw] md:w-[65vw] max-w-[600px] h-[72dvh] md:h-[500px] bg-[#0c0c0c]/80 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] overflow-hidden flex flex-col"
                 >
                     {/* Chat Area */}
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 no-scrollbar scroll-smooth">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-4 no-scrollbar scroll-smooth">
                         {messages.map((msg, idx) => (
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}
@@ -166,7 +174,7 @@ const ContactOverlay = () => {
                                         <Sparkles size={14} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[90%] md:max-w-[85%] rounded-[1.25rem] p-4 text-[13px] md:text-[14px] leading-relaxed shadow-lg ${
+                                <div className={`max-w-[90%] md:max-w-[82%] rounded-[1.25rem] p-3.5 md:p-4 text-[12px] md:text-[13px] leading-relaxed shadow-lg ${
                                     msg.role === 'user' 
                                         ? 'bg-[#ffaa44]/10 border border-[#ffaa44]/20 text-[#ffaa44] rounded-br-[0.5rem] md:rounded-br-sm' 
                                         : 'bg-white/[0.04] border border-white/10 text-gray-200 rounded-bl-[0.5rem] md:rounded-bl-sm'
@@ -209,8 +217,8 @@ const ContactOverlay = () => {
                         {isThinking && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
                                 <div className="hidden md:flex w-8 h-8 rounded-full bg-transparent items-center justify-center shrink-0 mr-3 mt-auto"></div>
-                                <div className="rounded-[1.25rem] p-3 md:p-4 bg-white/[0.02] border border-white/5 text-gray-500 rounded-bl-[0.5rem] flex items-center gap-3 text-[10px] md:text-xs uppercase tracking-widest">
-                                    <Loader2 size={14} className="animate-spin text-[#ffaa44]" /> Генерирую ответ...
+                                <div className="rounded-[1.25rem] p-3 md:p-3 bg-white/[0.02] border border-white/5 text-gray-500 rounded-bl-[0.5rem] flex items-center gap-3 text-[10px] md:text-xs uppercase tracking-widest">
+                                    <Loader2 size={12} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
                         )}
@@ -218,7 +226,7 @@ const ContactOverlay = () => {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-4 md:p-6 border-t border-white/5 bg-black/40 shrink-0 relative z-20">
+                    <div className="p-3 md:p-4 border-t border-white/5 bg-black/40 shrink-0 relative z-20">
                         {/* Upper helper tools */}
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
@@ -230,7 +238,7 @@ const ContactOverlay = () => {
                                 >
                                     <button 
                                         onClick={handleRequestContact}
-                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-4 md:px-6 py-2.5 rounded-full text-[10px] md:text-xs uppercase tracking-[0.2em] font-black shadow-[0_0_20px_rgba(255,170,68,0.2)] hover:shadow-[0_0_25px_rgba(255,170,68,0.5)] hover:scale-[1.02] transition-all flex items-center gap-2"
+                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-4 md:px-5 py-2.5 md:py-2 rounded-full text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-black shadow-[0_0_20px_rgba(255,170,68,0.2)] hover:shadow-[0_0_25px_rgba(255,170,68,0.5)] hover:scale-[1.02] transition-all flex items-center gap-2"
                                     >
                                         Отправить диалог менеджеру <ArrowRight size={14} strokeWidth={3} />
                                     </button>
@@ -264,13 +272,13 @@ const ContactOverlay = () => {
                                         onChange={(e) => setContactInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Telegram (например: @durov)" 
-                                        className="flex-1 w-full bg-white/[0.03] border border-[#ffaa44]/40 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.1)] rounded-2xl md:rounded-full px-5 py-3.5 md:py-4 text-sm md:text-base text-white outline-none transition-all placeholder:text-white/30 font-medium"
+                                        className="flex-1 w-full bg-white/[0.03] border border-[#ffaa44]/40 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.1)] rounded-2xl md:rounded-full px-5 py-3 md:py-3.5 text-sm md:text-sm text-white outline-none transition-all placeholder:text-white/30 font-medium"
                                         autoFocus
                                     />
                                     <button 
                                         type="submit" 
                                         disabled={isThinking || !contactInput.trim()}
-                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl md:rounded-full bg-[#ffaa44] hover:bg-white text-black flex items-center justify-center transition-all disabled:opacity-50 disabled:hover:bg-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.3)]"
+                                        className="w-12 h-12 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-full bg-[#ffaa44] hover:bg-white text-black flex items-center justify-center transition-all disabled:opacity-50 disabled:hover:bg-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.3)]"
                                     >
                                         {isThinking ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                                     </button>
@@ -290,12 +298,12 @@ const ContactOverlay = () => {
                                         onChange={(e) => setGptInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Опишите задачу подробнее..." 
-                                        className="flex-1 w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-full px-4 md:px-5 py-3.5 md:py-4 text-sm md:text-base text-white outline-none focus:border-white/30 focus:bg-white/[0.05] transition-all placeholder:text-white/20 font-light"
+                                        className="flex-1 w-full bg-white/[0.03] border border-white/10 rounded-2xl md:rounded-full px-4 md:px-5 py-3.5 md:py-3.5 text-sm md:text-sm text-white outline-none focus:border-white/30 focus:bg-white/[0.05] transition-all placeholder:text-white/20 font-light"
                                     />
                                     <button 
                                         type="submit" 
                                         disabled={isThinking || !gptInput.trim()}
-                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-xl md:rounded-full bg-white/10 hover:bg-white hover:text-black text-white/50 flex items-center justify-center transition-all disabled:opacity-20 border border-white/10"
+                                        className="w-12 h-12 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-full bg-white/10 hover:bg-white hover:text-black text-white/50 flex items-center justify-center transition-all disabled:opacity-20 border border-white/10"
                                     >
                                         <Send size={18} />
                                     </button>
@@ -309,7 +317,6 @@ const ContactOverlay = () => {
                 <motion.div 
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    style={{ transform: `translateY(${cOff}px)` }}
                     className="mt-4 md:mt-6 flex flex-col items-center"
                 >
                     <div className="flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-xs tracking-[0.4em] uppercase font-bold text-white/30">
