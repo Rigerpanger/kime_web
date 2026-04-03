@@ -270,7 +270,7 @@ const About = () => {
         // Slide 2: Approach/Team (Simplified)
         <motion.div
             key="about-team"
-            initial={{ opacity: 0, y: targetY + ((10 - targetY) / 2) }}
+            initial={{ opacity: 0, y: targetY }}
             animate={{ 
                 opacity: 1, 
                 y: targetY 
@@ -294,7 +294,7 @@ const About = () => {
         // Slide 3: Director
         <motion.div
             key="about-vision"
-            initial={{ opacity: 0, y: targetY + ((10 - targetY) / 2) }}
+            initial={{ opacity: 0, y: targetY }}
             animate={{ 
                 opacity: 1, 
                 y: targetY 
