@@ -182,9 +182,10 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
         const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY || process.env.SERVICE_API_KEY;
         
         let proxyPing = 'Not tested';
+        const testProxy = process.env.AI_PROXY_URL || 'https://api.chatanywhere.tech/v1/chat/completions';
         try {
-            const pingRes = await fetch('https://api.openai-proxy.org/v1/chat/completions', { method: 'OPTIONS' }).catch(e => ({ status: 'FAILED', error: e.message }));
-            proxyPing = pingRes.status === 200 || pingRes.status === 204 ? '✅ REACHABLE' : `❌ ${pingRes.status || 'FAILED'} (${pingRes.error || ''})`;
+            const pingRes = await fetch(testProxy, { method: 'OPTIONS' }).catch(e => ({ status: 'FAILED', error: e.message }));
+            proxyPing = pingRes.status === 200 || pingRes.status === 204 ? `✅ REACHABLE (${testProxy})` : `❌ ${pingRes.status || 'FAILED'} (${pingRes.error || ''})`;
         } catch (e) { proxyPing = `❌ ERROR: ${e.message}`; }
 
         res.json({
@@ -226,11 +227,14 @@ app.post(['/chat', '/api/chat'], async (req, res) => {
             }
         } catch (e) { console.warn('AbortController not supported'); }
 
-        const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
+        const proxyUrl = process.env.AI_PROXY_URL || 'https://api.chatanywhere.tech/v1/chat/completions';
+        console.log(`🤖 Routing AI request via: ${proxyUrl}`);
+
+        const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${apiKey.trim()}` 
+                'Authorization': `Bearer ${apiKey}` 
             },
             body: JSON.stringify({ 
                 model: 'gpt-4o-mini', 
