@@ -10,7 +10,7 @@ const ContactOverlay = () => {
     
     const [gptInput, setGptInput] = useState('');
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: 'Привет! Я Нейро-Ассистент студии КИМЭ. Готов помочь вам с проектом. Выберите с чего начнем, или просто напишите мне.' }
+        { role: 'assistant', content: 'Здравствуйте. Я — Elite Creative Estimator студии KIME. Готов провести техническую квалификацию вашего проекта и рассчитать рыночную вилку цен. С чего начнем?' }
     ]);
     const [isThinking, setIsThinking] = useState(false);
     const [contactMode, setContactMode] = useState(false);
@@ -29,13 +29,14 @@ const ContactOverlay = () => {
     }, [messages, isThinking]);
 
     useEffect(() => {
+        setScrollLocked(true);
         return () => setScrollLocked(false);
     }, [setScrollLocked]);
 
     const QUICK_ACTIONS = [
-        { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44]" />, label: 'Сформировать ТЗ', prompt: 'Я хочу сформировать подробное ТЗ (техническое задание) для моего проекта. Начни задавать мне вопросы по одному, чтобы мы собрали всю нужную информацию.' },
-        { id: 'price', icon: <DollarSign size={16} className="text-[#ffaa44]" />, label: 'Узнать стоимость', prompt: 'Я хочу узнать примерную стоимость разработки. Какие вводные данные тебе нужны для оценки?' },
-        { id: 'fast', icon: <ArrowRight size={16} className="text-[#ffaa44]" />, label: 'Быстрая заявка', prompt: 'Я хочу сразу передать контакты менеджеру для связи.' }
+        { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
+        { id: 'price', icon: <DollarSign size={16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
+        { id: 'fast', icon: <ArrowRight size={16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
     ];
 
     const handleGptEstimate = async (e, directText = null) => {
@@ -131,8 +132,8 @@ const ContactOverlay = () => {
                         <X size={20} />
                     </button>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col">
-                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth">
+                <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking} onScroll={preventScrollLeaking}>
+                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking} onScroll={preventScrollLeaking}>
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
