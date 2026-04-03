@@ -87,12 +87,18 @@ const SculptureModel = () => {
     const { scene } = useGLTF('/models/sculpture.glb');
     const config = useAppStore(s => s.sculptureConfig);
     
+    // CRITICAL: Clone the scene to avoid caching bugs where Three.js 
+    // struggles to re-mount or re-compile shaders for a dirty/disposed cached object
+    const clonedScene = useMemo(() => scene.clone(), [scene]);
+    
     useEffect(() => {
-        scene.traverse((node) => {
+        clonedScene.traverse((node) => {
             if (node.isMesh) {
                 node.castShadow = true;
                 node.receiveShadow = true;
                 if (node.material) {
+                    // Clone the material to prevent polluting the cache
+                    node.material = node.material.clone();
                     node.material.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
                     node.material.roughness = config.roughness !== undefined ? config.roughness : 0.85;
                     node.material.metalness = config.metalness !== undefined ? config.metalness : 0;
@@ -103,13 +109,13 @@ const SculptureModel = () => {
                 }
             }
         });
-    }, [scene, config.envMapIntensity, config.roughness, config.metalness, config.emissiveIntensity]);
+    }, [clonedScene, config.envMapIntensity, config.roughness, config.metalness, config.emissiveIntensity]);
 
     return (
         <Float speed={0.4} rotationIntensity={0.05} floatIntensity={0.1}>
             <Center bottom position={[0, config.y, 0]}>
                 <primitive 
-                    object={scene} 
+                    object={clonedScene} 
                     scale={config.scale} 
                     rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
                 />
