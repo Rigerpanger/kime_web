@@ -106,8 +106,8 @@ const Settings = () => {
             if (!dragState) return;
             const deltaY = e.clientY - dragState.startY;
             
-            // Match the scales used in VisualMockup
-            const dynamicScale = deviceMode === 'mobile' ? 2.6 : 2.15;
+            // Match the new 1.65 scale for the enlarged mockup
+            const dynamicScale = deviceMode === 'mobile' ? 2.6 : 1.65;
             const offsetDelta = Math.round(deltaY * dynamicScale);
             const newValue = dragState.startVal + offsetDelta;
             
@@ -136,77 +136,88 @@ const Settings = () => {
         const hKey = `${activeScreen}_header_offset_${deviceMode}`;
         const cKey = `${activeScreen}_content_offset_${deviceMode}`;
         const isAboutS1 = activeScreen === 'about_slide1';
+        const isAboutS2 = activeScreen === 'about_slide2';
+        const isAbout = activeScreen.startsWith('about');
         const logoKey = isMobile ? 'logoOffsetMobile' : 'logoOffsetDesktop';
 
-        // Recalibrated scale factors: Match physical screen vs mockup pixels
-        const scale = isMobile ? 2.6 : 2.15;
+        const scale = isMobile ? 2.6 : 1.65;
 
         const hOff = (layoutSettings[hKey] || 0) / scale;
         const cOff = (layoutSettings[cKey] || 0) / scale;
         const lOff = (layoutSettings[logoKey] || 0) / scale;
 
         return (
-            <div className={`relative transition-all duration-700 bg-[#0a0a0a] rounded-[2.5rem] border-[8px] border-[#1a1a1a] shadow-2xl flex flex-col items-center overflow-hidden
-                ${isMobile ? 'w-[280px] h-[600px]' : 'w-full aspect-video max-w-4xl'}
+            <div className={`relative transition-all duration-700 bg-[#060606] rounded-[3rem] border-[10px] border-[#151515] shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col items-center overflow-hidden
+                ${isMobile ? 'w-[320px] h-[680px]' : 'w-full aspect-video max-w-6xl'}
             `}>
-                {deviceMode === 'mobile' && <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-1 bg-white/10 rounded-full" />}
+                {deviceMode === 'mobile' && <div className="absolute top-5 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-white/5 rounded-full" />}
                 
                 {showGrid && (
-                    <div className="absolute inset-0 pointer-events-none opacity-20" 
-                        style={{ backgroundSize: '20px 20px', backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)' }} 
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.15]" 
+                        style={{ backgroundSize: '24px 24px', backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)' }} 
                     />
                 )}
 
-                <div className="w-full h-full p-4 flex flex-col justify-center items-center relative">
+                <div className={`w-full h-full p-12 flex flex-col justify-center relative gap-4
+                    ${isAbout && !isMobile ? 'items-start pl-24' : 'items-center'}
+                `}>
                     {/* Viewport Center Line */}
-                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 border-t border-dashed border-white/10 pointer-events-none" />
-                    <div className="absolute top-1/2 left-4 -translate-y-1/2 text-[8px] font-bold text-white/10 uppercase tracking-widest pointer-events-none">Center</div>
+                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 border-t border-dashed border-white/5 pointer-events-none" />
+                    
+                    <div className="flex flex-col relative" style={{ transform: `translateY(${cOff}px)` }}>
+                        {/* Decorative Breadcrumb for About S2 */}
+                        {isAboutS2 && (
+                            <div className="mb-4 text-[7px] font-black text-[#ffaa44]/40 uppercase tracking-[0.5em] flex items-center gap-2">
+                                <div className="w-1 h-1 rounded-full bg-[#ffaa44]/40" />
+                                Наш подход
+                            </div>
+                        )}
 
-                    <MockupBlock 
-                        y={hOff} 
-                        label="ЗАГОЛОВОК" 
-                        icon={<Type size={14} />} 
-                        color="indigo"
-                        itemKey={hKey}
-                        isSelected={selectedKey === hKey}
-                        onSelect={() => setSelectedKey(hKey)}
-                        onDragStart={(e) => setDragState({ key: hKey, startY: e.clientY, startVal: layoutSettings[hKey] || 0 })}
-                    />
-
-                    {/* Realistic spacing mimicking site defaults */}
-                    <div className="h-6 pointer-events-none" />
-
-                    <MockupBlock 
-                        y={cOff} 
-                        label="ОСНОВНОЙ КОНТЕНТ" 
-                        icon={<FileText size={14} />}
-                        color="amber"
-                        // Realistic content height mapping
-                        className={
-                            activeScreen.startsWith('about') ? 'min-h-[100px]' : 
-                            activeScreen === 'services' ? 'min-h-[220px]' : 
-                            activeScreen === 'projects' ? 'min-h-[300px]' : 
-                            'min-h-[150px]'
-                        }
-                        itemKey={cKey}
-                        isSelected={selectedKey === cKey}
-                        onSelect={() => setSelectedKey(cKey)}
-                        onDragStart={(e) => setDragState({ key: cKey, startY: e.clientY, startVal: layoutSettings[cKey] || 0 })}
-                    />
-
-                    {isAboutS1 && (
                         <MockupBlock 
-                            y={lOff} 
-                            label="ЛОГОТИПЫ ПАРТНЕРОВ" 
-                            icon={<ImageIcon size={14} />}
-                            color="emerald"
-                            className="mt-6"
-                            itemKey={logoKey}
-                            isSelected={selectedKey === logoKey}
-                            onSelect={() => setSelectedKey(logoKey)}
-                            onDragStart={(e) => setDragState({ key: logoKey, startY: e.clientY, startVal: layoutSettings[logoKey] || 0 })}
+                            y={hOff} 
+                            label="ЗАГОЛОВОК" 
+                            icon={<Type size={16} />} 
+                            color="indigo"
+                            itemKey={hKey}
+                            isSelected={selectedKey === hKey}
+                            onSelect={() => setSelectedKey(hKey)}
+                            onDragStart={(e) => setDragState({ key: hKey, startY: e.clientY, startVal: layoutSettings[hKey] || 0 })}
                         />
-                    )}
+
+                        {/* Gap based on real site CSS */}
+                        <div className={`${isAbout ? 'h-6' : 'h-10'} pointer-events-none`} />
+
+                        <MockupBlock 
+                            y={0} // Fixed inside the container
+                            label="ОСНОВНОЙ КОНТЕНТ" 
+                            icon={<FileText size={16} />}
+                            color="amber"
+                            className={
+                                isAbout ? 'min-h-[140px] w-[500px]' : 
+                                activeScreen === 'services' ? 'min-h-[250px] w-full' : 
+                                activeScreen === 'projects' ? 'min-h-[350px] w-full' : 
+                                'min-h-[180px] w-full'
+                            }
+                            itemKey={cKey}
+                            isSelected={selectedKey === cKey}
+                            onSelect={() => setSelectedKey(cKey)}
+                            onDragStart={(e) => setDragState({ key: cKey, startY: e.clientY, startVal: layoutSettings[cKey] || 0 })}
+                        />
+
+                        {isAboutS1 && (
+                            <MockupBlock 
+                                y={lOff} 
+                                label="ЛОГОТИПЫ ПАРТНЕРОВ" 
+                                icon={<ImageIcon size={16} />}
+                                color="emerald"
+                                className="mt-8"
+                                itemKey={logoKey}
+                                isSelected={selectedKey === logoKey}
+                                onSelect={() => setSelectedKey(logoKey)}
+                                onDragStart={(e) => setDragState({ key: logoKey, startY: e.clientY, startVal: layoutSettings[logoKey] || 0 })}
+                            />
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -310,7 +321,7 @@ const Settings = () => {
                     </div>
 
                     {/* Main Workspace */}
-                    <div className="flex-1 flex flex-col p-10 overflow-y-auto no-scrollbar bg-[#0a0a0a]">
+                    <div className="flex-1 flex flex-col px-10 pt-4 pb-10 overflow-y-auto no-scrollbar bg-[#0a0a0a]">
                         <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
                             
                             {/* Visual Representation Area */}
