@@ -101,7 +101,7 @@ const About = () => {
             <div className="w-full pointer-events-auto px-2 pt-24 pb-32 flex flex-col gap-10 relative">
                 {/* Slide 1 Mobile */}
                 <motion.div 
-                    animate={{ y: getOff('about_slide1_content_offset_mobile') }}
+                    style={{ transform: `translateY(${getOff('about_slide1_content_offset_mobile')}px)` }}
                     className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl"
                 >
                     <h2 
@@ -120,7 +120,7 @@ const About = () => {
 
                 {/* Slide 2 Mobile */}
                 <motion.div 
-                    animate={{ y: getOff('about_slide2_content_offset_mobile') }}
+                    style={{ transform: `translateY(${getOff('about_slide2_content_offset_mobile')}px)` }}
                     className="flex flex-col bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl"
                 >
                     <span className="text-[#ffaa44] text-xs uppercase tracking-[0.5em] mb-4 font-bold">Наш подход</span>
@@ -137,7 +137,7 @@ const About = () => {
 
                 {/* Slide 3 Mobile */}
                 <motion.div 
-                    animate={{ y: getOff('about_slide3_content_offset_mobile') }}
+                    style={{ transform: `translateY(${getOff('about_slide3_content_offset_mobile')}px)` }}
                     className="flex flex-col relative w-full"
                 >
                     <div className="w-full aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale mb-10 relative shadow-2xl border border-white/5">
@@ -164,7 +164,7 @@ const About = () => {
 
                 {/* Slide 4 Mobile */}
                 <motion.div 
-                    animate={{ y: getOff('about_slide4_content_offset_mobile') }}
+                    style={{ transform: `translateY(${getOff('about_slide4_content_offset_mobile')}px)` }}
                     className="flex flex-col"
                 >
                     <h2 
@@ -234,7 +234,7 @@ const About = () => {
             className="flex flex-col max-w-4xl w-full relative"
         >
             <motion.div 
-                animate={{ y: getLayoutVal('about_slide1_content_offset_desktop') }}
+                style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop')}px)` }}
                 className="w-full flex flex-col justify-center"
             >
                 <h2 
@@ -275,7 +275,7 @@ const About = () => {
             className="flex flex-col max-w-4xl w-full relative"
         >
             <motion.div 
-                animate={{ y: getLayoutVal('about_slide2_content_offset_desktop') }}
+                style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }}
                 className="flex flex-col relative items-center md:items-start"
             >
                 <span className="text-white/20 text-[10px] uppercase tracking-[0.5em] mb-6">Наш подход</span>
@@ -300,7 +300,7 @@ const About = () => {
             className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center w-full max-w-5xl"
         >
             <motion.div 
-                animate={{ y: getLayoutVal('about_slide3_content_offset_desktop') }}
+                style={{ transform: `translateY(${getLayoutVal('about_slide3_content_offset_desktop')}px)` }}
                 className="h-[40vh] md:h-[55vh] flex justify-end"
             >
                 <div className="w-[85%] h-full bg-zinc-900 rounded-xl overflow-hidden grayscale border border-white/5 relative">
@@ -337,7 +337,7 @@ const About = () => {
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
                 <div className="md:col-span-12 lg:col-span-6 flex flex-col justify-start relative pt-4 pl-6 md:pl-12 lg:pl-16">
                     <motion.div 
-                        animate={{ y: getLayoutVal('about_slide4_content_offset_desktop') }}
+                        style={{ transform: `translateY(${getLayoutVal('about_slide4_content_offset_desktop')}px)` }}
                         className="mb-6 pl-1 text-left"
                     >
                         <h2 

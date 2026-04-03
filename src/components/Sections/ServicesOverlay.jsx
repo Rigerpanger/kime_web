@@ -49,6 +49,7 @@ const ServicesOverlay = () => {
 
     const [layout, setLayout] = React.useState({});
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+    const [isReady, setIsReady] = React.useState(false);
 
     React.useEffect(() => {
         const fetchLayout = async () => {
@@ -58,6 +59,8 @@ const ServicesOverlay = () => {
                 if (res.ok) setLayout(await res.json());
             } catch (e) {
                 console.error('Layout fetch error:', e);
+            } finally {
+                setIsReady(true);
             }
         };
         fetchLayout();
@@ -71,18 +74,24 @@ const ServicesOverlay = () => {
     const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
     const cOff = isMobile ? getOff('services_content_offset_mobile') : getOff('services_content_offset_desktop');
 
+    if (!isReady) return null;
+
     return (
         <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative">
             {/* Title */}
             <motion.h1 
-                animate={{ y: hOff }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.7 }}
+                style={{ transform: `translateY(${hOff}px)` }}
                 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
             >
                 Наши направления
             </motion.h1>
 
             <motion.div 
-                animate={{ y: cOff }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ transform: `translateY(${cOff}px)` }}
                 className="container max-w-5xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
             >
                 {/* Left Column: List */}

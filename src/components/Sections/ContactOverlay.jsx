@@ -23,6 +23,8 @@ const ContactOverlay = () => {
     const [layout, setLayout] = useState({});
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
+    const [isReady, setIsReady] = useState(false);
+
     useEffect(() => {
         const fetchLayout = async () => {
             try {
@@ -31,6 +33,8 @@ const ContactOverlay = () => {
                 if (res.ok) setLayout(await res.json());
             } catch (e) {
                 console.error('Layout fetch error:', e);
+            } finally {
+                setIsReady(true);
             }
         };
         fetchLayout();
@@ -43,6 +47,8 @@ const ContactOverlay = () => {
     const getOff = (key) => layout?.[key] || 0;
     const hOff = isMobile ? getOff('contact_header_offset_mobile') : getOff('contact_header_offset_desktop');
     const cOff = isMobile ? getOff('contact_content_offset_mobile') : getOff('contact_content_offset_desktop');
+
+    if (!isReady) return null;
 
     const handleGptEstimate = async (e) => {
         if (e) e.preventDefault();
@@ -213,7 +219,9 @@ const ContactOverlay = () => {
                 
                 {/* Visual Header */}
                 <motion.div 
-                    animate={{ y: hOff }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ transform: `translateY(${hOff}px)` }}
                     className="text-center mb-4 md:mb-5 shrink-0"
                 >
                     <h2 className="text-lg md:text-2xl font-thin text-white uppercase tracking-[0.4em] leading-tight transition-all">
@@ -223,7 +231,9 @@ const ContactOverlay = () => {
 
                 {/* Main Modal - Ultra Premium Glass */}
                 <motion.div 
-                    animate={{ y: cOff }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    style={{ transform: `translateY(${cOff}px)` }}
                     className="relative w-full bg-[#080808]/40 backdrop-blur-3xl border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.05)] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden transform flex flex-col max-h-[70vh] md:max-h-none"
                 >
                     
@@ -261,7 +271,9 @@ const ContactOverlay = () => {
 
                 {/* Footer Signature */}
                 <motion.div 
-                    animate={{ y: cOff }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ transform: `translateY(${cOff}px)` }}
                     className="mt-8 md:mt-8 flex flex-col items-center"
                 >
                     <div className="flex flex-col md:flex-row items-center justify-center gap-x-16 gap-y-4 text-[10px] tracking-[0.4em] uppercase font-bold text-white/20">

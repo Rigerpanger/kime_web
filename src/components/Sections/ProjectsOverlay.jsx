@@ -296,6 +296,7 @@ const ProjectsOverlay = () => {
     const setIsModalOpen = useAppStore(s => s.setIsModalOpen);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     const [layout, setLayout] = useState({});
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -305,6 +306,8 @@ const ProjectsOverlay = () => {
                 if (res.ok) setLayout(await res.json());
             } catch (e) {
                 console.error('Layout fetch error:', e);
+            } finally {
+                setIsReady(true);
             }
         };
         fetchLayout();
@@ -318,6 +321,8 @@ const ProjectsOverlay = () => {
     useEffect(() => {
         return () => setScrollLocked(false);
     }, [setScrollLocked]);
+
+    if (!isReady) return null;
 
     const accumulatedDelta = React.useRef(0);
 
@@ -439,10 +444,10 @@ const ProjectsOverlay = () => {
             
             {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
-                initial={{ opacity: 0, y: isMobile ? -20 : 20 }}
-                animate={{ opacity: 1, y: hOff }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                style={{ transform: `translateY(${hOff}px)` }}
+                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0 transition-opacity duration-1000`}
             >
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
@@ -494,8 +499,8 @@ const ProjectsOverlay = () => {
 
             {/* Main Content Area (Split Mobile/Desktop) */}
             {isMobile ? (
-                <motion.div 
-                    animate={{ y: cOff }}
+                <div 
+                    style={{ transform: `translateY(${cOff}px)` }}
                     className="flex-grow flex flex-col justify-around py-4"
                 >
                     <MobileNativeGallery 
@@ -507,7 +512,8 @@ const ProjectsOverlay = () => {
                     {/* [8.2] Active Project Glass Info-Plate */}
                     <motion.div 
                         initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: getOff('projects_mobile_info_plate_offset') }}
+                        animate={{ opacity: 1 }}
+                        style={{ transform: `translateY(${getOff('projects_mobile_info_plate_offset')}px)` }}
                         key={projects[activeIndex]?.id}
                         className="relative mx-5 z-40 pointer-events-auto bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[2rem] p-6 shadow-2xl flex flex-col gap-3 mb-6"
                     >
@@ -531,10 +537,10 @@ const ProjectsOverlay = () => {
                             </div>
                         </div>
                     </motion.div>
-                </motion.div>
+                </div>
             ) : (
-                <motion.div 
-                    animate={{ y: cOff }}
+                <div 
+                    style={{ transform: `translateY(${cOff}px)` }}
                     className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
                 >
                     <div 
@@ -565,7 +571,7 @@ const ProjectsOverlay = () => {
                             </motion.div>
                         </AnimatePresence>
                     </div>
-                </motion.div>
+                </div>
             )}
 
             {/* Details Modal */}
