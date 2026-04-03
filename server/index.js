@@ -291,10 +291,11 @@ app.post('/api/auth/setup-admin', async (req, res) => {
 // --- AI Chat ---
 app.post('/api/chat', async (req, res) => {
     try {
+        const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` },
-            body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'КИМЭ Агентство.' }, ...req.body.messages] })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ (задавая по одному наводящему вопросу) и оценивать примерную стоимость проектов.' }, ...req.body.messages] })
         });
         res.json(await response.json());
     } catch (error) { res.status(500).json({ error: 'AI failed' }); }
