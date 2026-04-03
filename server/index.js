@@ -342,13 +342,14 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         // Keep only last 10
         await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 10)', [chatId]);
 
-        // 2. Check for trigger (@kimeprodbot)
-        if (text.includes(`@${TG_BOT_USERNAME}`) || text.toLowerCase().includes('ты что думаешь')) {
+        // 2. Check for trigger (@kimeprodbot or Тумба)
+        const lowerText = text.toLowerCase();
+        if (text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумба') || lowerText.includes('ты что думаешь')) {
             // Get history for context
             const { rows } = await pool.query('SELECT role, content FROM telegram_history WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
             
             const aiMessages = [
-                { role: 'system', content: 'Ты — Creative Office Manager KIME. Ты находишься в рабочем чате команды. Твоя задача: помогать с идеями, анализировать обсуждения и отвечать на вопросы профессионально, но креативно. Если тебя спрашивают "что думаешь", проанализируй последние сообщения в чате и дай свой фидбек или задай наводящие вопросы.' },
+                { role: 'system', content: 'Ты — Creative Office Manager KIME. В команде тебя называют "Тумба". Ты находишься в рабочем чате. Твоя задача: помогать с идеями, анализировать обсуждения и отвечать на вопросы профессионально, но креативно. Если тебя зовут по имени "Тумба" или спрашивают "что думаешь", проанализируй последние сообщения в чате и дай свой фидбек.' },
                 ...rows.map(r => ({ role: 'user', content: r.content }))
             ];
 
