@@ -113,8 +113,12 @@ const ContactOverlay = () => {
         }, 1200);
     };
 
+    const preventScrollLeaking = (e) => {
+        e.stopPropagation();
+    };
+
     return (
-        <div className="absolute md:fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-[100px] md:pt-[120px] pb-4 md:pb-8">
+        <div className="absolute md:fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-[100px] md:pt-[120px] pb-4 md:pb-8" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking}>
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div className="relative z-10 w-full md:w-[75vw] max-w-[800px] h-full max-h-[850px] flex flex-col justify-center">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative">
