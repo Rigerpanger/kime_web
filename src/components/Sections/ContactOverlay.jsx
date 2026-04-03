@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { User, Mail, MessageSquare, ArrowRight, DollarSign, Send, Loader2, Sparkles, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
