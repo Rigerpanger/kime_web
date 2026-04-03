@@ -69,12 +69,15 @@ const ContactOverlay = () => {
                 })
             });
 
-            if (!response.ok) throw new Error('Proxy Server Error');
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.error || errorData?.details || 'Proxy Server Error');
+            }
 
             const data = await response.json();
             setMessages(prev => [...prev, { role: 'assistant', content: data.choices[0].message.content }]);
         } catch (error) {
-            console.error('GPT Error:', error);
+            console.error('GPT Error Details:', error.message);
             setMessages(prev => [...prev, { role: 'assistant', content: 'Ой, связь с ИИ немного затянулась. Но мы всё равно можем продолжить! Просто отправьте диалог менеджеру.' }]);
         } finally {
             setIsThinking(false);

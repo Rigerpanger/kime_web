@@ -10,7 +10,10 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, '../.env') });
 
 console.log('-------------------------------------------');
 console.log('🚀 SERVER STARTUP CHECK:');
@@ -20,9 +23,6 @@ console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '✅ PRESENT (MASKED)' : '
 console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ OK' : '❌ MISSING');
 console.log('PORT:', process.env.PORT || '3001 (Default)');
 console.log('-------------------------------------------');
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const { Pool } = pg;
 const app = express();
@@ -304,13 +304,45 @@ app.post('/api/auth/setup-admin', async (req, res) => {
 app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        
+        if (!apiKey) {
+            console.error('❌ AI Chat Error: Missing OPENAI_API_KEY');
+            return res.status(500).json({ error: 'Missing API Key' });
+        }
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+
+        // Используем публичное зеркало (proxy) для обхода блокировки api.openai.com в РФ
+        console.log('🤖 Sending AI request via proxy mirror...');
+        const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ (задавая по одному наводящему вопросу) и оценивать примерную стоимость проектов.' }, ...req.body.messages] })
+            body: JSON.stringify({ 
+                model: 'gpt-4o-mini', 
+                messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ (задавая по одному наводящему вопросу) и оценивать примерную стоимость проектов.' }, ...req.body.messages] 
+            }),
+            signal: controller.signal
         });
-        res.json(await response.json());
-    } catch (error) { res.status(500).json({ error: 'AI failed' }); }
+        
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`❌ OpenAI API Error (${response.status}):`, errorText);
+            return res.status(response.status).json({ error: 'OpenAI Error', details: errorText });
+        }
+
+        const data = await response.json();
+        console.log('✅ AI response received successfully.');
+        res.json(data);
+    } catch (error) { 
+        console.error('❌ AI Fetch Error:', error.message);
+        if (error.name === 'AbortError') {
+             console.error('⚠️ AI Request timed out (might be blocked by firewall or Roskomnadzor).');
+        }
+        res.status(500).json({ error: 'AI failed', message: error.message }); 
+    }
 });
 
 app.listen(PORT, () => console.log(`Kime API Server started on port ${PORT}`));

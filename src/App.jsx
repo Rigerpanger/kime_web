@@ -46,22 +46,14 @@ const AppLayout = () => {
                 const response = await fetch(`${apiUrl}/content/sculpture_config`);
                 if (response.ok) {
                     const data = await response.json();
-                    if (data) setSculptureConfig(data);
+                    if (data && Object.keys(data).length > 0) {
+                        setSculptureConfig(data);
+                    }
                 } else {
-                    console.log("Using default config (empty DB)");
-                    setSculptureConfig({
-                         modelPath: "/models/sculpture.glb",
-                         scale: 1, 
-                         position: [0,-1,0],
-                         rotation: [0,0,0],
-                         color: "#333333",
-                         metalness: 0.9,
-                         roughness: 0.1
-                    });
+                    console.log("DB config not found, using AppStore persistent default.");
                 }
             } catch (err) {
                 console.error("Failed to load sculpture config", err);
-                setSculptureConfig({ modelPath: "/models/sculpture.glb", scale: 1 });
             }
         };
         fetchSculptureConfig();
