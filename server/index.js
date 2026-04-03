@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Загружаем конфиг из корня проекта
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 console.log('-------------------------------------------');
@@ -83,20 +84,11 @@ const initDB = async () => {
                 order_index INTEGER DEFAULT 0
             );
         `);
-        // --- One-time Cleanup: Replace ALL old paths (relative, localhost or local /uploads) with new Proxy paths ---
+        // --- One-time Cleanup: Replace ALL old paths ---
         await pool.query("UPDATE projects SET cover = REPLACE(cover, '/api/uploads/', '/api/m/') WHERE cover LIKE '%/api/uploads/%'");
         await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '/api/uploads/', '/api/m/') WHERE logo_url LIKE '%/api/uploads/%'");
         await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '/api/uploads/', '/api/m/') WHERE image_url LIKE '%/api/uploads/%'");
         
-        // Also fix the dot vs underscore in existing filenames in DB
-        // (This is a simplified fix, we'll try to guess and replace known extensions)
-        await pool.query("UPDATE projects SET cover = REPLACE(cover, '.jpg', '_jpg') WHERE cover LIKE '%.jpg'");
-        await pool.query("UPDATE projects SET cover = REPLACE(cover, '.png', '_png') WHERE cover LIKE '%.png'");
-        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '.jpg', '_jpg') WHERE logo_url LIKE '%.jpg'");
-        await pool.query("UPDATE partners SET logo_url = REPLACE(logo_url, '.png', '_png') WHERE logo_url LIKE '%.png'");
-        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '.jpg', '_jpg') WHERE image_url LIKE '%.jpg'");
-        await pool.query("UPDATE certificates SET image_url = REPLACE(image_url, '.png', '_png') WHERE image_url LIKE '%.png'");
-
         console.log('✅ Database paths fixed to use Smart Proxy');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
@@ -112,11 +104,10 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use('/uploads', express.static(uploadsDir));
 app.use('/api/uploads', express.static(uploadsDir));
 
-// --- SMART MEDIA PROXY (Bypass Nginx static intercept) ---
+// --- SMART MEDIA PROXY ---
 app.get('/api/m/:id', (req, res) => {
     try {
         let filename = req.params.id;
-        // Support legacy underscore bypass ONLY if there's no dot in the filename
         if (!filename.includes('.') && filename.includes('_')) {
             filename = filename.replace('_', '.');
         }
@@ -126,19 +117,6 @@ app.get('/api/m/:id', (req, res) => {
         } else {
             res.status(404).json({ error: 'File not found' });
         }
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-// --- DEBUG UPLOADS ---
-app.get('/api/debug-uploads', (req, res) => {
-    try {
-        const files = fs.readdirSync(uploadsDir);
-        res.json({ 
-            exists: fs.existsSync(uploadsDir), 
-            path: uploadsDir, 
-            files,
-            total: files.length 
-        });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -165,16 +143,11 @@ const authenticateToken = (req, res, next) => {
 // --- FILE UPLOAD ---
 app.post('/api/upload', authenticateToken, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
-    
     let proxyFilename = req.file.filename;
     const ext = path.extname(req.file.originalname).toLowerCase();
-    
-    // Only replace dots with underscores for standard web static files to bypass Nginx.
-    // We MUST preserve dots for .hdr and .exr because Three.js parsers rely on the exact extension.
     if (!['.hdr', '.hdri', '.exr'].includes(ext)) {
         proxyFilename = proxyFilename.replace('.', '_');
     }
-    
     res.json({ url: `/m/${proxyFilename}` });
 });
 
@@ -222,125 +195,33 @@ app.post('/api/content/:key', authenticateToken, async (req, res) => {
     res.json(rows[0]);
 });
 
-// --- CERTIFICATES CRUD ---
-app.get('/api/certificates', async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
-        res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-app.post('/api/certificates', authenticateToken, async (req, res) => {
-    const c = req.body;
-    const { rows } = await pool.query(
-        'INSERT INTO certificates (company, division, position, image_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-        [c.company, c.division, c.position, c.image_url, c.order_index]
-    );
-    res.json(rows[0]);
-});
-app.put('/api/certificates/:id', authenticateToken, async (req, res) => {
-    const c = req.body;
-    const { rows } = await pool.query(
-        'UPDATE certificates SET company=$1, division=$2, position=$3, image_url=$4, order_index=$5 WHERE id=$6 RETURNING *',
-        [c.company, c.division, c.position, c.image_url, c.order_index, req.params.id]
-    );
-    res.json(rows[0]);
-});
-app.delete('/api/certificates/:id', authenticateToken, async (req, res) => {
-    await pool.query('DELETE FROM certificates WHERE id = $1', [req.params.id]);
-    res.json({ success: true });
-});
-
-// --- PARTNERS CRUD ---
-app.get('/api/partners', async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
-        res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-app.post('/api/partners', authenticateToken, async (req, res) => {
-    const p = req.body;
-    const { rows } = await pool.query(
-        'INSERT INTO partners (name, logo_url, width, order_index) VALUES ($1, $2, $3, $4) RETURNING *',
-        [p.name, p.logo_url, p.width, p.order_index]
-    );
-    res.json(rows[0]);
-});
-app.delete('/api/partners/:id', authenticateToken, async (req, res) => {
-    await pool.query('DELETE FROM partners WHERE id = $1', [req.params.id]);
-    res.json({ success: true });
-});
-
-// --- AUTH ---
-app.get('/api/auth/users', async (req, res) => {
-    try {
-        const { rows } = await pool.query('SELECT id, email FROM users');
-        res.json(rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (rows.length === 0) return res.status(401).json({ error: 'User not found' });
-        const isMatch = await bcrypt.compare(password, rows[0].password_hash);
-        if (!isMatch) return res.status(401).json({ error: 'Wrong password' });
-        const token = jwt.sign({ id: rows[0].id, email: rows[0].email }, JWT_SECRET, { expiresIn: '72h' });
-        res.json({ token, user: { id: rows[0].id, email: rows[0].email } });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/auth/setup-admin', async (req, res) => {
-    try {
-        const { email, password, secret } = req.body;
-        if (secret !== 'KIME_SETUP_SECRET') return res.status(403).json({ error: 'Denied' });
-        const hash = await bcrypt.hash(password, 10);
-        await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2)', [email, hash]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
 // --- AI Chat ---
 app.post('/api/chat', async (req, res) => {
     try {
         const apiKey = process.env.VITE_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
-        
-        if (!apiKey) {
-            console.error('❌ AI Chat Error: Missing OPENAI_API_KEY');
-            return res.status(500).json({ error: 'Missing API Key' });
-        }
+        if (!apiKey) return res.status(500).json({ error: 'Missing API Key' });
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-        // Используем публичное зеркало (proxy) для обхода блокировки api.openai.com в РФ
         console.log('🤖 Sending AI request via proxy mirror...');
         const response = await fetch('https://api.openai-proxy.org/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
             body: JSON.stringify({ 
                 model: 'gpt-4o-mini', 
-                messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ (задавая по одному наводящему вопросу) и оценивать примерную стоимость проектов.' }, ...req.body.messages] 
+                messages: [{ role: 'system', content: 'Ты - Нейро-Ассистент топовой IT-студии КИМЭ. Твоя цель - консультировать клиентов, отвечать на вопросы, помогать составлять ТЗ и оценивать стоимость.' }, ...req.body.messages] 
             }),
             signal: controller.signal
         });
         
         clearTimeout(timeoutId);
-
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`❌ OpenAI API Error (${response.status}):`, errorText);
             return res.status(response.status).json({ error: 'OpenAI Error', details: errorText });
         }
-
-        const data = await response.json();
-        console.log('✅ AI response received successfully.');
-        res.json(data);
+        res.json(await response.json());
     } catch (error) { 
-        console.error('❌ AI Fetch Error:', error.message);
-        if (error.name === 'AbortError') {
-             console.error('⚠️ AI Request timed out (might be blocked by firewall or Roskomnadzor).');
-        }
         res.status(500).json({ error: 'AI failed', message: error.message }); 
     }
 });
