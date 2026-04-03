@@ -18,8 +18,15 @@ const ContactOverlay = () => {
     const [isSent, setIsSent] = useState(false);
     const chatEndRef = useRef(null);
 
+    // Auto-scroll chat to bottom
+    const scrollToBottom = () => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (messages.length > 1 || isThinking) {
+            scrollToBottom();
+        }
     }, [messages, isThinking]);
 
     useEffect(() => {
@@ -279,13 +286,18 @@ const ContactOverlay = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="shrink-0 mt-5 md:mt-6 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-8 gap-y-2 text-[9px] md:text-[11px] tracking-widest uppercase font-bold text-white/40 mb-2"
+                    className="shrink-0 mt-4 md:mt-5 flex flex-col items-center justify-center gap-2 md:gap-2.5 mb-2 relative z-10"
                 >
-                    <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all drop-shadow-md">hello@kime.xyz</a>
-                    <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                    <a href="https://t.me/kimeprod" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-all drop-shadow-md">Telegram</a>
-                    <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
-                    <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-all drop-shadow-md">+7 (999) 000-00-00</a>
+                    <div className="flex flex-wrap items-center justify-center gap-x-5 md:gap-x-6 gap-y-2 text-[9px] md:text-[10px] tracking-[0.15em] uppercase font-bold text-white/40">
+                        <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-all drop-shadow-md">HELLO@KIME.XYZ</a>
+                        <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                        <a href="https://t.me/kime_bot" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-all drop-shadow-md">TELEGRAM</a>
+                        <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                        <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-all drop-shadow-md">+7 (999) 000-00-00</a>
+                    </div>
+                    <div className="text-[8px] md:text-[9px] text-white/30 tracking-[0.2em] uppercase font-light">
+                        © 2026 КИМЭ. Все права защищены.
+                    </div>
                 </motion.div>
             </div>
         </div>
