@@ -80,6 +80,13 @@ const initDB = async () => {
                 width INTEGER DEFAULT 100,
                 order_index INTEGER DEFAULT 0
             );
+            CREATE TABLE IF NOT EXISTS telegram_history (
+                id SERIAL PRIMARY KEY,
+                chat_id BIGINT NOT NULL,
+                role VARCHAR(20) NOT NULL,
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `);
         console.log('✅ Database tables checked/initialized');
     } catch (err) {
@@ -201,6 +208,23 @@ app.get(['/debug-status', '/api/debug-status'], async (req, res) => {
     } catch (err) { res.status(500).json({ status: 'error', details: err.message }); }
 });
 
+// --- TELEGRAM BOT CONFIG ---
+const TG_TOKEN = '8626390056:AAG3GK8Elb2eNcWZIIBjpom2OKzybHvaEms';
+const TG_CHAT_ID = '-1003720321085';
+const TG_BOT_USERNAME = 'kimeprodbot';
+
+const sendTelegramMessage = async (chatId, text, parseMode = 'Markdown') => {
+    try {
+        const url = `https://api.telegram.org/bot${TG_TOKEN}/sendMessage`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text, parse_mode: parseMode })
+        });
+        return await res.json();
+    } catch (err) { console.error('❌ Telegram Send Error:', err.message); }
+};
+
 // --- AI Chat ---
 app.post(['/chat', '/api/chat'], async (req, res) => {
     try {
@@ -285,4 +309,83 @@ app.post(['/chat', '/api/chat'], async (req, res) => {
     }
 });
 
-app.listen(PORT, () => console.log(`🚀 Kime API Server started on port ${PORT}`));
+// --- Telegram Notify (Leads from Website) ---
+app.post(['/notify', '/api/notify'], async (req, res) => {
+    const { messages, contact } = req.body;
+    if (!messages || !contact) return res.status(400).json({ error: 'Missing data' });
+
+    let transcript = `🎯 *Новая заявка: KIME Website*\n👤 *Клиент:* ${contact}\n\n📝 *История диалога:*\n`;
+    messages.forEach(m => {
+        const role = m.role === 'user' ? '👤 Клиент' : '🤖 ИИ';
+        transcript += `*${role}:* ${m.content}\n\n`;
+    });
+
+    const result = await sendTelegramMessage(TG_CHAT_ID, transcript);
+    res.json({ success: !!result.ok });
+});
+
+// --- Telegram Webhook (Interact in Group) ---
+app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
+    try {
+        const update = req.body;
+        if (!update || !update.message || !update.message.text) return res.sendStatus(200);
+
+        const chatId = update.message.chat.id;
+        const text = update.message.text;
+        const msgId = update.message.message_id;
+        const user = update.message.from.username || update.message.from.first_name;
+
+        // 1. Save to history
+        await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
+            [chatId, 'user', `${user}: ${text}`]);
+        
+        // Keep only last 10
+        await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 10)', [chatId]);
+
+        // 2. Check for trigger (@kimeprodbot)
+        if (text.includes(`@${TG_BOT_USERNAME}`) || text.toLowerCase().includes('ты что думаешь')) {
+            // Get history for context
+            const { rows } = await pool.query('SELECT role, content FROM telegram_history WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
+            
+            const aiMessages = [
+                { role: 'system', content: 'Ты — Creative Office Manager KIME. Ты находишься в рабочем чате команды. Твоя задача: помогать с идеями, анализировать обсуждения и отвечать на вопросы профессионально, но креативно. Если тебя спрашивают "что думаешь", проанализируй последние сообщения в чате и дай свой фидбек или задай наводящие вопросы.' },
+                ...rows.map(r => ({ role: 'user', content: r.content }))
+            ];
+
+            const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+            const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
+
+            const aiRes = await fetch('https://api.openai-proxy.com/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: 'gpt-4o-mini', messages: aiMessages })
+            });
+
+            if (aiRes.ok) {
+                const data = await aiRes.json();
+                const reply = data.choices[0].message.content;
+                await sendTelegramMessage(chatId, reply);
+                // Save AI reply to history
+                await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', [chatId, 'assistant', reply]);
+            }
+        }
+        res.sendStatus(200);
+    } catch (err) {
+        console.error('❌ Webhook Error:', err);
+        res.sendStatus(200); // Always 200 to Telegram
+    }
+});
+
+app.listen(PORT, async () => {
+    console.log(`🚀 Kime API Server started on port ${PORT}`);
+    
+    // Auto-register Telegram Webhook
+    try {
+        const webhookUrl = `https://kimeproduction.ru/api/telegram-webhook`;
+        console.log(`🔄 Attempting to register Telegram Webhook: ${webhookUrl}`);
+        const res = await fetch(`https://api.telegram.org/bot${TG_TOKEN}/setWebhook?url=${webhookUrl}`);
+        const data = await res.json();
+        if (data.ok) console.log('✅ Telegram Webhook registered successfully');
+        else console.error('❌ Telegram Webhook registration FAILED:', data);
+    } catch (err) { console.error('❌ Telegram Webhook critical error:', err.message); }
+});

@@ -103,15 +103,30 @@ const ContactOverlay = () => {
         e.preventDefault();
         if (!contactInput.trim() || isThinking) return;
         setIsThinking(true);
-        setTimeout(() => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || '/api';
+            await fetch(`${apiUrl}/notify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: messages,
+                    contact: contactInput
+                })
+            });
+            
             setMessages(prev => [...prev, 
                 { role: 'user', content: contactInput },
                 { role: 'assistant', content: 'Заявка передана! Арт-директор свяжется с вами в Telegram в ближайшее время. Спасибо за интерес к КИМЭ!' }
             ]);
             setIsSent(true);
             setContactMode(false);
+        } catch (error) {
+            console.error('❌ Notification Error:', error);
+            // Even if notification fails, show success to user but log it
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Система уведомлений немного перегружена, но мы увидим вашу заявку. Спасибо!' }]);
+        } finally {
             setIsThinking(false);
-        }, 1200);
+        }
     };
 
     const preventScrollLeaking = (e) => {
