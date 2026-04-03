@@ -212,14 +212,16 @@ const About = () => {
         );
     };
 
+    const targetY = isMobile ? (content.verticalOffsetMobile || 0) : (content.verticalOffsetDesktop || 0);
+
     const slides = [
         // Slide 1: About Text + Brands
         <motion.div
             key="about-main"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: targetY + 20 }}
             animate={{
                 opacity: 1,
-                y: isMobile ? content.verticalOffsetMobile : content.verticalOffsetDesktop
+                y: targetY
             }}
             transition={{
                 y: { duration: 0.8, ease: "easeOut" },
@@ -268,10 +270,10 @@ const About = () => {
         // Slide 2: Approach/Team (Simplified)
         <motion.div
             key="about-team"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-                opacity: 1,
-                y: isMobile ? (content.verticalOffsetMobile || 0) : (content.verticalOffsetDesktop || 0)
+            initial={{ opacity: 0, y: targetY + 20 }}
+            animate={{ 
+                opacity: 1, 
+                y: targetY 
             }}
             transition={{
                 y: { duration: 0.8, ease: "easeOut" },
@@ -292,10 +294,10 @@ const About = () => {
         // Slide 3: Director
         <motion.div
             key="about-vision"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{
-                opacity: 1,
-                y: isMobile ? (content.verticalOffsetMobile || 0) : (content.verticalOffsetDesktop || 0)
+            initial={{ opacity: 0, y: targetY + 20 }}
+            animate={{ 
+                opacity: 1, 
+                y: targetY 
             }}
             transition={{
                 y: { duration: 0.8, ease: "easeOut" },
@@ -328,10 +330,10 @@ const About = () => {
         // Slide 4: Certificates (Editorial Layout)
         <motion.div
             key="about-certificates"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: targetY + 20 }}
             animate={{
                 opacity: 1,
-                y: isMobile ? (content.verticalOffsetMobile || 0) : (content.verticalOffsetDesktop || 0)
+                y: targetY
             }}
             transition={{
                 y: { duration: 0.8, ease: "easeOut" },
