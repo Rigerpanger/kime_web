@@ -29,6 +29,7 @@ const About = () => {
     });
 
     const [certificates, setCertificates] = useState([]);
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -52,6 +53,8 @@ const About = () => {
                 }
             } catch (error) {
                 console.error('Error fetching about data:', error);
+            } finally {
+                setIsReady(true);
             }
         };
         fetchData();
@@ -451,9 +454,11 @@ const About = () => {
                         <MobileAbout content={content} displayCertificates={displayCertificates} />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center relative">
-                            <AnimatePresence mode="wait" initial={true}>
-                                {slides[currentSlide]}
-                            </AnimatePresence>
+                            {isReady && (
+                                <AnimatePresence mode="wait" initial={true}>
+                                    {slides[currentSlide]}
+                                </AnimatePresence>
+                            )}
                         </div>
                     )}
                 </div>
