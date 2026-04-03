@@ -141,11 +141,11 @@ const ContactOverlay = () => {
                                 className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-4 mt-auto shadow-[0_0_15px_rgba(255,170,68,0.2)]">
-                                        <Sparkles size={14} className="text-[#ffaa44]" />
+                                    <div className="hidden md:flex w-7 h-7 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-3 mt-auto shadow-[0_0_15px_rgba(255,170,68,0.2)]">
+                                        <Sparkles size={12} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-4 text-[13px] md:text-[14px] leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-3.5 md:p-3 text-[13px] md:text-[12px] leading-relaxed shadow-lg border ${
                                     msg.role === 'user' 
                                         ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-[0.5rem] md:rounded-br-sm' 
                                         : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-[0.5rem] md:rounded-bl-sm'
@@ -157,7 +157,7 @@ const ContactOverlay = () => {
 
                         {/* Quick Actions Array */}
                         {messages.length === 1 && !isThinking && (
-                            <div className="flex flex-col gap-3 mt-4 md:ml-12">
+                            <div className="flex flex-col gap-2.5 mt-2 md:grid md:grid-cols-2 md:gap-3 md:ml-10 md:mr-10">
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         initial={{ opacity: 0, x: -10 }}
@@ -165,12 +165,12 @@ const ContactOverlay = () => {
                                         transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center justify-start gap-4 bg-white/5 border border-white/20 hover:border-[#ffaa44]/60 hover:bg-[#ffaa44]/15 hover:translate-x-2 transition-all duration-300 rounded-[1.25rem] p-3 md:p-4 text-left w-full md:w-max md:min-w-[340px] outline-none group shadow-lg"
+                                        className="flex items-center justify-start gap-3 bg-white/5 border border-white/20 hover:border-[#ffaa44]/60 hover:bg-[#ffaa44]/15 hover:translate-y-[-2px] transition-all duration-300 rounded-[1rem] p-3 md:p-2.5 text-left w-full outline-none group shadow-sm hover:shadow-lg"
                                     >
-                                        <div className="w-10 h-10 rounded-full bg-black/80 flex items-center justify-center shrink-0 border border-white/10 group-hover:scale-110 group-hover:bg-black transition-all duration-300 shadow-xl">
-                                            {act.icon}
+                                        <div className="w-9 h-9 md:w-8 md:h-8 rounded-full bg-black/80 flex items-center justify-center shrink-0 border border-white/10 group-hover:scale-110 group-hover:bg-black transition-all duration-300 shadow-md">
+                                            {React.cloneElement(act.icon, { size: 14, className: "text-[#ffaa44]" })}
                                         </div>
-                                        <span className="text-white font-medium tracking-wide group-hover:text-[#ffaa44] text-[12px] md:text-[13px] uppercase transition-colors">{act.label}</span>
+                                        <span className="text-white font-medium tracking-wide group-hover:text-[#ffaa44] text-[12px] md:text-[10px] uppercase transition-colors">{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -188,18 +188,18 @@ const ContactOverlay = () => {
                     </div>
 
                     {/* Input Area */}
-                    <div className="p-3 md:p-4 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
+                    <div className="p-3 md:p-3 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
                                 <motion.div 
                                     initial={{ opacity: 0, y: 10, height: 0 }}
                                     animate={{ opacity: 1, y: 0, height: 'auto' }}
                                     exit={{ opacity: 0, y: 10, height: 0 }}
-                                    className="flex justify-end mb-3 overflow-hidden"
+                                    className="flex justify-end mb-2.5 overflow-hidden"
                                 >
                                     <button 
                                         onClick={handleRequestContact}
-                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-5 md:px-6 py-2 md:py-2.5 rounded-full text-[10px] md:text-[11px] uppercase tracking-[0.2em] font-black hover:shadow-[0_0_20px_rgba(255,170,68,0.5)] hover:bg-white hover:scale-[1.02] transition-all flex items-center gap-2"
+                                        className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-4 md:px-5 py-2 md:py-2.5 rounded-full text-[10px] md:text-[10px] uppercase tracking-[0.2em] font-black hover:shadow-[0_0_20px_rgba(255,170,68,0.5)] hover:bg-white hover:scale-[1.02] transition-all flex items-center gap-2"
                                     >
                                         Отправить диалог менеджеру <ArrowRight size={14} strokeWidth={3} />
                                     </button>
@@ -213,10 +213,10 @@ const ContactOverlay = () => {
                                     key="sent"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    className="w-full flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-2xl md:rounded-3xl shadow-lg"
+                                    className="w-full flex items-center justify-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-2xl md:rounded-2xl shadow-sm"
                                 >
-                                    <CheckCircle2 size={18} className="text-green-400" />
-                                    <span className="text-green-300 font-medium text-[13px] md:text-[14px]">Заявка успешно отправлена!</span>
+                                    <CheckCircle2 size={16} className="text-green-400" />
+                                    <span className="text-green-300 font-medium text-[12px] md:text-[13px]">Заявка успешно отправлена!</span>
                                 </motion.div>
                             ) : contactMode ? (
                                 <motion.form 
@@ -233,15 +233,15 @@ const ContactOverlay = () => {
                                         onChange={(e) => setContactInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Telegram (например: @durov)" 
-                                        className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.15)] rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none transition-all placeholder:text-white/40 font-medium"
+                                        className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 focus:border-[#ffaa44] shadow-[0_0_15px_rgba(255,170,68,0.15)] rounded-full px-5 py-3 text-[13px] md:text-sm text-white outline-none transition-all placeholder:text-white/40 font-medium"
                                         autoFocus
                                     />
                                     <button 
                                         type="submit" 
                                         disabled={isThinking || !contactInput.trim()}
-                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl md:rounded-full bg-[#ffaa44] hover:bg-white text-black flex items-center justify-center transition-all disabled:opacity-50 shadow-lg"
+                                        className="w-12 h-12 md:w-11 md:h-11 shrink-0 rounded-full bg-[#ffaa44] hover:bg-white text-black flex items-center justify-center transition-all disabled:opacity-50 shadow-md"
                                     >
-                                        {isThinking ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                                        {isThinking ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                                     </button>
                                 </motion.form>
                             ) : (
@@ -259,14 +259,14 @@ const ContactOverlay = () => {
                                         onChange={(e) => setGptInput(e.target.value)}
                                         disabled={isThinking}
                                         placeholder="Опишите задачу подробнее..." 
-                                        className="flex-1 w-full bg-black/40 border border-white/20 rounded-2xl md:rounded-full px-5 py-3 md:py-4 text-[13px] md:text-sm text-white outline-none focus:border-white/40 focus:bg-white/5 transition-all placeholder:text-white/30 font-light shadow-inner"
+                                        className="flex-1 w-full bg-black/40 border border-white/20 rounded-full px-5 py-3 md:py-3 text-[13px] md:text-[13px] text-white outline-none focus:border-white/40 focus:bg-white/5 transition-all placeholder:text-white/30 font-light shadow-inner"
                                     />
                                     <button 
                                         type="submit" 
                                         disabled={isThinking || !gptInput.trim()}
-                                        className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-2xl md:rounded-full bg-white/10 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all disabled:opacity-20 border border-white/20 shadow-md"
+                                        className="w-12 h-12 md:w-11 md:h-11 shrink-0 rounded-full bg-white/10 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all disabled:opacity-20 border border-white/20 shadow-sm"
                                     >
-                                        <Send size={18} />
+                                        <Send size={16} />
                                     </button>
                                 </motion.form>
                             )}
