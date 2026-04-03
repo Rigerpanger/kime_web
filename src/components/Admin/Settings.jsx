@@ -141,32 +141,35 @@ const Settings = () => {
         const logoKey = isMobile ? 'logoOffsetMobile' : 'logoOffsetDesktop';
 
         const scale = isMobile ? 2.6 : 1.65;
-
         const hOff = (layoutSettings[hKey] || 0) / scale;
         const cOff = (layoutSettings[cKey] || 0) / scale;
         const lOff = (layoutSettings[logoKey] || 0) / scale;
 
         return (
             <div className={`relative transition-all duration-700 bg-[#060606] rounded-[3rem] border-[10px] border-[#151515] shadow-[0_50px_100px_rgba(0,0,0,0.8)] flex flex-col items-center overflow-hidden
-                ${isMobile ? 'w-[320px] h-[680px]' : 'w-full aspect-video max-w-6xl'}
+                ${isMobile ? 'w-[320px] h-[720px]' : 'w-full aspect-video max-w-6xl'}
             `}>
                 {deviceMode === 'mobile' && <div className="absolute top-5 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-white/5 rounded-full" />}
                 
                 {showGrid && (
-                    <div className="absolute inset-0 pointer-events-none opacity-[0.15]" 
+                    <div className="absolute inset-0 pointer-events-none opacity-[0.08]" 
                         style={{ backgroundSize: '24px 24px', backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)' }} 
                     />
                 )}
 
-                <div className={`w-full h-full p-12 flex flex-col justify-center relative gap-4
-                    ${isAbout && !isMobile ? 'items-start pl-24' : 'items-center'}
+                <div className={`w-full h-full p-12 flex flex-col justify-center relative
+                    ${isAbout && !isMobile ? 'items-start pl-40' : 'items-center'}
                 `}>
                     {/* Viewport Center Line */}
                     <div className="absolute top-1/2 left-0 w-full h-[1px] bg-white/5 border-t border-dashed border-white/5 pointer-events-none" />
-                    
-                    <div className="flex flex-col relative" style={{ transform: `translateY(${cOff}px)` }}>
-                        {/* Decorative Breadcrumb for About S2 */}
-                        {isAboutS2 && (
+
+                    {/* Content Container (Matches Site animate={{ y: contentOffset }} ) */}
+                    <div 
+                        className="flex flex-col relative w-full items-inherit transition-transform duration-300"
+                        style={{ transform: `translateY(${cOff}px)` }}
+                    >
+                         {/* Breadcrumb for Slide 2 */}
+                         {isAboutS2 && (
                             <div className="mb-4 text-[7px] font-black text-[#ffaa44]/40 uppercase tracking-[0.5em] flex items-center gap-2">
                                 <div className="w-1 h-1 rounded-full bg-[#ffaa44]/40" />
                                 Наш подход
@@ -184,11 +187,11 @@ const Settings = () => {
                             onDragStart={(e) => setDragState({ key: hKey, startY: e.clientY, startVal: layoutSettings[hKey] || 0 })}
                         />
 
-                        {/* Gap based on real site CSS */}
-                        <div className={`${isAbout ? 'h-6' : 'h-10'} pointer-events-none`} />
+                        {/* Gap mirroring original design intention */}
+                        <div className={`${isAbout ? 'h-6' : 'h-10'} pointer-events-none shrink-0`} />
 
                         <MockupBlock 
-                            y={0} // Fixed inside the container
+                            y={0} // Fixed in flow, but moves with container
                             label="ОСНОВНОЙ КОНТЕНТ" 
                             icon={<FileText size={16} />}
                             color="amber"
@@ -325,19 +328,8 @@ const Settings = () => {
                         <div className="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
                             
                             {/* Visual Representation Area */}
-                            <div className="lg:col-span-8 flex flex-col gap-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <h4 className="text-sm font-medium uppercase tracking-widest text-white/80">Визуальный макет</h4>
-                                        <p className="text-[10px] text-white/20 uppercase tracking-widest font-bold">Схема композиции экрана</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="flex items-center gap-2 text-[9px] font-bold text-indigo-400 bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20 uppercase tracking-widest">
-                                            <MousePointer2 size={12} /> Режим просмотра
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex-1 bg-black/40 rounded-[3rem] border border-white/5 p-8 flex items-center justify-center relative overflow-hidden">
+                            <div className="lg:col-span-8 flex flex-col pt-2">
+                                <div className="flex-1 bg-black/60 rounded-[3rem] border border-white/5 p-4 flex items-center justify-center relative overflow-hidden shadow-inner">
                                      <VisualMockup />
                                 </div>
                             </div>
