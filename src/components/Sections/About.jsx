@@ -218,16 +218,16 @@ const About = () => {
         // Slide 1: About Text + Brands
         <motion.div
             key="about-main"
-            initial={{ opacity: 0, y: targetY }}
+            initial={{ opacity: 0.01, y: targetY }}
             animate={{
                 opacity: 1,
                 y: targetY
             }}
             transition={{
-                y: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 }
+                opacity: { duration: 0.8, ease: "easeOut" },
+                y: { duration: 0 }
             }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0 }}
             className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
         >
             <div className={`mb-8 w-full flex flex-col ${isMobile ? 'h-auto' : 'flex-grow justify-center'}`}>
@@ -270,16 +270,16 @@ const About = () => {
         // Slide 2: Approach/Team (Simplified)
         <motion.div
             key="about-team"
-            initial={{ opacity: 0, y: targetY }}
+            initial={{ opacity: 0.01, y: targetY }}
             animate={{ 
-                opacity: 1, 
-                y: targetY 
+                opacity: 1,
+                y: targetY
             }}
             transition={{
-                y: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 }
+                opacity: { duration: 0.8, ease: "easeOut" },
+                y: { duration: 0 }
             }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0 }}
             className={`flex flex-col h-full max-w-4xl w-full relative pt-12 md:pt-20 ${isMobile ? 'justify-start' : 'justify-center'}`}
         >
             <span className="text-white/20 text-[10px] uppercase tracking-[0.5em] mb-6">Наш подход</span>
@@ -294,16 +294,16 @@ const About = () => {
         // Slide 3: Director
         <motion.div
             key="about-vision"
-            initial={{ opacity: 0, y: targetY }}
+            initial={{ opacity: 0.01, y: targetY }}
             animate={{ 
-                opacity: 1, 
-                y: targetY 
+                opacity: 1,
+                y: targetY
             }}
             transition={{
-                y: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 }
+                opacity: { duration: 0.8, ease: "easeOut" },
+                y: { duration: 0 }
             }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0 }}
             className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-start h-full w-full max-w-5xl pt-12 md:pt-20 ${isMobile ? '' : 'content-center'}`}
         >
             <div className="h-[40vh] md:h-[55vh] flex justify-end">
@@ -330,16 +330,16 @@ const About = () => {
         // Slide 4: Certificates (Editorial Layout)
         <motion.div
             key="about-certificates"
-            initial={{ opacity: 0, y: targetY }}
+            initial={{ opacity: 0.01, y: targetY }}
             animate={{
                 opacity: 1,
                 y: targetY
             }}
             transition={{
-                y: { duration: 0.8, ease: "easeOut" },
-                opacity: { duration: 0.5 }
+                opacity: { duration: 0.8, ease: "easeOut" },
+                y: { duration: 0 }
             }}
-            exit={{ opacity: 0, y: -10 }}
+            exit={{ opacity: 0 }}
             className="flex flex-col justify-center h-full max-w-6xl w-full pt-12 md:pt-20"
         >
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start">
@@ -451,7 +451,7 @@ const About = () => {
                         <MobileAbout content={content} displayCertificates={displayCertificates} />
                     ) : (
                         <div className="w-full h-full flex flex-col items-center justify-center relative">
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence mode="wait" initial={true}>
                                 {slides[currentSlide]}
                             </AnimatePresence>
                         </div>
