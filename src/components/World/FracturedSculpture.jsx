@@ -328,6 +328,8 @@ const SculptureModel = () => {
     });
 
     const isServiceView = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
+    // Disable floating when in editor to ensure accurate camera framing
+    const isEditing = showStudioEditor;
 
     useEffect(() => {
         // Fallback injection to manually restore the 3D scene from browser JS console
@@ -351,7 +353,11 @@ const SculptureModel = () => {
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
 
     return (
-        <Float speed={0.4} rotationIntensity={0.05} floatIntensity={0.1}>
+        <Float 
+            speed={isEditing ? 0 : 0.4} 
+            rotationIntensity={isEditing ? 0 : 0.05} 
+            floatIntensity={isEditing ? 0 : 0.1}
+        >
             <Center bottom position={[0, safeY, 0]}>
                 <primitive object={clonedScene} scale={safeScale} rotation={[0, safeRot * (Math.PI / 180), 0]} />
                 

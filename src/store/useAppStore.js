@@ -100,19 +100,9 @@ const useAppStore = create(
         }
         
         if (!merged.sections) merged.sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-
-        // Migrate Old sections explicitly wrapping camera objects into global cameras list
-        Object.entries(merged.sections).forEach(([slug, section]) => {
-            if (section.camera && !section.cameraId) {
-                const migrated = migrateOldCamera(section.camera);
-                migrated.name = `View: ${slug}`;
-                merged.cameras.push(migrated);
-                section.cameraId = migrated.id;
-                delete section.camera; 
-            }
-        });
-
-        // Deep merge legacy FX
+        else merged.sections = { ...JSON.parse(JSON.stringify(DEFAULT_SECTIONS)), ...merged.sections };
+        
+        // Deep merge legacy FX (Keep for backward compatibility)
         if (newConfig.aiFX) merged.sections['ai-ml'].fx[0] = { ...merged.sections['ai-ml'].fx[0], ...newConfig.aiFX };
         if (newConfig.arFX) merged.sections['ar-vr'].fx[0] = { ...merged.sections['ar-vr'].fx[0], ...newConfig.arFX };
         if (newConfig.softwareFX) merged.sections['software-dev'].fx[0] = { ...merged.sections['software-dev'].fx[0], ...newConfig.softwareFX };
