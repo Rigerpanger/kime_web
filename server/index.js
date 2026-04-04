@@ -136,7 +136,13 @@ const initDB = async () => {
             );
         `);
         
-        // Вставка стартового администратора
+        // Вставка стартового администратора (Исправлено: Richardsan)
+        await pool.query(`
+            INSERT INTO telegram_users (username, role) 
+            VALUES ('Richardsan', 'admin') 
+            ON CONFLICT (username) DO UPDATE SET role = 'admin';
+        `);
+        // На всякий случай добавим и короткую версию
         await pool.query(`
             INSERT INTO telegram_users (username, role) 
             VALUES ('richardsn', 'admin') 
@@ -570,6 +576,13 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         // --- 1. ПРОВЕРКА БЕЛОГО СПИСКА (ЛС и Админы) ---
         const userCheck = await pool.query('SELECT * FROM telegram_users WHERE LOWER(username) = LOWER($1)', [user]);
         let dbUser = userCheck.rows.length > 0 ? userCheck.rows[0] : null;
+
+        // КРИТИЧЕСКИЙ ФИКС: Если это Админ (по списку), но он еще не "привязал" свой chat_id (первый старт)
+        const hardcodedAdmins = ['Richardsan', 'richardsn'];
+        if (!dbUser && hardcodedAdmins.some(a => a.toLowerCase() === user.toLowerCase())) {
+            const resAdmin = await pool.query("INSERT INTO telegram_users (username, role, chat_id) VALUES ($1, 'admin', $2) ON CONFLICT (username) DO UPDATE SET chat_id = $2, role = 'admin' RETURNING *", [user, chatId]);
+            dbUser = resAdmin.rows[0];
+        }
 
         if (isPrivate && !dbUser) {
             await sendTelegramMessage(chatId, `⏳ У вас пока нет доступа к личному общению с ассистентом KIME. Ваш ник: @${user}\nЗапрос отправлен руководителю.`);
