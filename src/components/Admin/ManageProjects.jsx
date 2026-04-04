@@ -235,8 +235,12 @@ const ManageProjects = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <textarea placeholder="Задача" className="w-full h-24 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.challenge} onChange={e => setFormData({...formData, challenge: e.target.value})} />
-                                    <textarea placeholder="Решение" className="w-full h-24 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.solution} onChange={e => setFormData({...formData, solution: e.target.value})} />
+                                    <input placeholder="Заказчик" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} />
+                                    <textarea placeholder="Краткое описание" className="w-full h-20 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.short_description} onChange={e => setFormData({...formData, short_description: e.target.value})} />
+                                    <textarea placeholder="Задача" className="w-full h-20 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.challenge} onChange={e => setFormData({...formData, challenge: e.target.value})} />
+                                    <textarea placeholder="Решение" className="w-full h-20 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.solution} onChange={e => setFormData({...formData, solution: e.target.value})} />
+                                    <textarea placeholder="Результат" className="w-full h-20 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30 resize-none" value={formData.result} onChange={e => setFormData({...formData, result: e.target.value})} />
+                                    <input placeholder="Технологии (через запятую)" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30" value={formData.tech} onChange={e => setFormData({...formData, tech: e.target.value})} />
                                 </div>
                             </div>
                             <div className="flex gap-4 pt-4 border-t border-white/5">

@@ -180,7 +180,7 @@ app.post(['/projects', '/api/projects'], authenticateToken, async (req, res) => 
         const { rows } = await pool.query(
             `INSERT INTO projects (title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
-            [title, slug, challenge, solution, result, short_description, client, cover, video_url, JSON.stringify(tags), JSON.stringify(tech), sort_order || 0]
+            [title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order || 0]
         );
         res.status(201).json(rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
@@ -205,7 +205,7 @@ app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req,
                 tech = COALESCE($11, tech), 
                 sort_order = COALESCE($12, sort_order)
              WHERE id = $13 RETURNING *`,
-            [title, slug, challenge, solution, result, short_description, client, cover, video_url, JSON.stringify(tags), JSON.stringify(tech), sort_order, id]
+            [title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order, id]
         );
         if (rows.length === 0) return res.status(404).json({ error: 'Project not found' });
         res.json(rows[0]);
