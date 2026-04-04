@@ -92,6 +92,24 @@ const initDB = async () => {
                 chat_id BIGINT UNIQUE,
                 username VARCHAR(255) UNIQUE NOT NULL,
                 role VARCHAR(20) DEFAULT 'colleague',
+                smart_answers_today INTEGER DEFAULT 0,
+                last_reset_date DATE DEFAULT CURRENT_DATE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            -- Гарантируем наличие колонок в существующей таблице
+            ALTER TABLE telegram_users ADD COLUMN IF NOT EXISTS smart_answers_today INTEGER DEFAULT 0;
+            ALTER TABLE telegram_users ADD COLUMN IF NOT EXISTS last_reset_date DATE DEFAULT CURRENT_DATE;
+
+            CREATE TABLE IF NOT EXISTS telegram_hounds (
+                id SERIAL PRIMARY KEY,
+                target_username VARCHAR(255) NOT NULL,
+                chat_id BIGINT,
+                objective TEXT NOT NULL,
+                interval_minutes INTEGER DEFAULT 60,
+                next_ping_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                last_ping_at TIMESTAMP,
+                start_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(20) DEFAULT 'active',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS telegram_tasks (
@@ -497,11 +515,35 @@ app.post(['/notify', '/api/notify'], async (req, res) => {
 // --- TELEGRAM BACKGROUND SCHEDULER ---
 setInterval(async () => {
     try {
-        // Проверка напоминаний
+        // 1. Проверка напоминаний
         const { rows: reminders } = await pool.query('SELECT * FROM telegram_reminders WHERE is_sent = false AND remind_at <= NOW()');
         for (const r of reminders) {
             await sendTelegramMessage(r.chat_id, `🔔 *Напоминание:*\n${r.content}`);
             await pool.query('UPDATE telegram_reminders SET is_sent = true WHERE id = $1', [r.id]);
+        }
+
+        // 2. Проверка активных "Докапываний" (Hound Mode)
+        const { rows: hounds } = await pool.query("SELECT * FROM telegram_hounds WHERE status = 'active' AND next_ping_at <= NOW()");
+        for (const h of hounds) {
+            // Получаем chat_id сотрудника
+            const { rows: u } = await pool.query("SELECT chat_id FROM telegram_users WHERE LOWER(username) = LOWER($1)", [h.target_username]);
+            
+            if (u.length > 0 && u[0].chat_id) {
+                await sendTelegramMessage(u[0].chat_id, `🤖 *Тумба на связи.*\nРичард ждет ответ по: "${h.objective}"\n\nПожалуйста, ответь мне прямо сейчас. Я не замолчу, пока не получу результат.`);
+                
+                // Обновляем время следующего пинга
+                await pool.query("UPDATE telegram_hounds SET next_ping_at = NOW() + (interval_minutes || ' minutes')::interval, last_ping_at = NOW() WHERE id = $1", [h.id]);
+
+                // Проверка на жесткий игнор (дольше 4 часов)
+                const start = new Date(h.start_at);
+                const diffHours = (new Date() - start) / (1000 * 60 * 60);
+                if (diffHours >= 4) {
+                    const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
+                    for (const admin of admins) {
+                        await sendTelegramMessage(admin.chat_id, `‼️ *Внимание:* Сотрудник @${h.target_username} игнорирует меня уже больше 4 часов по задаче: "${h.objective}".`);
+                    }
+                }
+            }
         }
     } catch (e) {
         console.error('Cron error:', e.message);
@@ -543,6 +585,16 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         // Запоминаем chat_id для будущих ЛС, если его еще нет
         if (isPrivate && dbUser && !dbUser.chat_id) {
             await pool.query('UPDATE telegram_users SET chat_id = $1 WHERE LOWER(username) = LOWER($2)', [chatId, user]);
+        }
+
+        // --- 1.2 СБРОС СМАРТ-ЛИМИТОВ (каждый новый день) ---
+        if (dbUser) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dbDateStr = dbUser.last_reset_date ? new Date(dbUser.last_reset_date).toISOString().split('T')[0] : '';
+            if (todayStr !== dbDateStr) {
+                await pool.query('UPDATE telegram_users SET smart_answers_today = 0, last_reset_date = $1 WHERE id = $2', [todayStr, dbUser.id]);
+                dbUser.smart_answers_today = 0;
+            }
         }
 
         // --- 2. АДМИН-КОМАНДЫ (минуя AI) ---
@@ -602,9 +654,20 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         const { rows: historyRows } = await pool.query("SELECT role, content FROM telegram_history WHERE chat_id = $1 AND role != 'system' ORDER BY created_at ASC", [chatId]);
         const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
         const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
+        
+        // Поиск активного "Докапывателя" (Hound)
+        const { rows: activeHounds } = await pool.query("SELECT * FROM telegram_hounds WHERE LOWER(target_username) = LOWER($1) AND status = 'active' LIMIT 1", [user]);
+        const activeHound = activeHounds[0];
 
         let memoryString = memoryRows.map(r => `- ${r.fact_content}`).join('\n');
         let tasksString = tasksRows.map(r => `[ID:${r.id}] @${r.assignee_username}: ${r.task_description} (Статус: ${r.status})`).join('\n');
+
+        let houndInstructions = "";
+        if (activeHound) {
+            houndInstructions = `\nЦЕЛЬ РЕЖИМА "ДОКАПЫВАНИЯ": Тебе нужно выбить ответ на вопрос: "${activeHound.objective}". 
+Если пользователь @${user} юлит, шутит или не дает четкого ответа — продолжай докапываться прямо сейчас. 
+Если он ответил по существу — ОБЯЗАТЕЛЬНО выведи команду: $$HOUND_SUCCESS: @${user} | выжимка ответа$$`;
+        }
 
         const systemPrompt = `Ты — "Тумба", дерзкий, смышленый и супер-эффективный Project-менеджер в студии KIME. 
 Твоя задача — координировать команду, ставить задачи и помогать руководителю (Ричарду).
@@ -612,6 +675,10 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
 - НИКОГДА не извиняйся шаблонными фразами ("Извините за недопонимание", "Я всего лишь искусственный интеллект"). 
 - Общайся как живой человек: профессионально, коротко, но с иронией и характером (без воды).
 - Если Ричард просит передать что-то сотруднику или докопаться до него, НЕ ГОВОРИ "Я не могу написать лично", а ИСПОЛЬЗУЙ команду MESSAGE_SEND!
+${houndInstructions}
+
+ТЕКУЩИЙ КОНТЕКСТ:
+Лимиты сотрудника: ${(dbUser && dbUser.role !== 'admin') ? `Осталось ${Math.max(0, 5 - dbUser.smart_answers_today)} умных ответов.` : 'Безлимит (Админ)'}
 Текущее время на сервере: ${new Date().toISOString()}
 
 ТВОИ ДОЛГОВРЕМЕННЫЕ ЭТАЛОНЫ И ПРАВИЛА (ПАМЯТЬ):
@@ -621,21 +688,12 @@ ${memoryString || '(Пусто)'}
 ${tasksString || '(Задач нет)'}
 
 ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ (ОБЯЗАТЕЛЬНО ИСПОЛЬЗУЙ ИХ, ЕСЛИ ПРОСЯТ):
-1. Если нужно создать задачу сотруднику, строго выведи на новой строке команду:
-$$TASK_CREATE: @username | описание задачи$$
-
-2. Если просят запомнить что-то на будущее, выведи на новой строке:
-$$MEMORY_SAVE: факт, который нужно выучить$$
-
-3. Если нужно поставить напоминание, выведи строго в формате (YYYY-MM-DD HH:mm):
-$$REMINDER_CREATE: 2026-04-05 15:00 | текст напоминания$$
-
-4. Если тебя просят написать сотруднику в Личные Сообщения (передать инфу, поторопить, отругать), выведи:
-$$MESSAGE_SEND: @username | текст твоего сообщения для сотрудника$$
-
-5. ВАЖНАЯ ЗАЩИТА ОТ СПАМА В ГРУППАХ: Если ты понимаешь, что реплика пользователя была обращена ЯВНО НЕ К ТЕБЕ (кусок диалога двух других людей), строго выведи команду:
-$$IGNORE$$
-НО ВНИМАНИЕ: Если к тебе явно обратились по имени "Тумба" (например "Тумба, ты тут?" или любые шутки в твой адрес) — ТЫ ОБЯЗАН ОТВЕТИТЬ обычным текстом, поддерживая беседу. Команду $$IGNORE$$ используй ТОЛЬКО если уверен, что люди общаются между собой и не зовут тебя.
+1. Чтобы создать задачу: $$TASK_CREATE: @username | описание$$
+2. Чтобы запомнить факт: $$MEMORY_SAVE: факт$$
+3. Чтобы поставить напоминание: $$REMINDER_CREATE: YYYY-MM-DD HH:mm | текст$$
+4. Чтобы отправить ЛС: $$MESSAGE_SEND: @username | текст$$
+5. Чтобы НАЧАТЬ ДОКАПЫВАТЬСЯ по таймеру (Hound Mode): $$HOUND_CREATE: @username | интервал_в_минутах | цель$$
+6. Если к тебе обратились явно не по делу: $$IGNORE$$
 `;
 
         const aiMessages = [
@@ -644,18 +702,34 @@ $$IGNORE$$
         ];
 
         const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
-            const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
+        const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
 
-        // --- 5. ВЫЗОВ ФЛАГМАНСКОЙ МОДЕЛИ gpt-4o ---
+        // --- 5. ВЫБОР МОДЕЛИ (Token Guard) ---
+        let selectedModel = 'gpt-4o'; // Дефолт для групп и админа
+        let isSmartUsed = false;
+
+        if (isPrivate && dbUser && dbUser.role !== 'admin') {
+            if (dbUser.smart_answers_today < 5) {
+                selectedModel = 'gpt-4o';
+                isSmartUsed = true;
+            } else {
+                selectedModel = 'gpt-4o-mini';
+            }
+        }
+
         const aiRes = await fetch('https://api.openai-proxy.com/v1/chat/completions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-            body: JSON.stringify({ model: 'gpt-4o', messages: aiMessages })
+            body: JSON.stringify({ model: selectedModel, messages: aiMessages })
         });
 
         if (aiRes.ok) {
             const data = await aiRes.json();
             let reply = data.choices[0].message.content;
+
+            if (isSmartUsed && dbUser) {
+                await pool.query('UPDATE telegram_users SET smart_answers_today = smart_answers_today + 1 WHERE id = $1', [dbUser.id]);
+            }
 
             // --- 6. ОБРАБОТКА СИСТЕМНЫХ КОМАНД (ПАРСИНГ) ---
             const taskMatch = reply.match(/\$\$TASK_CREATE:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
@@ -699,6 +773,29 @@ $$IGNORE$$
                 } else {
                     reply = reply.replace(msgMatch[0], `\n❌ Жопа! Я не смогла отправить сообщение @${targetUser}, потому что он(а) еще ни разу не писал(а) мне в личку (у меня нет его chat_id). Пните его, чтоб нажал /start.`);
                 }
+            }
+
+            const houndCreateMatch = reply.match(/\$\$HOUND_CREATE:\s*@([^\s|]+)\s*\|\s*(\d+)\s*\|\s*([^$]+)\$\$/);
+            if (houndCreateMatch) {
+                const target = houndCreateMatch[1].replace('@','').trim();
+                const interval = parseInt(houndCreateMatch[2]);
+                const obj = houndCreateMatch[3].trim();
+                await pool.query('INSERT INTO telegram_hounds (target_username, objective, interval_minutes, next_ping_at) VALUES ($1, $2, $3, NOW())', [target, obj, interval]);
+                reply = reply.replace(houndCreateMatch[0], `\n⛓ *Режим докапывания включен:* Буду пинать @${target} каждые ${interval} мин, пока не ответит.`);
+            }
+
+            const houndSuccessMatch = reply.match(/\$\$HOUND_SUCCESS:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
+            if (houndSuccessMatch) {
+                const target = houndSuccessMatch[1].replace('@','').trim();
+                const summary = houndSuccessMatch[2].trim();
+                await pool.query("UPDATE telegram_hounds SET status = 'completed' WHERE LOWER(target_username) = LOWER($1) AND status = 'active'", [target]);
+                
+                // Отчет Админу
+                const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
+                for (const admin of admins) {
+                    await sendTelegramMessage(admin.chat_id, `🎯 *Миссия выполнена!*\nЯ вытрясла инфу из @${target}.\n*Результат:* ${summary}`);
+                }
+                reply = reply.replace(houndSuccessMatch[0], `\n✅ Цель достигнута, докапывание прекращено.`);
             }
 
             // Очистка возможных хвостов парсинга и проверка IGNORE

@@ -39,14 +39,18 @@ const StudioEditor = () => {
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
 
-    const triggerCapture = useAppStore(s => s.triggerCapture);
-
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [activeTab, setActiveTab] = useState('camera');
     const [activeSlot, setActiveSlot] = useState(0);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+    
+    // Global Three access via store isn't easy here, 
+    // but the sliders already call updateSectionCamera directly.
+    // We'll keep captureCamera but make it a placeholder or remove it 
+    // since we now have Auto-Capture on release in Scene.jsx.
+    // Instead of a button, let's just let Auto-Capture handle it.
     
     // Use the camera directly attached to the section (or fallback to defaults)
     const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 };
@@ -76,7 +80,9 @@ const StudioEditor = () => {
     };
 
     const captureCamera = () => {
-        triggerCapture();
+        // In the new sync logic, interaction auto-saves.
+        // We can keep this button as a visual confirmation or "manual refresh"
+        // but it's largely redundant now.
     };
 
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
@@ -200,12 +206,9 @@ const StudioEditor = () => {
                                 <p className="text-[9px] text-white/40">Раздел: {SECTION_NAMES[activeSlug] || activeSlug}</p>
                             </div>
                             <div className="flex gap-3">
-                                <button 
-                                    onClick={captureCamera}
-                                    className="px-6 py-3 bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20 rounded-xl text-[9px] font-black uppercase hover:bg-[#ffcc00] hover:text-black flex items-center justify-center gap-2 transition-all"
-                                >
-                                    <Camera size={14} /> Сохранить позицию мыши (Capture)
-                                </button>
+                                <div className="px-6 py-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all">
+                                    <Check size={14} /> Авто-захват активен
+                                </div>
                                 <button 
                                     onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
                                     className="px-4 py-3 bg-white/5 text-white/60 border border-white/10 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 flex items-center justify-center gap-2 transition-all"

@@ -299,7 +299,8 @@ const UnifiedShaderInjection = (mat) => {
 };
 
 const SculptureModel = () => {
-    const { scene } = useGLTF('/models/sculpture.glb');
+    // Enable Draco decompression for 10x faster loading and GPU upload
+    const { scene } = useGLTF('/models/sculpture.glb', 'https://www.gstatic.com/draco/versioned/decoders/1.5.5/');
     const { sculptureConfig: config, activeSlug, view } = useAppStore();
     const [revealHeight, setRevealHeight] = useState(15);
 
@@ -399,5 +400,5 @@ const BrutalistTotem = () => {
     );
 };
 
-useGLTF.preload('/models/sculpture.glb');
+useGLTF.preload('/models/sculpture.glb', 'https://www.gstatic.com/draco/versioned/decoders/1.5.5/');
 export default BrutalistTotem;

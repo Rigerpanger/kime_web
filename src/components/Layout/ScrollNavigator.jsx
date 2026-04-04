@@ -17,7 +17,7 @@ const ScrollNavigator = () => {
 
         const handleScroll = (deltaY) => {
             const state = useAppStore.getState();
-            if (isScrolling || state.isModalOpen || state.isScrollLocked) return;
+            if (isScrolling || state.isModalOpen || state.isScrollLocked || state.showStudioEditor) return;
 
             const path = location.pathname;
             const currentIndex = ROUTES.findIndex(route => {

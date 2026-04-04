@@ -43,48 +43,8 @@ function migrateOldCamera(oldCam) {
 
 
 const DEFAULT_SECTIONS = {
-  "digital-graphics": {
-    camera: { pos: [0, 2, 18], target: [0, 0, 0], zoom: 18, pivotY: 0 },
-    fx: [
-      { id: '1', type: 'Iris', pos: [0, 0, 0], scale: 1, color: '#ffffff', intensity: 1, active: true },
-      { id: '2', type: 'None', active: false }, { id: '3', type: 'None', active: false },
-      { id: '4', type: 'None', active: false }, { id: '5', type: 'None', active: false }
-    ]
-  },
-  "gamedev": {
-    camera: { pos: [8, 3, 14], target: [0, 0, 0], zoom: 14, pivotY: 0 },
-    fx: [
-      { id: '1', type: 'TetrisReveal', pos: [0, 0, 0], scale: 1, color: '#ffaa44', intensity: 1, active: true },
-      { id: '2', type: 'None', active: false }, { id: '3', type: 'None', active: false },
-      { id: '4', type: 'None', active: false }, { id: '5', type: 'None', active: false }
-    ]
-  },
-  "ar-vr": {
-    camera: { pos: [-8, 2, 14], target: [0, 0, 0], zoom: 14, pivotY: 0 },
-    fx: [
-      { id: '1', type: 'ShapeShifter', pos: [0, 4.8, 3.5], scale: 1, color: '#ffaa44', intensity: 1, active: true },
-      { id: '2', type: 'None', active: false }, { id: '3', type: 'None', active: false },
-      { id: '4', type: 'None', active: false }, { id: '5', type: 'None', active: false }
-    ]
-  },
-  "ai-ml": {
-    camera: { pos: [0, 6, 12], target: [0, 4, 0], zoom: 12, pivotY: 4 },
-    fx: [
-      { id: '1', type: 'NeuralCore', pos: [0, 4.8, 0], scale: 1, color: '#ffaa00', intensity: 1, active: true },
-      { id: '2', type: 'None', active: false }, { id: '3', type: 'None', active: false },
-      { id: '4', type: 'None', active: false }, { id: '5', type: 'None', active: false }
-    ]
-  },
-  "software-dev": {
-    camera: { pos: [5, 1, 15], target: [0, 0, 0], zoom: 15, pivotY: 0 },
-    fx: [
-      { id: '1', type: 'SoftwareSilhouette', pos: [0, 1.5, 0], scale: 1, color: '#ffaa44', intensity: 1, active: true },
-      { id: '2', type: 'None', active: false }, { id: '3', type: 'None', active: false },
-      { id: '4', type: 'None', active: false }, { id: '5', type: 'None', active: false }
-    ]
-  },
   "default": {
-    camera: { pos: [0, 0, 16], target: [0, 0, 0], zoom: 16, pivotY: 0 },
+    camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
     fx: Array(5).fill(0).map((_, i) => ({ id: `${i+1}`, type: 'None', active: false }))
   }
 };
@@ -229,19 +189,19 @@ const useAppStore = create(
 
       // NEW: Section-specific updates
       updateSectionCamera: (slug, updates) => set((state) => {
+          const activeKey = slug || 'default';
           const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
-          if (!sections[slug]) sections[slug] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
+          if (!sections[activeKey]) sections[activeKey] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
           
-          sections[slug].camera = { 
-              ...(sections[slug].camera || {}), 
+          sections[activeKey].camera = { 
+              ...(sections[activeKey].camera || {}), 
               ...updates 
           };
           
-          // Clean up old legacy fields if orbital fields exist to avoid mixing formats
           if (updates.azimuth !== undefined) {
-             delete sections[slug].camera.pos;
-             delete sections[slug].camera.target;
-             delete sections[slug].camera.zoom;
+             delete sections[activeKey].camera.pos;
+             delete sections[activeKey].camera.target;
+             delete sections[activeKey].camera.zoom;
           }
 
           return { sculptureConfig: { ...state.sculptureConfig, sections } };
