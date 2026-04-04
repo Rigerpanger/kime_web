@@ -110,6 +110,8 @@ const useAppStore = create(
       setShowStudioEditor: (show) => set({ showStudioEditor: show }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
       setScrollLocked: (isLocked) => set({ isScrollLocked: isLocked }),
+      captureTrigger: 0,
+      triggerCapture: () => set(state => ({ captureTrigger: state.captureTrigger + 1 })),
       
       setActiveLightId: (id) => set({ activeLightId: id }),
       addLight: () => set((state) => {

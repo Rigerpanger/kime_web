@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useThree } from '@react-three/fiber';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap } from 'lucide-react';
@@ -7,7 +6,6 @@ import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Za
 const FX_TYPES = ['None', 'NeuralCore', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
 
 const StudioEditor = () => {
-    const { camera, controls } = useThree();
     const { session } = useAuthStore();
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
     
@@ -23,6 +21,7 @@ const StudioEditor = () => {
     const removeLight = useAppStore(s => s.removeLight);
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
+    const triggerCapture = useAppStore(s => s.triggerCapture);
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -47,12 +46,7 @@ const StudioEditor = () => {
     };
 
     const captureCamera = () => {
-        if (!camera) return;
-        updateSectionCamera(activeSlug, {
-            pos: camera.position.toArray(),
-            target: controls?.target.toArray() || [0,0,0],
-            zoom: camera.position.distanceTo(controls?.target || new THREE.Vector3(0,0,0))
-        });
+        triggerCapture();
     };
 
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (

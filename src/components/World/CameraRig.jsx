@@ -9,9 +9,22 @@ const CameraRig = () => {
     const activeSlug = useAppStore(s => s.activeSlug);
     const config = useAppStore(s => s.sculptureConfig);
 
-    // Target Vectors for interpolation
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
+
+    // Listen to capture triggers
+    const captureTrigger = useAppStore(s => s.captureTrigger);
+    const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
+    useEffect(() => {
+        if (captureTrigger > 0) {
+            updateSectionCamera(activeSlug, {
+                pos: camera.position.toArray(),
+                target: controls?.target.toArray() || [0,0,0],
+                zoom: camera.position.distanceTo(controls?.target || new THREE.Vector3(0,0,0))
+            });
+            console.log("Camera Captured for:", activeSlug);
+        }
+    }, [captureTrigger]);
 
     useFrame((state, delta) => {
         let currentSection = config.sections?.[activeSlug] || config.sections?.default;

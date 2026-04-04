@@ -35,52 +35,53 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
 // --- EFFECT: AI (NeuralCore) ---
 const NeuralCore = ({ config = {}, animatedOpacity = 1 }) => {
     const coreRef = useRef();
-    const beamsRef = useRef();
-    const count = 15;
-    
-    const [beams, phases] = useMemo(() => {
-        const positions = new Float32Array(count * 2 * 3);
-        const phs = new Float32Array(count);
-        for (let i = 0; i < count; i++) phs[i] = Math.random() * Math.PI * 2;
-        return [positions, phs];
-    }, []);
+    const groupRef = useRef();
+
+    const particles = useMemo(() => {
+        const count = 300;
+        const pos = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        const colorObj = new THREE.Color(config.color || "#ffcc00");
+        
+        for (let i = 0; i < count; i++) {
+            const r = 2.5 + Math.random() * 2;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
+            pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+            pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+            pos[i*3+2] = r * Math.cos(phi);
+            colorObj.toArray(colors, i * 3);
+        }
+        return { pos, colors };
+    }, [config.color]);
 
     useFrame((state) => {
-        if (!coreRef.current) return;
         const t = state.clock.elapsedTime;
-        coreRef.current.rotation.y += 0.02;
-        coreRef.current.rotation.z += 0.01;
-        coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * (config.scale || 1.0));
-
-        if (beamsRef.current) {
-            const attr = beamsRef.current.geometry.attributes.position;
-            const center = new THREE.Vector3().fromArray(config.pos || [0, 4.8, 0]);
-            for (let i = 0; i < count; i++) {
-                const angle = phases[i] + t * 0.5;
-                const r = (2.5 + Math.sin(t + phases[i]) * 1.5) * (config.scale || 1.0);
-                attr.setXYZ(i * 2, center.x, center.y, center.z); 
-                attr.setXYZ(i * 2 + 1, center.x + Math.cos(angle) * r, center.y + Math.sin(angle * 2) * r, center.z + Math.sin(angle) * r);
-            }
-            attr.needsUpdate = true;
+        if (coreRef.current) {
+            coreRef.current.rotation.y = t * 0.5;
+            coreRef.current.rotation.z = t * 0.3;
+            coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * (config.scale || 1.0));
+        }
+        if (groupRef.current) {
+            groupRef.current.rotation.y = t * -0.2;
         }
     });
 
     return (
-        <group position={[0, -1.5, 0]}> 
-            <mesh ref={coreRef} position={config.pos || [0, 4.8, 0]}>
+        <group position={config.pos || [0, 4.8, 0]}>
+            <mesh ref={coreRef}>
                 <icosahedronGeometry args={[0.5, 0]} />
                 <meshBasicMaterial color={config.color || "#ffcc00"} wireframe transparent opacity={animatedOpacity} />
             </mesh>
-            <mesh position={config.pos || [0, 4.8, 0]}>
-                <sphereGeometry args={[0.2, 16, 16]} />
-                <meshBasicMaterial color="#ffffff" transparent opacity={animatedOpacity} />
-            </mesh>
-            <lineSegments ref={beamsRef}>
-                <bufferGeometry>
-                    <bufferAttribute attach="attributes-position" count={count * 2} array={beams} itemSize={3} />
-                </bufferGeometry>
-                <lineBasicMaterial color={config.color || "#ffaa00"} transparent opacity={0.6 * (config.intensity || 1.0) * animatedOpacity} blending={THREE.AdditiveBlending} />
-            </lineSegments>
+            <group ref={groupRef}>
+                <points>
+                    <bufferGeometry>
+                        <bufferAttribute attach="attributes-position" count={300} array={particles.pos} itemSize={3} />
+                        <bufferAttribute attach="attributes-color" count={300} array={particles.colors} itemSize={3} />
+                    </bufferGeometry>
+                    <pointsMaterial size={0.08} vertexColors transparent opacity={animatedOpacity * 0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
+                </points>
+            </group>
         </group>
     );
 };
@@ -162,46 +163,93 @@ const TetrisReveal = ({ config = {}, animatedOpacity = 1, onRevealed }) => {
 // --- EFFECT: Software Silhouette ---
 const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
     const pointsRef = useRef();
-    const count = 3000;
-    const timer = useRef(0);
-
-    const [positions] = useMemo(() => {
+    const count = 500;
+    
+    const [geometry] = useMemo(() => {
+        const geo = new THREE.BufferGeometry();
         const pos = new Float32Array(count * 3);
-        const center = config.pos || [0, 1.5, 0];
-        for (let i = 0; i < count; i++) {
-            pos[i * 3] = center[0] + (Math.random() - 0.5) * 5;
-            pos[i * 3 + 1] = center[1] + 20 + Math.random() * 10;
-            pos[i * 3 + 2] = center[2] + (Math.random() - 0.5) * 5;
-        }
-        return [pos];
-    }, [config.pos]);
-
-    useFrame((state, delta) => {
-        if (!pointsRef.current) return;
-        const attr = pointsRef.current.geometry.attributes.position;
-        timer.current += delta;
-        const center = config.pos || [0, 1.5, 0];
-
-        for (let i = 0; i < count; i++) {
-            const idx = i * 3;
-            const moveAmt = 0.05 * (config.scale || 1.0);
-            if (timer.current < 5) {
-                attr.array[idx + 1] -= moveAmt; 
-                if (attr.array[idx + 1] < center[1] - 5) attr.array[idx + 1] = center[1] + 15;
-            } else {
-                timer.current = 0;
+        const offsets = new Float32Array(count); 
+        const lanes = new Float32Array(count); 
+        const speeds = new Float32Array(count);
+        
+        for(let i=0; i<count; i++) {
+            offsets[i] = Math.random() * Math.PI * 2;
+            const laneType = Math.floor(Math.random() * 4); 
+            lanes[i] = 3.5 + laneType * 1.5; 
+            pos[i*3 + 1] = (Math.random() - 0.5) * 8.0; 
+            speeds[i] = 0.4 + Math.random() * 0.4;
+            
+            // Cluster logic (5-10 particles grouped together)
+            if (i > 0 && Math.random() < 0.85) {
+                offsets[i] = offsets[i-1] + (Math.random() - 0.5) * 0.15;
+                lanes[i] = lanes[i-1];
+                pos[i*3 + 1] = pos[i-1*3 + 1] + (Math.random() - 0.5) * 0.8;
+                speeds[i] = speeds[i-1];
             }
         }
-        attr.needsUpdate = true;
-        pointsRef.current.material.opacity = (0.5 + Math.sin(state.clock.elapsedTime) * 0.2) * (config.intensity || 1.0) * animatedOpacity;
+        geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+        geo.setAttribute('aOffset', new THREE.BufferAttribute(offsets, 1));
+        geo.setAttribute('aLane', new THREE.BufferAttribute(lanes, 1));
+        geo.setAttribute('aSpeed', new THREE.BufferAttribute(speeds, 1));
+        return geo;
+    }, []);
+
+    const material = useMemo(() => {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uOpacity: { value: 0 },
+                uColorStart: { value: new THREE.Color("#00aaff") },
+                uColorEnd: { value: new THREE.Color("#ffdd00") },
+                uCenter: { value: new THREE.Vector3(...(config.pos || [0, 4.8, 0])) },
+                uScale: { value: config.scale || 1.0 }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform vec3 uCenter;
+                uniform float uScale;
+                attribute float aOffset;
+                attribute float aLane;
+                attribute float aSpeed;
+                varying float vProgress;
+                void main() {
+                    float angle = aOffset + uTime * aSpeed;
+                    vProgress = fract(angle / (3.14159 * 2.0));
+                    vec3 p = position;
+                    p.x = cos(angle) * aLane * uScale;
+                    p.z = sin(angle) * aLane * uScale;
+                    p += uCenter;
+                    vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+                    gl_PointSize = (15.0 * uScale / -mvPosition.z);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform float uOpacity;
+                uniform vec3 uColorStart;
+                uniform vec3 uColorEnd;
+                varying float vProgress;
+                void main() {
+                    float dist = length(gl_PointCoord - vec2(0.5));
+                    if (dist > 0.5) discard;
+                    vec3 finalColor = mix(uColorStart, uColorEnd, sin(vProgress * 3.14159));
+                    gl_FragColor = vec4(finalColor, uOpacity * (1.0 - dist * 2.0));
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+    }, [config.pos, config.scale]);
+
+    useFrame((state) => {
+        if (pointsRef.current) {
+            pointsRef.current.material.uniforms.uTime.value = state.clock.elapsedTime;
+            pointsRef.current.material.uniforms.uOpacity.value = animatedOpacity * (config.intensity || 1.0);
+        }
     });
 
-    return (
-        <points ref={pointsRef}>
-            <bufferGeometry><bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} /></bufferGeometry>
-            <pointsMaterial size={0.2 * (config.scale || 1.0)} color={config.color || "#ffaa44"} transparent opacity={0.8} blending={THREE.AdditiveBlending} />
-        </points>
-    );
+    return <points ref={pointsRef} geometry={geometry} material={material} />;
 };
 
 const UnifiedShaderInjection = (mat) => {
@@ -235,10 +283,15 @@ const UnifiedShaderInjection = (mat) => {
         `.replace(`#include <clipping_planes_fragment>`, `#include <clipping_planes_fragment>
             if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
         `).replace(`#include <color_fragment>`, `#include <color_fragment>
-            float fresnel = 1.0 - max(0.0, dot(normalize(vNormalVec), normalize(vViewPos)));
-            vec3 iris = vec3(sin(vNormalVec.x*5.0+uTime)*0.5+0.5, sin(vNormalVec.y*5.0+uTime+2.0)*0.5+0.5, sin(vNormalVec.z*5.0-uTime+4.0)*0.5+0.5);
-            iris = mix(vec3(1.0), iris, smoothstep(0.0, 1.0, fresnel));
-            diffuseColor.rgb = mix(diffuseColor.rgb, iris, uIrisMix * 0.8);
+            float fresnel = pow(1.0 - max(0.0, dot(normalize(vNormalVec), normalize(vViewPos))), 2.0);
+            vec3 baseIris = vec3(
+                sin(vWorldPos.x * 2.0 + uTime * 1.5) * 0.5 + 0.5,
+                sin(vWorldPos.y * 2.0 + uTime * 1.2 + 2.0) * 0.5 + 0.5,
+                sin(vWorldPos.z * 2.0 - uTime * 0.8 + 4.0) * 0.5 + 0.5
+            );
+            baseIris = pow(baseIris, vec3(0.6)) * 1.5; 
+            vec3 fatGlow = baseIris * 1.2 + vec3(1.0, 0.85, 0.95) * fresnel * 1.5;
+            diffuseColor.rgb = mix(diffuseColor.rgb, fatGlow, uIrisMix * 0.95);
         `);
         mat.userData.shader = shader;
     };
@@ -275,10 +328,31 @@ const SculptureModel = () => {
 
     const isServiceView = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
 
+    useEffect(() => {
+        // Fallback injection to manually restore the 3D scene from browser JS console
+        window.resetSculpture = () => {
+            useAppStore.setState({ 
+                sculptureConfig: { 
+                    ...useAppStore.getState().sculptureConfig, 
+                    y: 5.1, 
+                    scale: 17, 
+                    rotationY: 248 
+                } 
+            });
+            console.log("Model parameters forcibly reset! (y, scale, rotation restored to safety values)");
+        };
+    }, []);
+
+    // Defensive parsing against destructive DB string/null formats
+    const safeY = Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1;
+    let safeScale = Number.isFinite(Number(config?.scale)) ? Number(config.scale) : 17;
+    if (safeScale < 0.1 || safeScale > 200) safeScale = 17; // prevent vanishing bounds
+    const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
+
     return (
         <Float speed={0.4} rotationIntensity={0.05} floatIntensity={0.1}>
-            <Center bottom position={[0, config.y || 0, 0]}>
-                <primitive object={clonedScene} scale={config.scale || 1} rotation={[0, (config.rotationY || 0) * (Math.PI / 180), 0]} />
+            <Center bottom position={[0, safeY, 0]}>
+                <primitive object={clonedScene} scale={safeScale} rotation={[0, safeRot * (Math.PI / 180), 0]} />
                 
                 {/* Render ALL section FX for smooth transitions */}
                 {Object.entries(config.sections || {}).map(([slug, section]) => (
