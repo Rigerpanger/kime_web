@@ -15,6 +15,20 @@ const StudioEditor = () => {
     const setView = useAppStore(s => s.setView);
     const setActiveSlug = useAppStore(s => s.setActiveSlug);
     
+    // Desktop Scroll Stop
+    const panelRef = React.useRef(null);
+    useEffect(() => {
+        const el = panelRef.current;
+        if (!el) return;
+        const stopScroll = (e) => e.stopPropagation();
+        el.addEventListener('wheel', stopScroll, { passive: false });
+        el.addEventListener('touchmove', stopScroll, { passive: false });
+        return () => {
+            el.removeEventListener('wheel', stopScroll);
+            el.removeEventListener('touchmove', stopScroll);
+        };
+    }, []);
+    
     // Actions
     const updateSectionCameraId = useAppStore(s => s.updateSectionCameraId);
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
@@ -92,7 +106,7 @@ const StudioEditor = () => {
     };
 
     return (
-        <div className="fixed bottom-0 left-0 w-full h-[320px] bg-[#050505]/95 backdrop-blur-2xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+        <div ref={panelRef} className="fixed bottom-0 left-0 w-full h-[320px] bg-[#050505]/95 backdrop-blur-2xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
             
             {/* Column 1: Branding, Tabs, Save */}
             <div className="w-[220px] shrink-0 border-r border-white/5 p-5 flex flex-col justify-between">
@@ -142,7 +156,7 @@ const StudioEditor = () => {
                                 setActiveSlug(slug);
                                 setView('SERVICES'); // Force camera to move
                             }}
-                            className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold transition-all ${activeSlug === slug ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 text-white/60 hover:bg-white/10'}`}
+                            className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold transition-all ${activeSlug === slug ? 'bg-white/10 text-[#ffcc00] border border-[#ffcc00]/30 shadow-lg shadow-[#ffcc00]/10' : 'bg-white/5 text-white/60 hover:bg-white/10 border border-transparent'}`}
                         >
                             {SECTION_NAMES[slug]}
                         </button>

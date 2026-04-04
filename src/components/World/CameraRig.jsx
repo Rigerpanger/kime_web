@@ -33,8 +33,11 @@ const CameraRig = () => {
             // Azimuthal angle (-PI to PI -> -180 to 180 degrees)
             const azimuth = (Math.atan2(deltaVec.x, deltaVec.z) * 180) / Math.PI;
 
-            if (activeCameraId) {
-                updateCamera(activeCameraId, {
+            const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+            const camIdToUpdate = currentSection?.cameraId;
+
+            if (camIdToUpdate) {
+                updateCamera(camIdToUpdate, {
                     pivotX: target.x,
                     pivotY: target.y,
                     pivotZ: target.z,
@@ -42,10 +45,10 @@ const CameraRig = () => {
                     polar: isNaN(polar) ? 90 : polar,
                     azimuth: isNaN(azimuth) ? 0 : azimuth
                 });
-                console.log("Captured Orbital View for Camera:", activeCameraId);
+                console.log("Captured Orbital View for Camera:", camIdToUpdate);
             }
         }
-    }, [captureTrigger]);
+    }, [captureTrigger, activeSlug, config.sections]);
 
     useFrame((state, delta) => {
         // If the user uses OrbitControls mouse interaction in editor, pause smoothing
@@ -60,16 +63,9 @@ const CameraRig = () => {
             targetPos = [0, 0, 18];
             targetLook = [0, 0, 0];
         } else {
-            // Find Active Camera
-            let currentCamId = null;
-            if (showStudioEditor) {
-                // In Editor, explicitly show the currently "focused" camera
-                currentCamId = activeCameraId;
-            } else if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
-                // On Site Sections, find linked camera ID
-                const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-                currentCamId = currentSection?.cameraId;
-            }
+            // Find Active Camera connected to the active website section
+            const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+            const currentCamId = currentSection?.cameraId;
 
             const activeCam = config.cameras?.find(c => c.id === currentCamId) || config.cameras?.[0];
 

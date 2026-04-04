@@ -522,26 +522,33 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
 
         const isPrivate = update.message.chat.type === 'private';
         
-        // --- 1. ПРОВЕРКА БЕЛОГО СПИСКА ---
-        const userCheck = await pool.query('SELECT * FROM telegram_users WHERE username = $1', [user]);
-        if (userCheck.rows.length === 0) {
-            if (isPrivate) await sendTelegramMessage(chatId, `❌ У вас нет доступа к корпоративному ассистенту KIME.`);
+        // --- 1. ПРОВЕРКА БЕЛОГО СПИСКА (ЛС и Админы) ---
+        const userCheck = await pool.query('SELECT * FROM telegram_users WHERE LOWER(username) = LOWER($1)', [user]);
+        let dbUser = userCheck.rows.length > 0 ? userCheck.rows[0] : null;
+
+        if (isPrivate && !dbUser) {
+            await sendTelegramMessage(chatId, `⏳ У вас пока нет доступа к личному общению с ассистентом KIME. Ваш ник: @${user}\nЗапрос отправлен руководителю.`);
+            
+            // Отправка запроса админам
+            const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
+            for (const admin of admins) {
+                await sendTelegramMessage(admin.chat_id, `⚠️ *Новый запрос на доступ*\nПользователь @${user} хочет общаться с ботом в личных сообщениях.\n\nЧтобы разрешить доступ, отправьте сюда команду:\n\`добавь в общение @${user}\``);
+            }
             return res.sendStatus(200);
         }
-        const dbUser = userCheck.rows[0];
 
         // Запоминаем chat_id для будущих ЛС, если его еще нет
-        if (isPrivate && !dbUser.chat_id) {
-            await pool.query('UPDATE telegram_users SET chat_id = $1 WHERE username = $2', [chatId, user]);
+        if (isPrivate && dbUser && !dbUser.chat_id) {
+            await pool.query('UPDATE telegram_users SET chat_id = $1 WHERE LOWER(username) = LOWER($2)', [chatId, user]);
         }
 
         // --- 2. АДМИН-КОМАНДЫ (минуя AI) ---
         const lowerText = text.toLowerCase();
         if (lowerText.startsWith('добавь в общение @')) {
-            if (dbUser.role === 'admin') {
-                const newUser = text.split('@')[1].trim();
+            if (dbUser && dbUser.role === 'admin') {
+                const newUser = text.split('@')[1].trim().toLowerCase();
                 await pool.query('INSERT INTO telegram_users (username) VALUES ($1) ON CONFLICT DO NOTHING', [newUser]);
-                await sendTelegramMessage(chatId, `✅ Пользователь @${newUser} добавлен в белый список.`);
+                await sendTelegramMessage(chatId, `✅ Пользователь @${newUser} добавлен в систему. Теперь он может писать боту лично.`);
             } else {
                 await sendTelegramMessage(chatId, `❌ У вас нет прав для добавления сотрудников.`);
             }
