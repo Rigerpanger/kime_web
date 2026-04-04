@@ -189,6 +189,33 @@ const ArtifactPassport = ({ project, onClose }) => {
         if (!project) setIsVideoOpen(false);
     }, [project]);
 
+    const getVideoEmbedUrl = (url) => {
+        if (!url) return '';
+        
+        let embedUrl = url;
+        
+        // Kinoiscope
+        if (url.includes('kinoiscope.com')) {
+            embedUrl = url.replace('kinoiscope.com', 'player.kinoiscope.com');
+        }
+        // YouTube
+        else if (url.includes('youtube.com/watch?v=')) {
+            const id = url.split('v=')[1]?.split('&')[0];
+            embedUrl = `https://www.youtube.com/embed/${id}`;
+        }
+        else if (url.includes('youtu.be/')) {
+            const id = url.split('youtu.be/')[1]?.split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${id}`;
+        }
+        // Vimeo
+        else if (url.includes('vimeo.com') && !url.includes('player.')) {
+            const id = url.split('vimeo.com/')[1]?.split('?')[0];
+            embedUrl = `https://player.vimeo.com/video/${id}`;
+        }
+        
+        return embedUrl;
+    };
+
     if (!project) return null;
     return (
         <AnimatePresence>
@@ -218,7 +245,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                                     <X size={24} />
                                 </button>
                                 <iframe 
-                                    src={project.video_url} 
+                                    src={getVideoEmbedUrl(project.video_url)} 
                                     className="absolute inset-0 w-full h-full"
                                     allow="autoplay; fullscreen"
                                     frameBorder="0"

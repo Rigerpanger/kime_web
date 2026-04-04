@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Text, useGLTF, Float, Environment, ContactShadows, Center } from '@react-three/drei';
+import { Text, useGLTF, Float, Environment, ContactShadows, Center, useProgress, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
 
@@ -90,23 +90,23 @@ const FlashEffect = () => {
 
     useEffect(() => {
         if (!activeSlug) return;
-        setIntensity(20);
-        const t = setTimeout(() => setIntensity(0), 600);
+        setIntensity(40); // Increased intensity
+        const t = setTimeout(() => setIntensity(0), 800);
         return () => clearTimeout(t);
     }, [activeSlug]);
 
     useFrame((state, delta) => {
         if (!light.current) return;
-        light.current.intensity = THREE.MathUtils.lerp(light.current.intensity, intensity, 0.15);
+        light.current.intensity = THREE.MathUtils.lerp(light.current.intensity, intensity, 0.1);
     });
 
     return (
         <pointLight
             ref={light}
-            position={[0, 4.5, 1]} // At "face" height
+            position={[0, 4.8, 1.2]} // Slightly higher and more forward
             color="#ffffff"
-            distance={15}
-            decay={2}
+            distance={20}
+            decay={1.5}
         />
     );
 };
@@ -115,35 +115,99 @@ const FlashEffect = () => {
 
 // ScanLine removed as per request for more contrasty Iris Shader directly on mesh.
 
-const ARGhosts = () => {
-    const group = useRef();
-    const count = 5;
-    const ghosts = useMemo(() => new Array(count).fill(0).map((_, i) => ({
-        pos: new THREE.Vector3((Math.random() - 0.5) * 10, Math.random() * 8, (Math.random() - 0.5) * 8),
-        speed: Math.random() * 0.2 + 0.1,
-        type: i % 3, // 0: box, 1: sphere, 2: octahedron
-        id: i
-    })), []);
+const NeuralCore = () => {
+    const coreRef = useRef();
+    const beamsRef = useRef();
+    const count = 15;
+    
+    const [beams, phases] = useMemo(() => {
+        const positions = new Float32Array(count * 2 * 3);
+        const phs = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+            phs[i] = Math.random() * Math.PI * 2;
+        }
+        return [positions, phs];
+    }, []);
 
     useFrame((state) => {
-        if (!group.current) return;
+        if (!coreRef.current) return;
         const t = state.clock.elapsedTime;
-        group.current.children.forEach((child, i) => {
-            child.position.y = ghosts[i].pos.y + Math.sin(t * ghosts[i].speed) * 0.5;
-            child.rotation.y += 0.01;
-            child.material.wireframe = Math.sin(t * 3 + ghosts[i].id) > 0;
-            child.material.opacity = 0.2 + (Math.sin(t + ghosts[i].id) + 1) * 0.2;
+        coreRef.current.rotation.y += 0.02;
+        coreRef.current.rotation.z += 0.01;
+        coreRef.current.scale.setScalar(1 + Math.sin(t * 3) * 0.1);
+
+        if (beamsRef.current) {
+            const attr = beamsRef.current.geometry.attributes.position;
+            for (let i = 0; i < count; i++) {
+                const angle = phases[i] + t * 0.5;
+                const r = 2.5 + Math.sin(t + phases[i]) * 1.5;
+                attr.setXYZ(i * 2, 0, 1.5, 0); // Core center
+                attr.setXYZ(i * 2 + 1, Math.cos(angle) * r, 1.5 + Math.sin(angle * 2) * r, Math.sin(angle) * r);
+            }
+            attr.needsUpdate = true;
+        }
+    });
+
+    return (
+        <group>
+            {/* Geometric Core */}
+            <mesh ref={coreRef} position={[0, 1.5, 0]}>
+                <icosahedronGeometry args={[0.5, 0]} />
+                <meshBasicMaterial color="#ffcc00" wireframe />
+            </mesh>
+            <mesh position={[0, 1.5, 0]}>
+                <sphereGeometry args={[0.2, 16, 16]} />
+                <meshBasicMaterial color="#ffffff" />
+            </mesh>
+            {/* Neural Beams connecting facets */}
+            <lineSegments ref={beamsRef}>
+                <bufferGeometry>
+                    <bufferAttribute attach="attributes-position" count={count * 2} array={beams} itemSize={3} />
+                </bufferGeometry>
+                <lineBasicMaterial color="#ffaa00" transparent opacity={0.6} blending={THREE.AdditiveBlending} />
+            </lineSegments>
+        </group>
+    );
+};
+
+const TetrisReveal = ({ onRevealed }) => {
+    const [blocks, setBlocks] = useState([]);
+    const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        // Spawn 6 blocks sequentially
+        const interval = setInterval(() => {
+            setBlocks(prev => {
+                if (prev.length >= 6) {
+                    clearInterval(interval);
+                    return prev;
+                }
+                return [...prev, {
+                    id: Math.random(),
+                    pos: new THREE.Vector3((Math.random() - 0.5) * 4, 15, (Math.random() - 0.5) * 4),
+                    speed: 0.15 + Math.random() * 0.1
+                }];
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useFrame((state, delta) => {
+        blocks.forEach(b => {
+            if (b.pos.y > -5) {
+                b.pos.y -= b.speed;
+                // As blocks fall, they "reveal" the model based on their lowest achievement
+                onRevealed(Math.max(-5, 12 - b.pos.y * 1.5));
+            }
         });
     });
 
     return (
-        <group ref={group}>
-            {ghosts.map((g, i) => (
-                <mesh key={i} position={g.pos}>
-                    {g.type === 0 ? <boxGeometry args={[1.5, 1.5, 1.5]} /> : 
-                     g.type === 1 ? <sphereGeometry args={[1]} /> : 
-                     <octahedronGeometry args={[1.2]} />}
-                    <meshBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+        <group>
+            {blocks.map(b => (
+                <mesh key={b.id} position={b.pos}>
+                    <boxGeometry args={[1.5, 1.5, 1.5]} />
+                    <meshBasicMaterial color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
                 </mesh>
             ))}
         </group>
@@ -204,92 +268,80 @@ const NeuralHalo = () => {
     );
 };
 
-const DataPipeline = () => {
+const SoftwareSilhouette = ({ targetVertices }) => {
     const pointsRef = useRef();
-    const count = 800; // More particles for cluster effect
-    const clustersCount = 8;
-    
+    const count = 2000;
+    const state = useRef({ phase: 'fall', timer: 0 }); // fall -> form -> shift
+
     const [positions, data, colors] = useMemo(() => {
         const pos = new Float32Array(count * 3);
-        const d = new Float32Array(count * 3); // 0: clusterId, 1: speed, 2: phase offset
+        const d = new Float32Array(count * 3); // random sky start
         const cols = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            pos[i * 3] = (Math.random() - 0.5) * 10;
-            pos[i * 3 + 1] = Math.random() * 20 - 5;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 10;
-            
-            d[i * 3] = Math.floor(Math.random() * clustersCount);
-            d[i * 3 + 1] = Math.random() * 0.08 + 0.04;
-            d[i * 3 + 2] = Math.random() * Math.PI * 2;
-
-            cols[i * 3] = 1;
-            cols[i * 3 + 1] = 0.6;
-            cols[i * 3 + 2] = 0.2;
+            pos[i * 3] = (Math.random() - 0.5) * 15;
+            pos[i * 3 + 1] = 20 + Math.random() * 10;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 15;
+            cols[i * 3] = 1; cols[i * 3 + 1] = 0.6; cols[i * 3 + 2] = 0.2;
         }
         return [pos, d, cols];
     }, []);
 
-    useFrame((state) => {
-        if (!pointsRef.current) return;
-        const t = state.clock.elapsedTime;
+    useFrame((stateObj, delta) => {
+        if (!pointsRef.current || !targetVertices.length) return;
+        const t = stateObj.clock.elapsedTime;
         const array = pointsRef.current.geometry.attributes.position.array;
-        const colorArray = pointsRef.current.geometry.attributes.color.array;
         
+        state.current.timer += delta;
+
         for (let i = 0; i < count; i++) {
             const idx = i * 3;
-            const clusterId = data[i * 3];
-            const speed = data[i * 3 + 1];
-            const phase = data[i * 3 + 2];
+            // Target is a vertex from the actual model
+            const vIdx = i % targetVertices.length;
+            const targetPos = targetVertices[vIdx];
 
-            // Core falling movement
-            array[idx + 1] -= speed;
-
-            // Clustered Trajectory Logic
-            const clusterAngle = (clusterId / clustersCount) * Math.PI * 2 + t * 0.2;
-            const radius = 3.5 + Math.sin(t * 0.5 + phase) * 0.5;
-            
-            // Particles pull towards cluster path as they pass through "active" zone
-            if (array[idx + 1] > -2 && array[idx + 1] < 6) {
-                const targetX = Math.cos(clusterAngle) * radius;
-                const targetZ = Math.sin(clusterAngle) * radius;
-                array[idx] = THREE.MathUtils.lerp(array[idx], targetX, 0.05);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetZ, 0.05);
-                
-                // Color shift based on position
-                colorArray[idx] = 1.0;
-                colorArray[idx + 1] = 0.4 + Math.sin(t + phase) * 0.3;
-                colorArray[idx + 2] = 0.1;
-            }
-
-            if (array[idx + 1] < -6) {
-                array[idx + 1] = 12;
-                array[idx] = (Math.random() - 0.5) * 10;
-                array[idx + 2] = (Math.random() - 0.5) * 10;
+            if (state.current.timer < 5) {
+                // FALL and FORM
+                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x, 0.05);
+                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y, 0.05);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z, 0.05);
+            } else if (state.current.timer < 10) {
+                // SHIFT SIDEWAYS
+                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + 8, 0.02);
+                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y, 0.02);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z, 0.02);
+                pointsRef.current.material.opacity = Math.max(0, 1 - (state.current.timer - 8) / 2);
+            } else {
+                // RESET
+                state.current.timer = 0;
+                pointsRef.current.material.opacity = 0.8;
+                for (let j = 0; j < count; j++) {
+                    array[j * 3 + 1] = 20 + Math.random() * 10;
+                }
             }
         }
         pointsRef.current.geometry.attributes.position.needsUpdate = true;
-        pointsRef.current.geometry.attributes.color.needsUpdate = true;
     });
 
     return (
         <points ref={pointsRef}>
             <bufferGeometry>
-                <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-                <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
+                <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
             </bufferGeometry>
-            <pointsMaterial size={0.07} vertexColors transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+            <pointsMaterial size={0.05} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
 
-const ArtisticIntervention = ({ slug }) => {
+const ArtisticIntervention = ({ slug, targetVertices, onRevealed }) => {
     switch (slug) {
         case 'ar-vr':
             return <ARGhosts />;
         case 'ai-ml':
-            return <NeuralHalo />;
+            return <NeuralCore />;
         case 'software-dev':
-            return <DataPipeline />;
+            return <SoftwareSilhouette targetVertices={targetVertices} />;
+        case 'gamedev':
+            return <TetrisReveal onRevealed={onRevealed} />;
         case 'digital-graphics':
             return null; // Effect moved directly to sculpture mesh via Iris Shader
         default:
@@ -305,11 +357,29 @@ const SculptureModel = () => {
     const safeScale = Math.max(0.1, config.scale || 1.0);
     const safeY = Math.max(-15, Math.min(15, config.y || 0));
 
+    // Tetris Reveal Height
+    const [revealHeight, setRevealHeight] = useState(15);
+    const targetVertices = useMemo(() => {
+        const verts = [];
+        scene.traverse(n => {
+            if (n.isMesh && n.geometry.attributes.position) {
+                const pos = n.geometry.attributes.position;
+                for (let i = 0; i < pos.count; i += 10) { // Sample every 10th vertex
+                    verts.push(new THREE.Vector3().fromBufferAttribute(pos, i));
+                }
+            }
+        });
+        return verts;
+    }, [scene]);
+
     // Debug log
     useEffect(() => {
         if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
             console.log("3D Artistic State:", { view, activeSlug });
         }
+        // RESET REVEAL when changing section
+        if (activeSlug === 'gamedev') setRevealHeight(-5);
+        else setRevealHeight(15);
     }, [view, activeSlug]);
 
     const clonedScene = useMemo(() => {
@@ -340,6 +410,7 @@ const SculptureModel = () => {
                     mat.opacity = 1.0;
                     mat.transparent = false;
                     mat.color.set("#ffffff");
+                    mat.clippingPlanes = []; // Reset any clipping
                     if (mat.emissive) {
                         mat.emissive.set("#000000");
                         mat.emissiveIntensity = 0;
@@ -347,14 +418,14 @@ const SculptureModel = () => {
 
                     // --- APPLY EFFECTS ---
                     if (isServicesOrDetail) {
-                        // 1. Digital Graphics (Enhanced Iris Shader)
+                        // 1. Digital Graphics (Enhanced Iris Shader with fallback)
                         if (activeSlug === 'digital-graphics') {
                             mat.wireframe = true;
                             mat.opacity = 0.9;
                             mat.transparent = true;
                             if (mat.emissive) {
                                 mat.emissive.set("#ffaa44");
-                                mat.emissiveIntensity = 4.0; // Stronger glow
+                                mat.emissiveIntensity = 4.0;
                             }
                             
                             // Track for animation
@@ -369,13 +440,14 @@ const SculptureModel = () => {
                                     `.replace(
                                         `#include <color_fragment>`,
                                         `#include <color_fragment>
-                                         float wave = sin(vUv.x * 20.0 + uTime * 2.0) * cos(vUv.y * 20.0 + uTime);
+                                         // Fallback to world position / normals if UV is broken
+                                         vec2 uv = (vUv.x == 0.0 && vUv.y == 0.0) ? vNormal.xy : vUv;
+                                         float wave = sin(uv.x * 20.0 + uTime * 2.0) * cos(uv.y * 20.0 + uTime);
                                          vec3 iris = vec3(
-                                             sin(vUv.x * 10.0 + uTime) * 0.5 + 0.5,
-                                             sin(vUv.y * 10.0 + uTime + 2.0) * 0.5 + 0.5,
-                                             sin(vUv.x * 10.0 - uTime + 4.0) * 0.5 + 0.5
+                                             sin(uv.x * 10.0 + uTime) * 0.5 + 0.5,
+                                             sin(uv.y * 10.0 + uTime + 2.0) * 0.5 + 0.5,
+                                             sin(uv.x * 10.0 - uTime + 4.0) * 0.5 + 0.5
                                          );
-                                         // High contrast sharpening
                                          iris = smoothstep(0.1, 0.9, iris);
                                          diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.8 + wave * 0.2);
                                         `
@@ -385,12 +457,36 @@ const SculptureModel = () => {
                                 mat.userData.irisApplied = true;
                             }
                         } 
-                        // 2. AI Synthesis Glow
-                        else if (activeSlug === 'ai-ml') {
-                            if (mat.emissive) {
-                                mat.emissive.set("#ffaa44");
-                                mat.emissiveIntensity = 1.5;
+                        // 2. Gamedev (Mask/Reveal)
+                        else if (activeSlug === 'gamedev') {
+                            if (!mat.userData.revealApplied) {
+                                mat.onBeforeCompile = (shader) => {
+                                    shader.uniforms.uRevealHeight = { value: 20 };
+                                    shader.vertexShader = `
+                                        varying vec3 vWorldPos;
+                                        ${shader.vertexShader}
+                                    `.replace(
+                                        `#include <worldpos_vertex>`,
+                                        `#include <worldpos_vertex>
+                                         vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+                                        `
+                                    );
+                                    shader.fragmentShader = `
+                                        uniform float uRevealHeight;
+                                        varying vec3 vWorldPos;
+                                        ${shader.fragmentShader}
+                                    `.replace(
+                                        `#include <clipping_planes_fragment>`,
+                                        `#include <clipping_planes_fragment>
+                                         if (vWorldPos.y > uRevealHeight) discard;
+                                        `
+                                    );
+                                    mat.userData.revealShader = shader;
+                                };
+                                mat.userData.revealApplied = true;
                             }
+                            mat.opacity = 0.4; // Base ghostly look before reveal
+                            mat.transparent = true;
                         }
                     }
 
@@ -404,21 +500,17 @@ const SculptureModel = () => {
         });
     }, [clonedScene, activeSlug, view]);
 
-    // Lightweight separate effect for slider updates
-    useEffect(() => {
-        clonedScene.traverse((node) => {
-            if (node.isMesh && node.material) {
-                node.material.envMapIntensity = config.envMapIntensity ?? 0.02;
-                node.material.roughness = config.roughness ?? 0.85;
-                node.material.metalness = config.metalness ?? 0;
-            }
-        });
-    }, [clonedScene, config.envMapIntensity, config.roughness, config.metalness]);
-
     useFrame((state) => {
         irisMaterials.current.forEach(mat => {
             if (mat.userData.shader) {
                 mat.userData.shader.uniforms.uTime.value = state.clock.elapsedTime;
+            }
+        });
+        
+        // Update reveal height for Gamedev
+        clonedScene.traverse(node => {
+            if (node.isMesh && node.material?.userData?.revealShader) {
+                node.material.userData.revealShader.uniforms.uRevealHeight.value = revealHeight;
             }
         });
     });
@@ -427,9 +519,9 @@ const SculptureModel = () => {
 
     return (
         <Float 
-            speed={isGamedev ? 4.5 : 0.4} 
-            rotationIntensity={isGamedev ? 2.5 : 0.05} 
-            floatIntensity={isGamedev ? 3.5 : 0.1}
+            speed={isGamedev ? 0.2 : 0.4} // 2x Slower for gamedev
+            rotationIntensity={isGamedev ? 0.02 : 0.05} 
+            floatIntensity={isGamedev ? 0.05 : 0.1}
         >
             <Center bottom position={[0, safeY, 0]}>
                 <primitive 
@@ -438,7 +530,11 @@ const SculptureModel = () => {
                     rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
                 />
                 {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && (
-                    <ArtisticIntervention slug={activeSlug} />
+                    <ArtisticIntervention 
+                        slug={activeSlug} 
+                        targetVertices={targetVertices} 
+                        onRevealed={(h) => setRevealHeight(prev => Math.max(prev, h))}
+                    />
                 )}
                 <FlashEffect />
             </Center>
@@ -448,15 +544,18 @@ const SculptureModel = () => {
 
 const BrutalistTotem = () => {
     const { view, activeSlug } = useAppStore();
+    const { progress } = useProgress();
     
     return (
         <group>
             <TotemCameraRig />
 
             <Suspense fallback={
-                <Text position={[0, 0, 0]} fontSize={0.5} color="white">
-                    LOADING ARTIFACT...
-                </Text>
+                <Html center>
+                    <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '14px', whiteSpace: 'nowrap' }}>
+                        LOADING ARTIFACT... {Math.round(progress)}%
+                    </div>
+                </Html>
             }>
                 <ambientLight intensity={0.005} /> 
                 <pointLight position={[10, 10, 10]} intensity={0.01} />

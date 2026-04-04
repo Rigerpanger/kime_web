@@ -232,6 +232,7 @@ const ManageProjects = () => {
                                             <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                                         </label>
                                         <input placeholder="Или URL обложки" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-[10px] text-gray-500 focus:outline-none focus:border-white/30" value={formData.cover} onChange={e => setFormData({...formData, cover: e.target.value})} />
+                                        <input placeholder="Ссылка на видео (Kinoiscope/Vimeo)" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-white/30" value={formData.video_url} onChange={e => setFormData({...formData, video_url: e.target.value})} />
                                     </div>
                                 </div>
                                 <div className="space-y-4">
