@@ -554,37 +554,49 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             }
             return res.sendStatus(200);
         }
-        await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
-            [chatId, 'user', `${user}: ${text}`]);
-        
-        // --- 3. ПОНИМАНИЕ КОНТЕКСТА ---
-        let shouldProcess = isPrivate; // В ЛС общаемся всегда
-        
-        if (!isPrivate) {
-            const isReplyToBot = update.message.reply_to_message && update.message.reply_to_message.from.username === TG_BOT_USERNAME;
-            const hasTrigger = text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумб') || lowerText.includes('ты что думаешь');
-            
-            // Если последнее сообщение от ассистента было менее 3 минут назад - держим контекст
-            const { rows: historyCheck } = await pool.query('SELECT role, created_at FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC LIMIT 1', [chatId]);
-            const isContextActive = historyCheck.length > 0 && 
-                                    historyCheck[0].role === 'assistant' && 
-                                    (new Date() - new Date(historyCheck[0].created_at)) < 3 * 60 * 1000;
-            
-            if (hasTrigger || isReplyToBot || isContextActive) {
-                shouldProcess = true;
-            }
-        }
-
         // Сохраняем в историю
         await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
             [chatId, 'user', `${user}: ${text}`]);
         // Храним последние 15 сообщений
         await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 15)', [chatId]);
 
+        // --- 3. ПОНИМАНИЕ КОНТЕКСТА И УМНОЕ ПРОДОЛЖЕНИЕ ---
+        let shouldProcess = isPrivate; // В ЛС общаемся всегда
+        
+        if (!isPrivate) {
+            const isReplyToBot = update.message.reply_to_message && update.message.reply_to_message.from.username === TG_BOT_USERNAME;
+            const hasTrigger = text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумб') || lowerText.includes('ты что думаешь');
+            
+            // Пропуск: наличие чужих тегов (пользователь общается с кем-то другим в группе)
+            const hasOtherMentions = text.includes('@') && !text.includes(`@${TG_BOT_USERNAME}`);
+            
+            // Если попросили замолчать
+            const stopPhrases = ['не тебе', 'молчи', 'хватит', 'стоп'];
+            const isStopPhrase = stopPhrases.some(p => lowerText.includes(p));
+
+            // Если последнее сообщение от ассистента было менее 5 минут назад - держим контекст
+            const { rows: historyCheck } = await pool.query("SELECT role, created_at FROM telegram_history WHERE chat_id = $1 AND role IN ('assistant', 'system') ORDER BY created_at DESC LIMIT 1", [chatId]);
+            let isContextActive = historyCheck.length > 0 && 
+                                    historyCheck[0].role === 'assistant' && 
+                                    (new Date() - new Date(historyCheck[0].created_at)) < 5 * 60 * 1000;
+            
+            if (hasOtherMentions) isContextActive = false;
+
+            if (isStopPhrase && isContextActive) {
+                await sendTelegramMessage(chatId, `Ок, умолкаю. Жду, когда позовете.`);
+                await pool.query("INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, 'system', 'Контекст прерван пользователем.')", [chatId]);
+                return res.sendStatus(200);
+            }
+            
+            if (hasTrigger || isReplyToBot || isContextActive) {
+                shouldProcess = true;
+            }
+        }
+
         if (!shouldProcess) return res.sendStatus(200);
 
         // --- 4. ПОДГОТОВКА ИИ-ПРОМПТА ---
-        const { rows: historyRows } = await pool.query('SELECT role, content FROM telegram_history WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
+        const { rows: historyRows } = await pool.query("SELECT role, content FROM telegram_history WHERE chat_id = $1 AND role != 'system' ORDER BY created_at ASC", [chatId]);
         const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
         const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
 
@@ -610,7 +622,10 @@ $$MEMORY_SAVE: факт, который нужно выучить$$
 3. Если нужно поставить напоминание, выведи строго в формате (YYYY-MM-DD HH:mm):
 $$REMINDER_CREATE: 2026-04-05 15:00 | текст напоминания$$
 
-Отвечай профессионально, дружелюбно, но по делу. Если системные команды не нужны - пиши обычный текст.`;
+4. ВАЖНАЯ ЗАЩИТА ОТ СПАМА В ГРУППАХ: Если ты понимаешь, что реплика пользователя была обращена НЕ К ТЕБЕ (например, это шутка, кусок диалога двух людей или бессвязный текст, на который от тебя не требуется ответа), строго выведи команду:
+$$IGNORE$$
+Ничего кроме этой команды писать не нужно!
+`;
 
         const aiMessages = [
             { role: 'system', content: systemPrompt },
@@ -662,8 +677,12 @@ $$REMINDER_CREATE: 2026-04-05 15:00 | текст напоминания$$
                 reply = reply.replace(reminderMatch[0], `\n⏰ Установлено напоминание на ${datetime}.`);
             }
 
-            // Очистка возможных хвостов парсинга
-            reply = reply.replace(/\$\$.+\$\$/g, '').trim();
+            // Очистка возможных хвостов парсинга и проверка IGNORE
+            if (reply.includes('$$IGNORE$$')) {
+                reply = ''; // Бот решил проигнорировать реплику
+            } else {
+                reply = reply.replace(/\$\$.+\$\$/g, '').trim();
+            }
 
             if (reply) {
                 await sendTelegramMessage(chatId, reply);
