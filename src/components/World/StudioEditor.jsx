@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
-import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap } from 'lucide-react';
+import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 
 const FX_TYPES = ['None', 'NeuralCore', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
 
@@ -43,6 +43,7 @@ const StudioEditor = () => {
     const [saved, setSaved] = useState(false);
     const [activeTab, setActiveTab] = useState('camera');
     const [activeSlot, setActiveSlot] = useState(0);
+    const [isCollapsed, setIsCollapsed] = useState(false);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     
@@ -117,7 +118,31 @@ const StudioEditor = () => {
     };
 
     return (
-        <div ref={panelRef} className="fixed bottom-0 left-0 w-full h-[320px] bg-[#050505]/95 backdrop-blur-2xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+        <div 
+            ref={panelRef} 
+            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/95 backdrop-blur-2xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.5)] ${isCollapsed ? 'h-[45px]' : 'h-[320px]'}`}
+        >
+            {/* Collapse Toggle Button */}
+            <button 
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="absolute top-[-1px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-b-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10000]"
+            >
+                {isCollapsed ? <><ChevronUp size={12} /> Развернуть</> : <><ChevronDown size={12} /> Свернуть</>}
+            </button>
+
+            {isCollapsed && (
+                <div className="absolute inset-0 flex items-center px-6 gap-6 pointer-events-none">
+                    <div className="flex items-center gap-2 opacity-50">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse" />
+                        <h3 className="text-[8px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
+                    </div>
+                    <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                        Режим: {SECTION_NAMES[activeSlug] || activeSlug}
+                    </div>
+                </div>
+            )}
+
+            <div className={`flex w-full h-full transition-opacity duration-300 ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             
             {/* Column 1: Branding, Tabs, Save */}
             <div className="w-[220px] shrink-0 border-r border-white/5 p-5 flex flex-col justify-between">
@@ -219,17 +244,26 @@ const StudioEditor = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-8">
-                            <div className="space-y-5">
-                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-2">Орбитальные настройки (Поворот / Приближение)</h5>
-                                {renderSlider('Azimuth (Поворот вокруг)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
-                                {renderSlider('Elevation (Высота/Наклон)', activeCam.polar, 0, 180, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
-                                {renderSlider('Zoom (Радиус/Отдаление)', activeCam.radius, 1, 50, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                            <div className="space-y-4">
+                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-1">Фокус (Точка куда смотрит камера)</h5>
+                                {renderSlider('X (Влево/Вправо)', activeCam.pivotX, -25, 25, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
+                                {renderSlider('Y (Вверх/Вниз)', activeCam.pivotY, -15, 35, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                {renderSlider('Z (Вперед/Назад)', activeCam.pivotZ, -25, 25, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
                             </div>
-                            <div className="space-y-5">
-                                <h5 className="text-[8px] uppercase tracking-widest text-indigo-400/50 mb-2">Настройки фокуса (Точка куда смотрит камера)</h5>
-                                {renderSlider('X (Влево/Вправо)', activeCam.pivotX, -20, 20, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
-                                {renderSlider('Y (Вверх/Вниз)', activeCam.pivotY, -15, 30, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                {renderSlider('Z (Вперед/Назад)', activeCam.pivotZ, -20, 20, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
+                            <div className="space-y-6 pt-2">
+                                <h5 className="text-[8px] uppercase tracking-widest text-indigo-400/50 mb-1">Линза & Центровка</h5>
+                                {renderSlider('Zoom (Приближение/Дистанция)', activeCam.radius, 1, 55, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                                <div className="pt-4">
+                                    <button 
+                                        onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
+                                        className="w-full py-4 bg-white/5 border border-white/10 text-white/80 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 hover:text-[#ffcc00] flex items-center justify-center gap-3 transition-all"
+                                    >
+                                        <Zap size={16} /> Сбросить фокус в центр
+                                    </button>
+                                    <p className="text-[8px] text-white/20 mt-3 text-center uppercase tracking-widest">
+                                        Вращение (Поворот/Наклон) выполняется мышью во вьюпорте
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -334,6 +368,7 @@ const StudioEditor = () => {
                 )}
             </div>
         </div>
+    </div>
     );
 };
 
