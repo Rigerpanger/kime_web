@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, useGLTF, Float, Environment, ContactShadows, Center } from '@react-three/drei';
 import * as THREE from 'three';
@@ -308,26 +308,35 @@ const SculptureModel = () => {
                     
                     // --- EFFECT: Digital Graphics (IRIS SHADER) ---
                     if (isServicesOrDetail && activeSlug === 'digital-graphics') {
-                        node.material.onBeforeCompile = (shader) => {
-                            shader.uniforms.uTime = { value: 0 };
-                            shader.fragmentShader = `
-                                uniform float uTime;
-                                ${shader.fragmentShader}
-                            `.replace(
-                                `#include <color_fragment>`,
-                                `#include <color_fragment>
-                                 float rainbow = sin(vUv.x * 10.0 + uTime * 2.0) * 0.5 + 0.5;
-                                 diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rainbow, 0.5, 1.0 - rainbow), 0.8);
-                                `
-                            );
-                            node.material.userData.shader = shader;
-                        };
                         node.material.wireframe = true;
                         node.material.opacity = 0.8;
                         node.material.transparent = true;
                         if (node.material.emissive) {
                             node.material.emissive.set("#ffaa44");
                             node.material.emissiveIntensity = 2.0;
+                        }
+                        
+                        // Apply Iris Shader effect via onBeforeCompile only once
+                        if (!node.material.userData.irisApplied) {
+                            node.material.onBeforeCompile = (shader) => {
+                                shader.uniforms.uTime = { value: 0 };
+                                shader.fragmentShader = `
+                                    uniform float uTime;
+                                    ${shader.fragmentShader}
+                                `.replace(
+                                    `#include <color_fragment>`,
+                                    `#include <color_fragment>
+                                     vec3 iris = vec3(
+                                         sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5,
+                                         sin(vUv.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
+                                         sin(vUv.x * 5.0 - uTime + 4.0) * 0.5 + 0.5
+                                     );
+                                     diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.6);
+                                    `
+                                );
+                                node.material.userData.shader = shader;
+                            };
+                            node.material.userData.irisApplied = true;
                         }
                     } 
                     // --- EFFECT: AI Synthesis Glow ---
