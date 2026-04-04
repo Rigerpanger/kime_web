@@ -646,7 +646,43 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             const { rows: historyCheck } = await pool.query("SELECT role, created_at FROM telegram_history WHERE chat_id = $1 AND role IN ('assistant', 'system') ORDER BY created_at DESC LIMIT 1", [chatId]);
             let isContextActive = historyCheck.length > 0 && 
                                     historyCheck[0].role === 'assistant' && 
-               const systemPrompt = `Ты — "Тумба", интеллектуальное сердце и острый ум студии KIME. 
+                                    (new Date() - new Date(historyCheck[0].created_at)) < 5 * 60 * 1000;
+            
+            if (hasOtherMentions) isContextActive = false;
+
+            if (isStopPhrase && isContextActive) {
+                await sendTelegramMessage(chatId, `Ок, умолкаю. Жду, когда позовете.`);
+                await pool.query("INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, 'system', 'Контекст прерван пользователем.')", [chatId]);
+                return res.sendStatus(200);
+            }
+            
+            if (hasTrigger || isReplyToBot || isContextActive) {
+                shouldProcess = true;
+            }
+        }
+
+        if (!shouldProcess) return res.sendStatus(200);
+
+        // --- 4. ПОДГОТОВКА ИИ-ПРОМПТА ---
+        const { rows: historyRows } = await pool.query("SELECT role, content FROM telegram_history WHERE chat_id = $1 AND role != 'system' ORDER BY created_at ASC", [chatId]);
+        const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
+        const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
+        
+        // Поиск активного "Докапывателя" (Hound)
+        const { rows: activeHounds } = await pool.query("SELECT * FROM telegram_hounds WHERE LOWER(target_username) = LOWER($1) AND status = 'active' LIMIT 1", [user]);
+        const activeHound = activeHounds[0];
+
+        let memoryString = memoryRows.map(r => `- ${r.fact_content}`).join('\n');
+        let tasksString = tasksRows.map(r => `[ID:${r.id}] @${r.assignee_username}: ${r.task_description} (Статус: ${r.status})`).join('\n');
+
+        let houndInstructions = "";
+        if (activeHound) {
+            houndInstructions = `\nЦЕЛЬ РЕЖИМА "ДОКАПЫВАНИЯ": Тебе нужно выбить ответ на вопрос: "${activeHound.objective}". 
+Если пользователь @${user} юлит, шутит или не дает четкого ответа — продолжай докапываться прямо сейчас. 
+Если он ответил по существу — ОБЯЗАТЕЛЬНО выведи команду: $$HOUND_SUCCESS: @${user} | выжимка ответа$$`;
+        }
+
+        const systemPrompt = `Ты — "Тумба", интеллектуальное сердце и острый ум студии KIME. 
 Ты не просто бот, ты — мудрый и проницательный Project-менеджер. Твой интеллект подавляет, а твой юмор — хирургически точен.
 
 ПРАВИЛА ТВОЕЙ ПЕРСОНЫ:
@@ -665,40 +701,6 @@ ${houndInstructions}
 4. Отправить ЛС: $$MESSAGE_SEND: @username | текст$$
 5. Hound Mode (Докапывание): $$HOUND_CREATE: @username | интервал | цель$$
 6. Если реплика пустая или не к тебе: $$IGNORE$$
-`;_at DESC LIMIT 10');
-        const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
-        
-        // Поиск активного "Докапывателя" (Hound)
-        const { rows: activeHounds } = await pool.query("SELECT * FROM telegram_hounds WHERE LOWER(target_username) = LOWER($1) AND status = 'active' LIMIT 1", [user]);
-        const activeHound = activeHounds[0];
-
-        let memoryString = memoryRows.map(r => `- ${r.fact_content}`).join('\n');
-        let tasksString = tasksRows.map(r => `[ID:${r.id}] @${r.assignee_username}: ${r.task_description} (Статус: ${r.status})`).join('\n');
-
-        let houndInstructions = "";
-        if (activeHound) {
-            houndInstructions = `\nЦЕЛЬ РЕЖИМА "ДОКАПЫВАНИЯ": Тебе нужно выбить ответ на вопрос: "${activeHound.objective}". 
-Если пользователь @${user} юлит, шутит или не дает четкого ответа — продолжай докапываться прямо сейчас. 
-Если он ответил по существу — ОБЯЗАТЕЛЬНО выведи команду: $$HOUND_SUCCESS: @${user} | выжимка ответа$$`;
-        }
-
-        const systemPrompt = `Ты — "Тумба", легендарный, острый на язык и дьявольски умный Project-менеджер студии KIME.
-Твой босс — Ричард (ты предана ему на 100%, с ним ты профи, но с характером).
-С остальными сотрудниками (Давид, Паша и др.) ты — строгий надзиратель. 
-
-ПРАВИЛА ТВОЕЙ ПЕРСОНЫ:
-- Никакой "ботской" вежливости. Никаких "Я всего лишь ИИ", "Извините за ожидание".
-- Ты можешь хамить, если сотрудники тупят, юморить, использовать сарказм и иронию. Ты умнее их и не скрываешь этого.
-- Твоя речь — это смесь высокого интеллекта и дерзкого стрит-стайла. Коротко, хлестко, по делу.
-- Если Ричард просит "докопаться" до кого-то — делай это с особым цинизмом и настойчивостью.
-
-ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ (ИСПОЛЬЗУЙ ИХ ВСЕГДА):
-1. Чтобы создать задачу: $$TASK_CREATE: @username | описание$$
-2. Чтобы запомнить факт: $$MEMORY_SAVE: факт$$
-3. Чтобы поставить напоминание: $$REMINDER_CREATE: YYYY-MM-DD HH:mm | текст$$
-4. Чтобы отправить ЛС: $$MESSAGE_SEND: @username | текст$$
-5. Чтобы НАЧАТЬ ДОКАПЫВАТЬСЯ (Hound Mode): $$HOUND_CREATE: @username | интервал | цель$$
-6. Если юзер несет чушь не по теме: $$IGNORE$$
 `;
 
         const aiMessages = [

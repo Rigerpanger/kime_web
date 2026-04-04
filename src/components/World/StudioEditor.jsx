@@ -15,22 +15,25 @@ const StudioEditor = () => {
     const setView = useAppStore(s => s.setView);
     const setActiveSlug = useAppStore(s => s.setActiveSlug);
     
-    // Desktop Scroll Stop
     const panelRef = React.useRef(null);
     useEffect(() => {
         const el = panelRef.current;
         if (!el) return;
-        const stopScroll = (e) => e.stopPropagation();
-        el.addEventListener('wheel', stopScroll, { passive: false });
-        el.addEventListener('touchmove', stopScroll, { passive: false });
+        const stopEvent = (e) => e.stopPropagation();
+        el.addEventListener('wheel', stopEvent, { passive: false });
+        el.addEventListener('touchmove', stopEvent, { passive: false });
+        el.addEventListener('mousedown', stopEvent, { passive: false });
+        el.addEventListener('mouseup', stopEvent, { passive: false });
+        el.addEventListener('click', stopEvent, { passive: false });
         return () => {
-            el.removeEventListener('wheel', stopScroll);
-            el.removeEventListener('touchmove', stopScroll);
+            el.removeEventListener('wheel', stopEvent);
+            el.removeEventListener('touchmove', stopEvent);
+            el.removeEventListener('mousedown', stopEvent);
+            el.removeEventListener('mouseup', stopEvent);
+            el.removeEventListener('click', stopEvent);
         };
     }, []);
     
-    // Actions
-    const updateSectionCameraId = useAppStore(s => s.updateSectionCameraId);
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
     const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
     const updateLight = useAppStore(s => s.updateLight);
@@ -46,15 +49,7 @@ const StudioEditor = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-    
-    // Global Three access via store isn't easy here, 
-    // but the sliders already call updateSectionCamera directly.
-    // We'll keep captureCamera but make it a placeholder or remove it 
-    // since we now have Auto-Capture on release in Scene.jsx.
-    // Instead of a button, let's just let Auto-Capture handle it.
-    
-    // Use the camera directly attached to the section (or fallback to defaults)
-    const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 };
+    const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 12.5, pivotZ: 0 };
 
     const rawFX = currentSection?.fx?.[activeSlot] || {};
     const currentFX = {
@@ -80,22 +75,16 @@ const StudioEditor = () => {
         finally { setSaving(false); }
     };
 
-    const captureCamera = () => {
-        // In the new sync logic, interaction auto-saves.
-        // We can keep this button as a visual confirmation or "manual refresh"
-        // but it's largely redundant now.
-    };
-
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
-        <div className="space-y-2">
-            <div className="flex justify-between text-[9px] uppercase tracking-widest text-[#ffcc00]/60">
+        <div className="space-y-1.5">
+            <div className="flex justify-between text-[8px] uppercase tracking-widest text-[#ffcc00]/50">
                 <span>{label}</span>
                 <span className="font-mono text-[#ffcc00]">{format(value)}</span>
             </div>
             <input 
                 type="range" min={min} max={max} step={step} value={value ?? 0} 
                 onChange={e => onChange(parseFloat(e.target.value))}
-                className="w-full accent-[#ffcc00] h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                className="w-full accent-[#ffcc00] h-1 bg-white/5 rounded-full appearance-none cursor-pointer"
             />
         </div>
     );
@@ -120,18 +109,23 @@ const StudioEditor = () => {
     return (
         <div 
             ref={panelRef} 
-            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/95 backdrop-blur-2xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.5)] ${isCollapsed ? 'h-[45px]' : 'h-[320px]'}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onPointerMove={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onMouseUp={(e) => e.stopPropagation()}
+            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[40px]' : 'h-[180px]'}`}
         >
-            {/* Collapse Toggle Button */}
             <button 
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
                 className="absolute top-[-1px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-b-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10000]"
             >
                 {isCollapsed ? <><ChevronUp size={12} /> Развернуть</> : <><ChevronDown size={12} /> Свернуть</>}
             </button>
 
-            {isCollapsed && (
-                <div className="absolute inset-0 flex items-center px-6 gap-6 pointer-events-none">
+            {isCollapsed ? (
+                <div className="w-full h-full flex items-center px-6 gap-6 pointer-events-none">
                     <div className="flex items-center gap-2 opacity-50">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse" />
                         <h3 className="text-[8px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
@@ -140,241 +134,166 @@ const StudioEditor = () => {
                         Режим: {SECTION_NAMES[activeSlug] || activeSlug}
                     </div>
                 </div>
-            )}
-
-            <div className={`flex w-full h-full transition-opacity duration-300 ${isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            
-            {/* Column 1: Branding, Tabs, Save */}
-            <div className="w-[220px] shrink-0 border-r border-white/5 p-5 flex flex-col justify-between">
-                <div className="space-y-6">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#ffcc00] animate-pulse" />
-                        <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        {[
-                            { id: 'camera', icon: Camera, label: 'Камеры (Секции)' },
-                            { id: 'light', icon: Lightbulb, label: 'Освещение' },
-                            { id: 'fx', icon: Zap, label: 'Эффекты (FX)' },
-                            { id: 'mat', icon: Palette, label: 'Материалы' }
-                        ].map(tab => (
-                            <button 
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/40 border border-transparent hover:bg-white/5'}`}
-                            >
-                                <tab.icon size={14} />
-                                <span className="text-[9px] font-bold uppercase">{tab.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <button 
-                    onClick={handleSave} 
-                    disabled={saving}
-                    className={`w-full py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
-                >
-                    {saving ? <Loader2 size={14} className="animate-spin" /> : saved ? <Check size={14} /> : <><Save size={14} /> Deploy</>}
-                </button>
-            </div>
-
-            {/* Column 2: Contextual Configuration (Lights & FX) */}
-            {activeTab !== 'camera' && activeTab !== 'mat' && (
-                <div className="w-[240px] shrink-0 border-r border-white/5 p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-white/[0.02]">
-                    <h4 className="text-[9px] uppercase font-bold tracking-widest text-white/30 mb-2">Объекты</h4>
-
-                {activeTab === 'light' && (
-                    <>
-                        {(config.lights || []).map(l => (
-                            <button 
-                                key={l.id} 
-                                onClick={() => setActiveLightId(l.id)}
-                                className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold transition-all flex justify-between items-center ${activeLightId === l.id ? 'bg-[#ffcc00] text-black shadow-lg shadow-[#ffcc00]/20' : 'bg-white/5 text-white/60 hover:bg-white/10'}`}
-                            >
-                                {l.name}
-                                {activeLightId === l.id && <div className="w-1.5 h-1.5 bg-black rounded-full" />}
-                            </button>
-                        ))}
-                        <button onClick={addLight} className="w-full mt-2 py-3 border border-dashed border-[#ffcc00]/30 text-[#ffcc00]/60 rounded-xl text-[10px] font-bold hover:bg-[#ffcc00]/10 hover:text-[#ffcc00] transition-all flex items-center justify-center gap-2">
-                            <Plus size={14} /> Добавить Свет
-                        </button>
-                    </>
-                )}
-
-                {activeTab === 'fx' && (
-                    <div className="flex flex-col gap-2">
-                        <div className="text-[8px] text-white/40 mb-1">Слоты эффектов (Для текущего раздела: {SECTION_NAMES[activeSlug] || activeSlug})</div>
-                        {[0,1,2,3,4].map(i => (
-                            <button 
-                                key={i}
-                                onClick={() => setActiveSlot(i)}
-                                className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold transition-all flex justify-between items-center ${activeSlot === i ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-white/5 text-white/60 hover:bg-white/10'}`}
-                            >
-                                Слот #{i+1}
-                            </button>
-                        ))}
-                    </div>
-                )}
-                </div>
-            )}
-
-            {/* Column 3: Properties (Grid) */}
-            <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
-                
-                {activeTab === 'camera' && (
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between pb-4 border-b border-white/5">
-                            <div>
-                                <h4 className="text-[12px] font-black uppercase text-[#ffcc00]">Редактор Камеры</h4>
-                                <p className="text-[9px] text-white/40">Раздел: {SECTION_NAMES[activeSlug] || activeSlug}</p>
-                            </div>
-                            <div className="flex gap-3">
-                                <div className="px-6 py-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all">
-                                    <Check size={14} /> Авто-захват активен
-                                </div>
+            ) : (
+                <div className="flex w-full h-full overflow-hidden">
+                    <div className="w-[120px] shrink-0 border-r border-white/5 p-3 flex flex-col justify-between bg-black/20">
+                        <div className="space-y-2">
+                            {[
+                                { id: 'camera', icon: Camera, label: 'Cam' },
+                                { id: 'fx', icon: Zap, label: 'FX' },
+                                { id: 'light', icon: Lightbulb, label: 'Light' },
+                                { id: 'mat', icon: Palette, label: 'Mat' }
+                            ].map(tab => (
                                 <button 
-                                    onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
-                                    className="px-4 py-3 bg-white/5 text-white/60 border border-white/10 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 flex items-center justify-center gap-2 transition-all"
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/20 hover:bg-white/5'}`}
                                 >
-                                    <Zap size={14} /> Центр Модели
+                                    <tab.icon size={11} />
+                                    <span className="text-[8px] font-bold uppercase">{tab.label}</span>
                                 </button>
-                            </div>
+                            ))}
+                            <button 
+                                onClick={handleSave} 
+                                disabled={saving}
+                                className={`w-full mt-2 py-2 rounded-lg font-black uppercase text-[9px] transition-all flex items-center justify-center gap-2 shadow-lg ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
+                            >
+                                {saving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : <><Save size={11} /> Deploy</>}
+                            </button>
                         </div>
+                        <div className="text-[6px] text-white/20 uppercase tracking-[0.2em] text-center">ANTIGRAVITY</div>
+                    </div>
 
-                        <div className="grid grid-cols-3 gap-8">
-                            <div className="space-y-4">
-                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-1">Фокус (Точка куда смотрит камера)</h5>
-                                {renderSlider('Focus X Offset', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotX: v }))}
-                                {renderSlider('Focus Y Offset', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotY: v }))}
-                                {renderSlider('Focus Z Offset', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotZ: v }))}
-                            </div>
-                            <div className="space-y-4">
-                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-1">Трансформация Скульптуры (Глобально)</h5>
-                                {renderSlider('Placement (Выше/Ниже)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
-                                {renderSlider('Global Scale (Больше/Меньше)', config.scale, 1, 200, 1, (v) => setConfig({ scale: v }))}
-                                {renderSlider('Base Rotation (Поворот)', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
-                            </div>
-                            <div className="space-y-6 pt-2">
-                                <h5 className="text-[8px] uppercase tracking-widest text-indigo-400/50 mb-1">Линза & Центровка</h5>
-                                {renderSlider('Zoom (Приближение/Дистанция)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { ...activeCam, radius: v }))}
-                                <div className="pt-2">
-                                    <button 
-                                        onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
-                                        className="w-full py-4 bg-white/5 border border-white/10 text-white/80 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 hover:text-[#ffcc00] flex items-center justify-center gap-3 transition-all"
-                                    >
-                                        <Zap size={16} /> Центровать по груди
+                    {activeTab !== 'camera' && activeTab !== 'mat' && (
+                        <div className="w-[160px] shrink-0 border-r border-white/5 p-3 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar bg-white/[0.01]">
+                            <h4 className="text-[7px] uppercase font-bold tracking-widest text-white/30 mb-1">Список</h4>
+                            {activeTab === 'light' && (
+                                <>
+                                    {(config.lights || []).map(l => (
+                                        <button 
+                                            key={l.id} 
+                                            onClick={() => setActiveLightId(l.id)}
+                                            className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeLightId === l.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
+                                        >
+                                            {l.name}
+                                            {activeLightId === l.id && <div className="w-1 h-1 bg-black rounded-full" />}
+                                        </button>
+                                    ))}
+                                    <button onClick={addLight} className="w-full py-1.5 border border-dashed border-[#ffcc00]/20 text-[#ffcc00]/40 rounded-lg text-[8px] font-bold hover:bg-[#ffcc00]/10 transition-all">
+                                        + Добавить
                                     </button>
-                                    <p className="text-[8px] text-white/20 mt-3 text-center uppercase tracking-widest">
-                                        Вращение (Поворот/Наклон) выполняется мышью во вьюпорте
-                                    </p>
+                                </>
+                            )}
+                            {activeTab === 'fx' && [0,1,2,3,4].map(i => (
+                                <button 
+                                    key={i}
+                                    onClick={() => setActiveSlot(i)}
+                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeSlot === i ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
+                                >
+                                    Слот #{i+1}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                        {activeTab === 'camera' && (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                    <h4 className="text-[9px] font-black uppercase text-[#ffcc00]">Редактор Камеры <span className="opacity-30 ml-2">// {SECTION_NAMES[activeSlug] || activeSlug}</span></h4>
+                                    <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-[7px] font-black uppercase">Авто-захват OK</div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-8">
+                                    <div className="space-y-3">
+                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Фокус (Пивот)</h5>
+                                        {renderSlider('X Axis', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
+                                        {renderSlider('Y Axis', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                        {renderSlider('Z Axis', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Скульптура</h5>
+                                        {renderSlider('Height', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                        {renderSlider('Size', config.scale, 1, 200, 1, (v) => setConfig({ scale: v }))}
+                                        {renderSlider('Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">Линза & Сброс</h5>
+                                        {renderSlider('Zoom (FOV)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                                        <button 
+                                            onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
+                                            className="w-full mt-1.5 py-2.5 bg-white/5 border border-white/10 text-white/50 rounded-lg text-[8px] font-black uppercase hover:bg-[#ffcc00]/10 hover:text-[#ffcc00] transition-all flex items-center justify-center gap-2"
+                                        >
+                                            <Zap size={11} /> Центровать по груди
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {activeTab === 'light' && (config.lights || []).find(l => l.id === activeLightId) && (
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-5">
-                            <div className="flex items-center justify-between">
-                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50">Настройки источника "{activeLightId}"</h5>
-                                <button onClick={() => removeLight(activeLightId)} className="text-red-500/70 hover:text-red-500 p-1"><Trash2 size={14}/></button>
-                            </div>
-                            {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
-                            {renderSlider('Radius (Отдаление)', (config.lights || []).find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
-                        </div>
-                        <div className="space-y-5">
-                            <h5 className="text-[8px] uppercase tracking-widest text-transparent select-none">Spacer</h5>
-                            {renderSlider('Azimuth (Поворот вокруг)', (config.lights || []).find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
-                            {renderSlider('Height (Высота)', (config.lights || []).find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'fx' && (
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-5">
-                            <div className="flex items-center justify-between pb-2">
-                                <label className="text-[8px] uppercase text-[#ffcc00]/50">Выбор Эффекта</label>
-                                <input 
-                                    type="checkbox" 
-                                    checked={currentFX.active} 
-                                    onChange={e => updateSectionFX(activeSlug, activeSlot, { active: e.target.checked })}
-                                    className="w-4 h-4 accent-emerald-500"
-                                />
-                            </div>
-                            <select 
-                                value={currentFX.type} 
-                                onChange={e => updateSectionFX(activeSlug, activeSlot, { type: e.target.value })}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-[10px] uppercase font-bold text-[#ffcc00] outline-none hover:border-emerald-500/40"
-                            >
-                                {FX_TYPES.map(t => <option key={t} value={t} className="bg-black">{t}</option>)}
-                            </select>
-
-                            {renderSlider('Масштаб (Scale)', currentFX.scale, 0.1, 8.0, 0.1, (v) => updateSectionFX(activeSlug, activeSlot, { scale: v }))}
-                            {renderSlider('Интенсивность', currentFX.intensity, 0, 2, 0.05, (v) => updateSectionFX(activeSlug, activeSlot, { intensity: v }))}
-                        </div>
-
-                        <div className="space-y-5">
-                            <label className="text-[8px] uppercase text-[#ffcc00]/50 pb-2 block">Позиционирование & Цвет</label>
-                            
-                            <div className="grid grid-cols-3 gap-2">
-                                {['X Offset', 'Y Offset', 'Z Offset'].map((axis, i) => (
-                                    <div key={axis} className="space-y-1">
-                                        <div className="text-[7px] text-white/40 uppercase font-mono">{axis}</div>
-                                        <input 
-                                            type="number" 
-                                            value={currentFX.pos[i]} 
-                                            step={0.1}
-                                            onChange={e => {
-                                                const newPos = [...currentFX.pos];
-                                                newPos[i] = parseFloat(e.target.value);
-                                                updateSectionFX(activeSlug, activeSlot, { pos: newPos });
-                                            }}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] font-mono text-[#ffcc00]"
-                                        />
+                        {activeTab === 'light' && (config.lights || []).find(l => l.id === activeLightId) && (
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                                        <h5 className="text-[9px] uppercase font-black text-[#ffcc00]">{activeLightId}</h5>
+                                        <button onClick={() => removeLight(activeLightId)} className="text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={11}/></button>
                                     </div>
-                                ))}
+                                    {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
+                                    {renderSlider('Radius', (config.lights || []).find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
+                                </div>
+                                <div className="space-y-4 pt-5">
+                                    {renderSlider('Azimuth', (config.lights || []).find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
+                                    {renderSlider('Y Height', (config.lights || []).find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
+                                </div>
                             </div>
+                        )}
 
-                            <div className="flex gap-3">
-                                <input 
-                                    type="color" 
-                                    value={currentFX.color}
-                                    onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })}
-                                    className="h-10 w-24 bg-transparent cursor-pointer rounded overflow-hidden"
-                                />
-                                <input 
-                                    type="text" 
-                                    value={currentFX.color}
-                                    onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-[11px] font-mono text-[#ffcc00] uppercase tracking-widest text-center"
-                                />
+                        {activeTab === 'fx' && (
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
+                                        <select value={currentFX.type} onChange={e => updateSectionFX(activeSlug, activeSlot, { type: e.target.value })} className="bg-transparent text-[9px] uppercase font-black text-[#ffcc00] outline-none cursor-pointer">
+                                            {FX_TYPES.map(t => <option key={t} value={t} className="bg-black">{t}</option>)}
+                                        </select>
+                                        <input type="checkbox" checked={currentFX.active} onChange={e => updateSectionFX(activeSlug, activeSlot, { active: e.target.checked })} className="w-3 h-3 accent-emerald-500" />
+                                    </div>
+                                    {renderSlider('Scale', currentFX.scale, 0.1, 8.0, 0.1, (v) => updateSectionFX(activeSlug, activeSlot, { scale: v }))}
+                                    {renderSlider('Power', currentFX.intensity, 0, 2, 0.05, (v) => updateSectionFX(activeSlug, activeSlot, { intensity: v }))}
+                                </div>
+                                <div className="space-y-4 pt-1">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['X','Y','Z'].map((axis, i) => (
+                                            <div key={axis} className="space-y-1">
+                                                <div className="text-[7px] text-white/20 uppercase">{axis}</div>
+                                                <input type="number" value={currentFX.pos[i]} step={0.1} onChange={e => { const newPos = [...currentFX.pos]; newPos[i] = parseFloat(e.target.value); updateSectionFX(activeSlug, activeSlot, { pos: newPos }); }} className="w-full bg-white/5 border border-white/10 rounded-md p-1.5 text-[9px] font-mono text-[#ffcc00] outline-none" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input type="color" value={currentFX.color} onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })} className="h-7 w-10 bg-transparent cursor-pointer rounded border border-white/10" />
+                                        <input type="text" value={currentFX.color} onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-md p-1.5 text-[8px] font-mono text-[#ffcc00] uppercase text-center" />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {activeTab === 'mat' && (
-                    <div className="grid grid-cols-2 gap-8">
-                        <div className="space-y-5">
-                            <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-2">Глобальная Трансформация Статуи</h5>
-                            {renderSlider('Global Y', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
-                            {renderSlider('Global Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
-                            {renderSlider('Rotation Y', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
-                        </div>
-                        <div className="space-y-5">
-                            <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-2">Материал</h5>
-                            {renderSlider('Roughness (Шероховатость)', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
-                            {renderSlider('Metalness (Металличность)', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
-                        </div>
+                        {activeTab === 'mat' && (
+                            <div className="grid grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Глобальное положение</h5>
+                                    {renderSlider('Global Y', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
+                                    {renderSlider('Global Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
+                                </div>
+                                <div className="space-y-4">
+                                    <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Материал</h5>
+                                    {renderSlider('Roughness', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
+                                    {renderSlider('Metalness', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </div>
-    </div>
     );
 };
 
