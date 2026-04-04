@@ -138,6 +138,23 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
+
+// --- AUTH ---
+app.post(['/auth/login', '/api/auth/login'], async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (rows.length === 0) return res.status(401).json({ error: 'Пользователь не найден' });
+        
+        const user = rows[0];
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+        if (!validPassword) return res.status(401).json({ error: 'Неверный пароль' });
+        
+        const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+        res.json({ token, user: { id: user.id, email: user.email } });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // --- FILE UPLOAD ---
 app.post(['/upload', '/api/upload'], authenticateToken, upload.single('image'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file' });
@@ -152,24 +169,124 @@ app.post(['/upload', '/api/upload'], authenticateToken, upload.single('image'), 
 // --- PROJECTS CRUD ---
 app.get(['/projects', '/api/projects'], async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC');
+        const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC, id DESC');
         res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post(['/projects', '/api/projects'], authenticateToken, async (req, res) => {
+    const { title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order } = req.body;
+    try {
+        const { rows } = await pool.query(
+            `INSERT INTO projects (title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+            [title, slug, challenge, solution, result, short_description, client, cover, video_url, JSON.stringify(tags), JSON.stringify(tech), sort_order || 0]
+        );
+        res.status(201).json(rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const { title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order } = req.body;
+    try {
+        const { rows } = await pool.query(
+            `UPDATE projects SET 
+                title = COALESCE($1, title), 
+                slug = COALESCE($2, slug), 
+                challenge = COALESCE($3, challenge), 
+                solution = COALESCE($4, solution), 
+                result = COALESCE($5, result), 
+                short_description = COALESCE($6, short_description), 
+                client = COALESCE($7, client), 
+                cover = COALESCE($8, cover), 
+                video_url = COALESCE($9, video_url), 
+                tags = COALESCE($10, tags), 
+                tech = COALESCE($11, tech), 
+                sort_order = COALESCE($12, sort_order)
+             WHERE id = $13 RETURNING *`,
+            [title, slug, challenge, solution, result, short_description, client, cover, video_url, JSON.stringify(tags), JSON.stringify(tech), sort_order, id]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'Project not found' });
+        res.json(rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM projects WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // --- PARTNERS CRUD ---
 app.get(['/partners', '/api/partners'], async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC');
+        const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC, id DESC');
         res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post(['/partners', '/api/partners'], authenticateToken, async (req, res) => {
+    const { name, logo_url, width, order_index } = req.body;
+    try {
+        const { rows } = await pool.query(
+            'INSERT INTO partners (name, logo_url, width, order_index) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, logo_url, width || 100, order_index || 0]
+        );
+        res.status(201).json(rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete(['/partners/:id', '/api/partners/:id'], authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM partners WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // --- CERTIFICATES CRUD ---
 app.get(['/certificates', '/api/certificates'], async (req, res) => {
     try {
-        const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC');
+        const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC, id DESC');
         res.json(rows);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post(['/certificates', '/api/certificates'], authenticateToken, async (req, res) => {
+    const { company, division, position, image_url, order_index } = req.body;
+    try {
+        const { rows } = await pool.query(
+            'INSERT INTO certificates (company, division, position, image_url, order_index) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [company, division, position, image_url, order_index || 0]
+        );
+        res.status(201).json(rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put(['/certificates/:id', '/api/certificates/:id'], authenticateToken, async (req, res) => {
+    const { id } = req.params;
+    const { company, division, position, image_url, order_index } = req.body;
+    try {
+        const { rows } = await pool.query(
+            `UPDATE certificates SET 
+                company = COALESCE($1, company), 
+                division = COALESCE($2, division), 
+                position = COALESCE($3, position), 
+                image_url = COALESCE($4, image_url), 
+                order_index = COALESCE($5, order_index)
+             WHERE id = $6 RETURNING *`,
+            [company, division, position, image_url, order_index, id]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'Certificate not found' });
+        res.json(rows[0]);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete(['/certificates/:id', '/api/certificates/:id'], authenticateToken, async (req, res) => {
+    try {
+        await pool.query('DELETE FROM certificates WHERE id = $1', [req.params.id]);
+        res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -178,6 +295,22 @@ app.get(['/content/:key', '/api/content/:key'], async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT content_json FROM site_content WHERE section_key = $1', [req.params.key]);
         if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
+        res.json(rows[0].content_json);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post(['/content/:key', '/api/content/:key'], authenticateToken, async (req, res) => {
+    const { key } = req.params;
+    const content = req.body;
+    try {
+        const { rows } = await pool.query(
+            `INSERT INTO site_content (section_key, content_json, updated_at)
+             VALUES ($1, $2, NOW())
+             ON CONFLICT (section_key) 
+             DO UPDATE SET content_json = $2, updated_at = NOW()
+             RETURNING *`,
+            [key, JSON.stringify(content)]
+        );
         res.json(rows[0].content_json);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
