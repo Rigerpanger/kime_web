@@ -585,6 +585,10 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         }
 
         if (isPrivate && !dbUser) {
+            // ФИКС: Запоминаем chat_id даже для неавторизованных
+            const resPend = await pool.query("INSERT INTO telegram_users (username, role, chat_id) VALUES ($1, 'unauthorized', $2) ON CONFLICT (username) DO UPDATE SET chat_id = $2 RETURNING *", [user, chatId]);
+            dbUser = resPend.rows[0];
+
             await sendTelegramMessage(chatId, `⏳ У вас пока нет доступа к личному общению с ассистентом KIME. Ваш ник: @${user}\nЗапрос отправлен руководителю.`);
             
             // Отправка запроса админам
@@ -592,6 +596,14 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             for (const admin of admins) {
                 await sendTelegramMessage(admin.chat_id, `⚠️ *Новый запрос на доступ*\nПользователь @${user} хочет общаться с ботом в личных сообщениях.\n\nЧтобы разрешить доступ, отправьте сюда команду:\n\`добавь в общение @${user}\``);
             }
+            return res.sendStatus(200);
+        }
+
+        // Если пользователь не в бане и не unauthorized, но почему-то не dbUser (редкий кейс)
+        if (!dbUser) return res.sendStatus(200);
+
+        // Если статус всё еще 'unauthorized' - не пускать дальше (но мы уже доложили админу)
+        if (isPrivate && dbUser.role === 'unauthorized') {
             return res.sendStatus(200);
         }
 
@@ -614,9 +626,16 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         const lowerText = text.toLowerCase();
         if (lowerText.startsWith('добавь в общение @')) {
             if (dbUser && dbUser.role === 'admin') {
-                const newUser = text.split('@')[1].trim().toLowerCase();
-                await pool.query('INSERT INTO telegram_users (username) VALUES ($1) ON CONFLICT DO NOTHING', [newUser]);
+                const newUser = text.split('@')[1].trim();
+                // Обновляем или вставляем
+                const { rows: updated } = await pool.query("INSERT INTO telegram_users (username, role) VALUES ($1, 'colleague') ON CONFLICT (username) DO UPDATE SET role = 'colleague' RETURNING chat_id", [newUser]);
+                
                 await sendTelegramMessage(chatId, `✅ Пользователь @${newUser} добавлен в систему. Теперь он может писать боту лично.`);
+                
+                // ПРОАКТИВНОЕ УВЕДОМЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
+                if (updated.length > 0 && updated[0].chat_id) {
+                    await sendTelegramMessage(updated[0].chat_id, `🎯 *Эй, @${newUser}!* Ричард открыл тебе доступ. Показывай, что там по задачам. Я тебя вижу.`);
+                }
             } else {
                 await sendTelegramMessage(chatId, `❌ У вас нет прав для добавления сотрудников.`);
             }

@@ -9,6 +9,7 @@ const CameraRig = () => {
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const isOverPanel = useAppStore(s => s.isOverPanel);
+    const isOrbiting = useAppStore(s => s.isOrbiting);
  
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
@@ -45,9 +46,9 @@ const CameraRig = () => {
         if (activeCam) {
             const theta = (activeCam.azimuth || 0) * Math.PI / 180;
             const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
-            const r = activeCam.radius || 16;
+            const r = activeCam.radius || 18;
             const px = activeCam.pivotX || 0;
-            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 0;
+            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 12.5;
             const pz = activeCam.pivotZ || 0;
             
             targetLook = [px, py, pz];
@@ -57,19 +58,34 @@ const CameraRig = () => {
                 pz + r * Math.sin(phi) * Math.cos(theta)
             ];
 
+            // Safety check for NaN
+            if (isNaN(targetPos[0]) || isNaN(targetPos[1]) || isNaN(targetPos[2])) {
+                targetPos = [0, 12, 18];
+                targetLook = [0, 12, 0];
+            }
+
             // Cinematic Smoothing using damp
             const smoothing = isOverPanel ? 12.0 : 3.5; 
+            const d = Math.max(0.001, Math.min(0.2, delta || 0.016)); // Clamp delta for stability
             
-            // Apply Position Smoothing
-            camera.position.x = THREE.MathUtils.damp(camera.position.x, targetPos[0], smoothing, delta);
-            camera.position.y = THREE.MathUtils.damp(camera.position.y, targetPos[1], smoothing, delta);
-            camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos[2], smoothing, delta);
+            // EMERGENCY Recovery if camera is already at NaN
+            if (isNaN(camera.position.x)) {
+                camera.position.set(...targetPos);
+            } else {
+                camera.position.x = THREE.MathUtils.damp(camera.position.x, targetPos[0], smoothing, d);
+                camera.position.y = THREE.MathUtils.damp(camera.position.y, targetPos[1], smoothing, d);
+                camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos[2], smoothing, d);
+            }
 
             // Apply Target Smoothing
             if (controls) {
-                controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLook[0], smoothing, delta);
-                controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLook[1], smoothing, delta);
-                controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLook[2], smoothing, delta);
+                if (isNaN(controls.target.x)) {
+                    controls.target.set(...targetLook);
+                } else {
+                    controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLook[0], smoothing, d);
+                    controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLook[1], smoothing, d);
+                    controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLook[2], smoothing, d);
+                }
                 controls.update();
             } else {
                 vecTarget.set(...targetLook);

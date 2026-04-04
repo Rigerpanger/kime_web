@@ -203,10 +203,16 @@ const StudioEditor = () => {
                                         <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">Линза & Сброс</h5>
                                         {renderSlider('Zoom (FOV)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                                         <button 
-                                            onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
-                                            className="w-full mt-1.5 py-2.5 bg-white/5 border border-white/10 text-white/50 rounded-lg text-[8px] font-black uppercase hover:bg-[#ffcc00]/10 hover:text-[#ffcc00] transition-all flex items-center justify-center gap-2"
+                                            onClick={() => {
+                                                updateSectionCamera(activeSlug, { 
+                                                    pivotX: 0, pivotY: 12.5, pivotZ: 0, 
+                                                    radius: 18, polar: 90, azimuth: 0 
+                                                });
+                                                setConfig({ y: 5.1, scale: 17 });
+                                            }}
+                                            className="w-full mt-1.5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[8px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <Zap size={11} /> Центровать по груди
+                                            <Zap size={11} /> СБРОСИТЬ ВСЁ (RECOVER)
                                         </button>
                                     </div>
                                 </div>
