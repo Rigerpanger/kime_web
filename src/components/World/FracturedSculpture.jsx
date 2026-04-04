@@ -206,7 +206,8 @@ const SculptureModel = () => {
                     node.material = node.material.clone();
                     
                     // Special coloring for "Digital Graphics"
-                    if (view === VIEWS.SERVICES && activeSlug === 'digital-graphics') {
+                    const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
+                    if (isServicesOrDetail && activeSlug === 'digital-graphics') {
                         node.material.color.set("#ffcc00");
                         node.material.wireframe = true;
                         node.material.opacity = 0.3;
@@ -230,11 +231,13 @@ const SculptureModel = () => {
         });
     }, [clonedScene, config, activeSlug, view]);
 
+    const isGamedev = activeSlug === 'gamedev' && (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL);
+
     return (
         <Float 
-            speed={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 2.5 : 0.4} 
-            rotationIntensity={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 0.8 : 0.05} 
-            floatIntensity={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 1.5 : 0.1}
+            speed={isGamedev ? 2.5 : 0.4} 
+            rotationIntensity={isGamedev ? 0.8 : 0.05} 
+            floatIntensity={isGamedev ? 1.5 : 0.1}
         >
             <Center bottom position={[0, config.y, 0]}>
                 <primitive 
@@ -263,7 +266,7 @@ const BrutalistTotem = () => {
                 <pointLight position={[10, 10, 10]} intensity={0.01} />
                 <SculptureModel />
                 
-                {view === VIEWS.SERVICES && <ArtisticIntervention slug={activeSlug} />}
+                {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && <ArtisticIntervention slug={activeSlug} />}
 
                 <ContactShadows position={[0, -5, 0]} opacity={0.3} scale={20} blur={2.5} far={10} color="#000000" />
             </Suspense>
