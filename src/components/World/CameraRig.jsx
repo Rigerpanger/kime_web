@@ -2,93 +2,61 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
-import servicesData from '../../data/services.json';
 
 const CameraRig = () => {
-    const { camera, controls } = useThree(); // requires <OrbitControls makeDefault />
+    const { camera, controls } = useThree();
     const view = useAppStore(s => s.view);
     const activeSlug = useAppStore(s => s.activeSlug);
+    const config = useAppStore(s => s.sculptureConfig);
 
-    // Target Vectors
+    // Target Vectors for interpolation
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
 
     useFrame((state, delta) => {
-        // 1. Determine Desired State
+        let currentSection = config.sections?.[activeSlug] || config.sections?.default;
+        
         let targetPos = [0, 0, 16];
         let targetLook = [0, 0, 0];
+        let lerpSpeed = 1.5;
 
-        switch (view) {
-            case VIEWS.HOME:
-                targetPos = [0, 0, 16];
-                targetLook = [0, 0, 0];
-                break;
-
-            case VIEWS.SERVICES:
-                // Overview: Slightly wider, angled to see depth of explosion
-                targetPos = [5, 2, 18];
-                targetLook = [0, 0, 0];
-                break;
-
-            case VIEWS.SERVICE_DETAIL:
-            case VIEWS.PROJECTS:
-            case VIEWS.CONTACT:
-            case VIEWS.ABOUT:
-                let idx = -1;
-                if (view === VIEWS.SERVICE_DETAIL && activeSlug) {
-                    idx = servicesData.findIndex(s => s.slug === activeSlug);
-                } else if (view === VIEWS.PROJECTS) {
-                    idx = 1; // Projects -> AR/VR Shard
-                } else if (view === VIEWS.CONTACT) {
-                    idx = 3; // Contact -> Branding Shard
-                } else if (view === VIEWS.ABOUT) {
-                    idx = 4; // About -> AI Shard
-                }
-
-                if (idx !== -1) {
-                    const total = servicesData.length;
-                    const angle = (idx / total) * Math.PI * 2;
-                    const radius = 2.0;
-                    const gap = 0.8;
-                    const r = radius + gap * 1.5;
-
-                    const chunkX = Math.cos(angle) * r;
-                    const chunkY = Math.sin(angle) * r;
-
-                    // Camera Position: In front of the chunk, but offset to allow UI on side
-                    // If UI is on RIGHT, Camera should be slightly LEFT of chunk?
-                    // Let's just zoom straight in for now, we can offset later if needed.
-                    const camDist = 6;
-                    targetPos = [
-                        Math.cos(angle) * (r + camDist),
-                        Math.sin(angle) * (r + camDist),
-                        4
-                    ];
-                    targetLook = [chunkX, chunkY, 0];
-                } else {
-                    targetPos = [0, 0, 14];
-                }
-                break;
-
-
+        // Determine Section Context
+        if (view === VIEWS.HOME) {
+            targetPos = [0, 0, 18];
+            targetLook = [0, 0, 0];
+        } else if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
+            const cam = currentSection?.camera || { pos: [0, 0, 16], target: [0, 0, 0], zoom: 16, pivotY: 0 };
+            
+            // Calculate Vector from target to pos
+            const dir = new THREE.Vector3().fromArray(cam.pos).sub(new THREE.Vector3().fromArray(cam.target)).normalize();
+            
+            // Re-calculate pos based on Zoom (Distance)
+            const zoomDist = cam.zoom !== undefined ? cam.zoom : 16;
+            const finalPos = new THREE.Vector3().fromArray(cam.target).add(dir.multiplyScalar(zoomDist));
+            
+            targetPos = finalPos.toArray();
+            targetLook = [cam.target[0], cam.pivotY !== undefined ? cam.pivotY : cam.target[1], cam.target[2]];
+            lerpSpeed = 2.0;
+        } else {
+            // General Fallback
+            targetPos = [0, 0, 14];
+            targetLook = [0, 0, 0];
         }
 
-        // 2. Interpolate Camera Position
+        // Apply Smoothing
         vecPos.set(...targetPos);
-        camera.position.lerp(vecPos, delta * 1.5); // Smooth ease
+        camera.position.lerp(vecPos, delta * lerpSpeed);
 
-        // 3. Interpolate LookAt (Controls Target)
+        vecTarget.set(...targetLook);
         if (controls) {
-            vecTarget.set(...targetLook);
-            controls.target.lerp(vecTarget, delta * 1.5);
+            controls.target.lerp(vecTarget, delta * lerpSpeed);
             controls.update();
         } else {
-            // Fallback if no controls
-            camera.lookAt(vecTarget.set(...targetLook));
+            camera.lookAt(vecTarget);
         }
     });
 
-    return null; // Rig is logic only
+    return null;
 };
 
 export default CameraRig;

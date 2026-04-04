@@ -1,64 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
-import { Save, Loader2, Check, Box, Palette, Lightbulb, Plus, Trash2, Upload } from 'lucide-react';
+import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap } from 'lucide-react';
 
-const AzimuthDial = ({ value, onChange }) => {
-    const handleDrag = (e, rect) => {
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const angleRad = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-        let angleDeg = (angleRad * 180) / Math.PI + 90;
-        if (angleDeg < 0) angleDeg += 360;
-        onChange(Math.round(angleDeg));
-    };
-
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', letterSpacing: '1px', textTransform: 'uppercase' }}>Orbit</span>
-            <div 
-                onMouseDown={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    handleDrag(e, rect);
-                    const moveHandler = (moveEvent) => handleDrag(moveEvent, rect);
-                    const upHandler = () => {
-                        window.removeEventListener('mousemove', moveHandler);
-                        window.removeEventListener('mouseup', upHandler);
-                    };
-                    window.addEventListener('mousemove', moveHandler);
-                    window.addEventListener('mouseup', upHandler);
-                }}
-                style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', position: 'relative', cursor: 'grab', background: 'radial-gradient(circle, rgba(255,204,0,0.05) 0%, rgba(0,0,0,0.5) 100%)' }}
-            >
-                <div style={{ position: 'absolute', top: '50%', left: '50%', width: '1px', height: '38px', background: 'rgba(255, 204, 0, 0.5)', transformOrigin: 'top center', transform: `rotate(${value - 180}deg)` }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffcc00', position: 'absolute', bottom: '-4px', left: '-3.5px', boxShadow: '0 0 10px #ffcc00' }}/>
-                </div>
-            </div>
-            <span style={{ fontSize: '10px', color: '#ffcc00', fontWeight: 'bold' }}>{value}°</span>
-        </div>
-    );
-};
+const FX_TYPES = ['None', 'NeuralCore', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
 
 const StudioEditor = () => {
+    const { camera, controls } = useThree();
     const { session } = useAuthStore();
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
+    
     const config = useAppStore(s => s.sculptureConfig);
     const setConfig = useAppStore(s => s.setSculptureConfig);
-    const activeLightId = useAppStore(s => s.activeLightId);
-    const setActiveLightId = useAppStore(s => s.setActiveLightId);
+    const activeSlug = useAppStore(s => s.activeSlug) || 'default';
+    
+    // Actions
+    const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
+    const updateSectionFX = useAppStore(s => s.updateSectionFX);
+    const updateLight = useAppStore(s => s.updateLight);
     const addLight = useAppStore(s => s.addLight);
     const removeLight = useAppStore(s => s.removeLight);
-    const updateLight = useAppStore(s => s.updateLight);
-    const activeSlug = useAppStore(s => s.activeSlug);
+    const activeLightId = useAppStore(s => s.activeLightId);
+    const setActiveLightId = useAppStore(s => s.setActiveLightId);
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [activeTab, setActiveTab] = useState('fx');
+    const [activeSlot, setActiveSlot] = useState(0);
+
+    const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+    const currentFX = currentSection?.fx?.[activeSlot] || { type: 'None', pos: [0,0,0], scale: 1, color: '#ffffff', intensity: 1, active: false };
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            if (!session?.token) throw new Error("Вы не авторизованы.");
+            if (!session?.token) throw new Error("Unauthorized");
             const response = await fetch(`${apiUrl}/content/sculpture_config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
@@ -69,95 +46,223 @@ const StudioEditor = () => {
         finally { setSaving(false); }
     };
 
-    const renderTabButton = (id, icon, label) => (
-        <button onClick={() => setActiveTab(id)} style={{ flex: 1, padding: '10px', background: activeTab === id ? 'rgba(255,204,0,0.1)' : 'transparent', border: `1px solid ${activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.1)'}`, color: activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.5)', borderRadius: '8px', cursor: 'pointer', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase' }}>{icon}{label}</button>
-    );
+    const captureCamera = () => {
+        if (!camera) return;
+        updateSectionCamera(activeSlug, {
+            pos: camera.position.toArray(),
+            target: controls?.target.toArray() || [0,0,0],
+            zoom: camera.position.distanceTo(controls?.target || new THREE.Vector3(0,0,0))
+        });
+    };
 
-    const renderSlider = (label, value, min, max, step, onChange, format = (v) => v.toFixed(1)) => (
-        <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '9px', textTransform: 'uppercase', opacity: 0.5 }}>
-                <span>{label}</span><span style={{ color: '#ffcc00' }}>{format(value ?? 0)}</span>
+    const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
+        <div className="space-y-2">
+            <div className="flex justify-between text-[9px] uppercase tracking-widest text-[#ffcc00]/60">
+                <span>{label}</span>
+                <span className="font-mono text-[#ffcc00]">{format(value)}</span>
             </div>
-            <input type="range" min={min} max={max} step={step} value={value ?? 0} onChange={e => onChange(parseFloat(e.target.value))} style={{ width: '100%', accentColor: '#ffcc00' }} />
+            <input 
+                type="range" min={min} max={max} step={step} value={value ?? 0} 
+                onChange={e => onChange(parseFloat(e.target.value))}
+                className="w-full accent-[#ffcc00] h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+            />
         </div>
     );
 
-    const activeLight = config.lights?.find(l => l.id === activeLightId);
-
     return (
-        <div style={{ position: 'fixed', bottom: '40px', right: '40px', background: 'rgba(5, 5, 5, 0.95)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255, 204, 0, 0.2)', color: 'white', zIndex: 999999, width: '340px', boxShadow: '0 20px 80px rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, color: '#ffcc00', letterSpacing: '4px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}>STUDIO</h4>
+        <div className="fixed bottom-10 right-10 w-[360px] bg-black/90 backdrop-blur-2xl border border-[#ffcc00]/20 rounded-3xl p-6 shadow-2xl z-[9999] flex flex-col gap-6 text-white font-sans">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#ffcc00] animate-pulse" />
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#ffcc00]">Antigravity Studio</h3>
+                </div>
+                <div className="text-[9px] font-mono text-white/40 border border-white/10 px-2 py-0.5 rounded-full uppercase">
+                    Slot: {activeSlug}
+                </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px' }}>
-                {renderTabButton('transform', <Box size={14}/>, 'Pos')}
-                {renderTabButton('material', <Palette size={14}/>, 'Mat')}
-                {renderTabButton('fx', <Box size={14}/>, 'FX')}
+            {/* Main Tabs */}
+            <div className="flex gap-1 p-1 bg-white/5 rounded-xl">
+                {[
+                    { id: 'light', icon: Lightbulb, label: 'Light' },
+                    { id: 'camera', icon: Camera, label: 'Camera' },
+                    { id: 'fx', icon: Zap, label: 'FX' },
+                    { id: 'mat', icon: Palette, label: 'Mat' }
+                ].map(tab => (
+                    <button 
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-lg transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/40 hover:bg-white/5'}`}
+                    >
+                        <tab.icon size={14} />
+                        <span className="text-[8px] font-black uppercase">{tab.label}</span>
+                    </button>
+                ))}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '300px' }}>
-                {activeTab === 'transform' && (
-                    <>
-                        {renderSlider('Body Height (Y)', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
-                        {renderSlider('Body Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
-                        {renderSlider('Body Rotation', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
-                    </>
+            <div className="flex-1 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar space-y-6">
+                {activeTab === 'light' && (
+                    <div className="space-y-6">
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                            {config.lights.map((l, i) => (
+                                <button 
+                                    key={l.id} 
+                                    onClick={() => setActiveLightId(l.id)}
+                                    className={`px-3 py-2 rounded-lg text-[9px] font-bold whitespace-nowrap transition-all ${activeLightId === l.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/60'}`}
+                                >
+                                    {l.name}
+                                </button>
+                            ))}
+                            <button onClick={addLight} className="p-2 bg-[#ffcc00]/10 text-[#ffcc00] rounded-lg hover:bg-[#ffcc00]/20"><Plus size={14} /></button>
+                        </div>
+                        
+                        {config.lights.find(l => l.id === activeLightId) && (
+                            <div className="space-y-4">
+                                {renderSlider('Intensity', config.lights.find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
+                                {renderSlider('Azimuth', config.lights.find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
+                                {renderSlider('Radius', config.lights.find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
+                                {renderSlider('Height', config.lights.find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
+                                
+                                <button 
+                                    onClick={() => removeLight(activeLightId)}
+                                    className="w-full py-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[9px] font-black uppercase hover:bg-red-500/20 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 size={12} /> Remove Source
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 )}
 
-                {activeTab === 'material' && (
-                    <>
-                        {renderSlider('Roughness', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
-                        {renderSlider('Metalness', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
-                        {renderSlider('Reflections', config.envMapIntensity, 0, 2, 0.01, (v) => setConfig({ envMapIntensity: v }))}
-                    </>
+                {activeTab === 'camera' && (
+                    <div className="space-y-6">
+                        <button 
+                            onClick={captureCamera}
+                            className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ffcc00]/10 hover:border-[#ffcc00]/40 transition-all flex items-center justify-center gap-3"
+                        >
+                            <Camera size={16} className="text-[#ffcc00]" /> 
+                            Capture Viewpoint
+                        </button>
+                        
+                        {renderSlider('Pivot Height', currentSection?.camera.pivotY || 0, -10, 15, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                        {renderSlider('Zoom Distance', currentSection?.camera.zoom || 16, 5, 40, 0.5, (v) => updateSectionCamera(activeSlug, { zoom: v }))}
+                        
+                        <div className="bg-white/5 p-4 rounded-2xl space-y-2 border border-white/10">
+                            <div className="text-[8px] uppercase text-white/40">Stored Position</div>
+                            <div className="font-mono text-[10px] text-[#ffcc00] flex justify-between">
+                                <span>X: {currentSection?.camera.pos[0].toFixed(2)}</span>
+                                <span>Y: {currentSection?.camera.pos[1].toFixed(2)}</span>
+                                <span>Z: {currentSection?.camera.pos[2].toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {activeTab === 'fx' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
-                            <div style={{ fontSize: '9px', color: '#ffcc00', marginBottom: '10px' }}>FLASH CONFIG</div>
-                            {renderSlider('Height', config.flashFX?.y, -10, 30, 0.1, (v) => setConfig({ flashFX: { ...config.flashFX, y: v } }))}
-                            {renderSlider('Power', config.flashFX?.intensity, 0, 500, 10, (v) => setConfig({ flashFX: { ...config.flashFX, intensity: v } }), v => v.toFixed(0))}
+                    <div className="space-y-6">
+                        <div className="flex gap-1 p-1 bg-white/5 rounded-xl">
+                            {[0,1,2,3,4].map(i => (
+                                <button 
+                                    key={i}
+                                    onClick={() => setActiveSlot(i)}
+                                    className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all ${activeSlot === i ? 'bg-[#ffcc00] text-black' : 'text-white/40'}`}
+                                >
+                                    #{i+1}
+                                </button>
+                            ))}
                         </div>
 
-                        <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div style={{ fontSize: '9px', color: '#ffcc00' }}>SECTION: {activeSlug || 'NONE'}</div>
-                            {activeSlug === 'ai-ml' && (
-                                <>
-                                    {renderSlider('Core Y', config.aiFX?.y, -10, 30, 0.1, (v) => setConfig({ aiFX: { ...config.aiFX, y: v } }))}
-                                    {renderSlider('Core Scale', config.aiFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ aiFX: { ...config.aiFX, scale: v } }))}
-                                    <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.aiFX?.orbit || 0} onChange={(v) => setConfig({ aiFX: { ...config.aiFX, orbit: v } })} /></div>
-                                </>
-                            )}
-                            {activeSlug === 'software-dev' && (
-                                <>
-                                    {renderSlider('Points Y', config.softwareFX?.y, -10, 30, 0.1, (v) => setConfig({ softwareFX: { ...config.softwareFX, y: v } }))}
-                                    {renderSlider('Points Scale', config.softwareFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ softwareFX: { ...config.softwareFX, scale: v } }))}
-                                    <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.softwareFX?.orbit || 0} onChange={(v) => setConfig({ softwareFX: { ...config.softwareFX, orbit: v } })} /></div>
-                                </>
-                            )}
-                            {activeSlug === 'ar-vr' && (
-                                <>
-                                    {renderSlider('Shape Y', config.arFX?.y, -10, 30, 0.1, (v) => setConfig({ arFX: { ...config.arFX, y: v } }))}
-                                    {renderSlider('Distance', config.arFX?.distance, 0, 15, 0.1, (v) => setConfig({ arFX: { ...config.arFX, distance: v } }))}
-                                    <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.arFX?.orbit || 0} onChange={(v) => setConfig({ arFX: { ...config.arFX, orbit: v } })} /></div>
-                                </>
-                            )}
-                            {activeSlug === 'gamedev' && (
-                                <>
-                                    {renderSlider('Blocks Y', config.gamedevFX?.y, -10, 30, 0.1, (v) => setConfig({ gamedevFX: { ...config.gamedevFX, y: v } }))}
-                                    {renderSlider('Scale', config.gamedevFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ gamedevFX: { ...config.gamedevFX, scale: v } }))}
-                                </>
-                            )}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/10">
+                                <span className="text-[10px] font-bold text-white/60">Active Effect</span>
+                                <input 
+                                    type="checkbox" 
+                                    checked={currentFX.active} 
+                                    onChange={e => updateSectionFX(activeSlug, activeSlot, { active: e.target.checked })}
+                                    className="w-4 h-4 accent-[#ffcc00]"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[8px] uppercase text-white/40">Effect Type</label>
+                                <select 
+                                    value={currentFX.type} 
+                                    onChange={e => updateSectionFX(activeSlug, activeSlot, { type: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-[10px] outline-none hover:border-[#ffcc00]/40"
+                                >
+                                    {FX_TYPES.map(t => <option key={t} value={t} className="bg-black">{t}</option>)}
+                                </select>
+                            </div>
+
+                            {renderSlider('Scale', currentFX.scale, 0.1, 8.0, 0.1, (v) => updateSectionFX(activeSlug, activeSlot, { scale: v }))}
+                            {renderSlider('Intensity', currentFX.intensity, 0, 2, 0.05, (v) => updateSectionFX(activeSlug, activeSlot, { intensity: v }))}
+                            
+                            <div className="grid grid-cols-3 gap-2">
+                                {['X', 'Y', 'Z'].map((axis, i) => (
+                                    <div key={axis} className="space-y-1">
+                                        <label className="text-[7px] text-white/30 uppercase">{axis} Pos</label>
+                                        <input 
+                                            type="number" 
+                                            value={currentFX.pos[i]} 
+                                            step={0.1}
+                                            onChange={e => {
+                                                const newPos = [...currentFX.pos];
+                                                newPos[i] = parseFloat(e.target.value);
+                                                updateSectionFX(activeSlug, activeSlot, { pos: newPos });
+                                            }}
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] font-mono text-[#ffcc00]"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[8px] uppercase text-white/40">Color</label>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="color" 
+                                        value={currentFX.color}
+                                        onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })}
+                                        className="h-10 w-20 bg-transparent cursor-pointer"
+                                    />
+                                    <input 
+                                        type="text" 
+                                        value={currentFX.color}
+                                        onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })}
+                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl p-2 text-[10px] font-mono text-[#ffcc00] uppercase"
+                                    />
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                )}
+
+                {activeTab === 'mat' && (
+                    <div className="space-y-6">
+                        {renderSlider('Global Y', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
+                        {renderSlider('Global Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
+                        {renderSlider('Rotation Y', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
+                        {renderSlider('Roughness', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
+                        {renderSlider('Metalness', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
                     </div>
                 )}
             </div>
 
-            <button onClick={handleSave} disabled={saving} style={{ background: saved ? '#10b981' : '#ffcc00', color: 'black', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                {saving ? <Loader2 size={16} className="animate-spin" /> : (saved ? <Check size={16} /> : <Save size={16} />)}
-                {saving ? 'SAVING...' : (saved ? 'SAVED!' : 'SAVE CONFIG')}
+            <button 
+                onClick={handleSave} 
+                disabled={saving}
+                className={`w-full py-5 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-xl ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
+            >
+                {saving ? (
+                    <Loader2 size={16} className="animate-spin" />
+                ) : saved ? (
+                    <Check size={16} />
+                ) : (
+                    <div className="flex items-center gap-3">
+                        <Save size={16} />
+                        <span>Deploy Scene</span>
+                    </div>
+                )}
             </button>
         </div>
     );
