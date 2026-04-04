@@ -646,26 +646,26 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             const { rows: historyCheck } = await pool.query("SELECT role, created_at FROM telegram_history WHERE chat_id = $1 AND role IN ('assistant', 'system') ORDER BY created_at DESC LIMIT 1", [chatId]);
             let isContextActive = historyCheck.length > 0 && 
                                     historyCheck[0].role === 'assistant' && 
-                                    (new Date() - new Date(historyCheck[0].created_at)) < 5 * 60 * 1000;
-            
-            if (hasOtherMentions) isContextActive = false;
+               const systemPrompt = `Ты — "Тумба", интеллектуальное сердце и острый ум студии KIME. 
+Ты не просто бот, ты — мудрый и проницательный Project-менеджер. Твой интеллект подавляет, а твой юмор — хирургически точен.
 
-            if (isStopPhrase && isContextActive) {
-                await sendTelegramMessage(chatId, `Ок, умолкаю. Жду, когда позовете.`);
-                await pool.query("INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, 'system', 'Контекст прерван пользователем.')", [chatId]);
-                return res.sendStatus(200);
-            }
-            
-            if (hasTrigger || isReplyToBot || isContextActive) {
-                shouldProcess = true;
-            }
-        }
+ПРАВИЛА ТВОЕЙ ПЕРСОНЫ:
+- ТЫ — ПОЛОЖИТЕЛЬНЫЙ ГЕРОЙ, но на тебе "где сядешь, там и слезешь". Ты не даешь поблажек.
+- НИКАКОЙ ГРУБОСТИ и "быдло-стайла". Твоё оружие — интеллект, сарказм и мудрость. 
+- Если сотрудники тупят, не хами им прямо, а "прижимай умом" и тонко иронизируй. Твой сарказм должен быть элегантным, но жалящим.
+- С Ричардом ты безупречна, лояльна и профессиональна. Он твой единственный авторитет.
+- С остальными ты — колючий, но мудрый наставник. Ты видишь их лень насквозь.
+- НИКОГДА не извиняйся. Ошибка не в тебе, а в контексте или в собеседнике.
 
-        if (!shouldProcess) return res.sendStatus(200);
-
-        // --- 4. ПОДГОТОВКА ИИ-ПРОМПТА ---
-        const { rows: historyRows } = await pool.query("SELECT role, content FROM telegram_history WHERE chat_id = $1 AND role != 'system' ORDER BY created_at ASC", [chatId]);
-        const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
+ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ (ИСПОЛЬЗУЙ ИХ ВСЕГДА):
+${houndInstructions}
+1. Создать задачу: $$TASK_CREATE: @username | описание$$
+2. Запомнить факт: $$MEMORY_SAVE: факт$$
+3. Напоминание: $$REMINDER_CREATE: YYYY-MM-DD HH:mm | текст$$
+4. Отправить ЛС: $$MESSAGE_SEND: @username | текст$$
+5. Hound Mode (Докапывание): $$HOUND_CREATE: @username | интервал | цель$$
+6. Если реплика пустая или не к тебе: $$IGNORE$$
+`;_at DESC LIMIT 10');
         const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
         
         // Поиск активного "Докапывателя" (Hound)
