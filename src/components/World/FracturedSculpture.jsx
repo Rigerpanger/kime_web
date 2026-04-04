@@ -315,79 +315,81 @@ const SculptureModel = () => {
                 node.receiveShadow = true;
                 const mat = node.material;
                 if (mat) {
-                    
                     const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
                     
-                    // --- EFFECT: Digital Graphics (IRIS SHADER) ---
-                    if (isServicesOrDetail && activeSlug === 'digital-graphics') {
-                        node.material.wireframe = true;
-                        node.material.opacity = 0.8;
-                        node.material.transparent = true;
-                        if (node.material.emissive) {
-                            node.material.emissive.set("#ffaa44");
-                            node.material.emissiveIntensity = 2.0;
-                        }
-                        
-                        // Apply Iris Shader effect via onBeforeCompile only once
-                        if (!node.material.userData.irisApplied) {
-                            node.material.onBeforeCompile = (shader) => {
-                                shader.uniforms.uTime = { value: 0 };
-                                shader.fragmentShader = `
-                                    uniform float uTime;
-                                    ${shader.fragmentShader}
-                                `.replace(
-                                    `#include <color_fragment>`,
-                                    `#include <color_fragment>
-                                     vec3 iris = vec3(
-                                         sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5,
-                                         sin(vUv.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
-                                         sin(vUv.x * 5.0 - uTime + 4.0) * 0.5 + 0.5
-                                     );
-                                     diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.6);
-                                    `
-                                );
-                                node.material.userData.shader = shader;
-                            };
-                            node.material.userData.irisApplied = true;
-                        }
-                    } 
-                    // --- EFFECT: AI Synthesis Glow ---
-                    else if (isServicesOrDetail && activeSlug === 'ai-ml') {
-                        node.material.wireframe = false;
-                        node.material.color.set("#ffffff");
-                        if (node.material.emissive) {
-                            node.material.emissive.set("#ffaa44");
-                            node.material.emissiveIntensity = 1.5;
-                        }
+                    // --- RESET TO BASE ---
+                    mat.wireframe = false;
+                    mat.opacity = 1.0;
+                    mat.transparent = false;
+                    mat.color.set("#ffffff");
+                    if (mat.emissive) {
+                        mat.emissive.set("#000000");
+                        mat.emissiveIntensity = 0;
                     }
-                    else {
-                        node.material.onBeforeCompile = null;
-                        node.material.wireframe = false;
-                        node.material.opacity = 1.0;
-                        node.material.transparent = false;
-                        node.material.color.set("#ffffff"); 
-                        if (node.material.emissive) {
-                            node.material.emissive.set("#000000");
-                            node.material.emissiveIntensity = 0;
+
+                    // --- APPLY EFFECTS ---
+                    if (isServicesOrDetail) {
+                        // 1. Digital Graphics (Iris Shader)
+                        if (activeSlug === 'digital-graphics') {
+                            mat.wireframe = true;
+                            mat.opacity = 0.8;
+                            mat.transparent = true;
+                            if (mat.emissive) {
+                                mat.emissive.set("#ffaa44");
+                                mat.emissiveIntensity = 2.0;
+                            }
+                            
+                            // Track for animation
+                            irisMaterials.current.push(mat);
+
+                            if (!mat.userData.irisApplied) {
+                                mat.onBeforeCompile = (shader) => {
+                                    shader.uniforms.uTime = { value: 0 };
+                                    shader.fragmentShader = `
+                                        uniform float uTime;
+                                        ${shader.fragmentShader}
+                                    `.replace(
+                                        `#include <color_fragment>`,
+                                        `#include <color_fragment>
+                                         vec3 iris = vec3(
+                                             sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5,
+                                             sin(vUv.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
+                                             sin(vUv.x * 5.0 - uTime + 4.0) * 0.5 + 0.5
+                                         );
+                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.6);
+                                        `
+                                    );
+                                    mat.userData.shader = shader;
+                                };
+                                mat.userData.irisApplied = true;
+                            }
+                        } 
+                        // 2. AI Synthesis Glow
+                        else if (activeSlug === 'ai-ml') {
+                            if (mat.emissive) {
+                                mat.emissive.set("#ffaa44");
+                                mat.emissiveIntensity = 1.5;
+                            }
                         }
                     }
 
-                    mat.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
-                    mat.roughness = config.roughness !== undefined ? config.roughness : 0.85;
-                    mat.metalness = config.metalness !== undefined ? config.metalness : 0;
+                    // --- CONFIG / SLIDER VALUES ---
+                    mat.envMapIntensity = config.envMapIntensity ?? 0.02;
+                    mat.roughness = config.roughness ?? 0.85;
+                    mat.metalness = config.metalness ?? 0;
                     mat.needsUpdate = true;
                 }
             }
         });
-    }, [clonedScene, activeSlug, view]); // REMOVED 'config' here to prevent re-cloning materials on slider moves
+    }, [clonedScene, activeSlug, view]);
 
-    // Separate effect for config/slider updates (only basic props, NO CLONING)
+    // Lightweight separate effect for slider updates (no material cloning, no re-compile)
     useEffect(() => {
         clonedScene.traverse((node) => {
             if (node.isMesh && node.material) {
-                node.material.envMapIntensity = config.envMapIntensity;
-                node.material.roughness = config.roughness;
-                node.material.metalness = config.metalness;
+                node.material.envMapIntensity = config.envMapIntensity ?? 0.02;
+                node.material.roughness = config.roughness ?? 0.85;
+                node.material.metalness = config.metalness ?? 0;
             }
         });
     }, [clonedScene, config.envMapIntensity, config.roughness, config.metalness]);
@@ -417,7 +419,6 @@ const SculptureModel = () => {
                 {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && (
                     <ArtisticIntervention slug={activeSlug} />
                 )}
-                {/* Global Flash Response */}
                 <FlashEffect />
             </Center>
         </Float>
