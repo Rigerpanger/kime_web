@@ -8,52 +8,94 @@ const CameraRig = () => {
     const view = useAppStore(s => s.view);
     const activeSlug = useAppStore(s => s.activeSlug);
     const config = useAppStore(s => s.sculptureConfig);
+    const showStudioEditor = useAppStore(s => s.showStudioEditor);
+    const isOrbiting = useAppStore(s => s.isOrbiting);
+    const activeCameraId = useAppStore(s => s.activeCameraId);
 
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
 
     // Listen to capture triggers
     const captureTrigger = useAppStore(s => s.captureTrigger);
-    const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
+    const updateCamera = useAppStore(s => s.updateCamera);
+
     useEffect(() => {
         if (captureTrigger > 0) {
-            updateSectionCamera(activeSlug, {
-                pos: camera.position.toArray(),
-                target: controls?.target.toArray() || [0,0,0],
-                zoom: camera.position.distanceTo(controls?.target || new THREE.Vector3(0,0,0))
-            });
-            console.log("Camera Captured for:", activeSlug);
+            // Calculate orbital parameters from current camera and controls
+            const target = controls?.target ? controls.target.clone() : new THREE.Vector3(0,0,0);
+            const pos = camera.position.clone();
+            
+            const radius = pos.distanceTo(target);
+            const deltaVec = new THREE.Vector3().subVectors(pos, target);
+            
+            // Polar angle (0 to PI -> 0 to 180 degrees)
+            const polar = (Math.acos(deltaVec.y / radius) * 180) / Math.PI;
+            // Azimuthal angle (-PI to PI -> -180 to 180 degrees)
+            const azimuth = (Math.atan2(deltaVec.x, deltaVec.z) * 180) / Math.PI;
+
+            if (activeCameraId) {
+                updateCamera(activeCameraId, {
+                    pivotX: target.x,
+                    pivotY: target.y,
+                    pivotZ: target.z,
+                    radius: isNaN(radius) ? 16 : radius,
+                    polar: isNaN(polar) ? 90 : polar,
+                    azimuth: isNaN(azimuth) ? 0 : azimuth
+                });
+                console.log("Captured Orbital View for Camera:", activeCameraId);
+            }
         }
     }, [captureTrigger]);
 
     useFrame((state, delta) => {
-        let currentSection = config.sections?.[activeSlug] || config.sections?.default;
-        
+        // If the user uses OrbitControls mouse interaction in editor, pause smoothing
+        if (isOrbiting && showStudioEditor) return;
+
         let targetPos = [0, 0, 16];
         let targetLook = [0, 0, 0];
         let lerpSpeed = 1.5;
 
         // Determine Section Context
-        if (view === VIEWS.HOME) {
+        if (view === VIEWS.HOME && !showStudioEditor) {
             targetPos = [0, 0, 18];
             targetLook = [0, 0, 0];
-        } else if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
-            const cam = currentSection?.camera || { pos: [0, 0, 16], target: [0, 0, 0], zoom: 16, pivotY: 0 };
-            
-            // Calculate Vector from target to pos
-            const dir = new THREE.Vector3().fromArray(cam.pos).sub(new THREE.Vector3().fromArray(cam.target)).normalize();
-            
-            // Re-calculate pos based on Zoom (Distance)
-            const zoomDist = cam.zoom !== undefined ? cam.zoom : 16;
-            const finalPos = new THREE.Vector3().fromArray(cam.target).add(dir.multiplyScalar(zoomDist));
-            
-            targetPos = finalPos.toArray();
-            targetLook = [cam.target[0], cam.pivotY !== undefined ? cam.pivotY : cam.target[1], cam.target[2]];
-            lerpSpeed = 2.0;
         } else {
-            // General Fallback
-            targetPos = [0, 0, 14];
-            targetLook = [0, 0, 0];
+            // Find Active Camera
+            let currentCamId = null;
+            if (showStudioEditor) {
+                // In Editor, explicitly show the currently "focused" camera
+                currentCamId = activeCameraId;
+            } else if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
+                // On Site Sections, find linked camera ID
+                const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+                currentCamId = currentSection?.cameraId;
+            }
+
+            const activeCam = config.cameras?.find(c => c.id === currentCamId) || config.cameras?.[0];
+
+            if (activeCam) {
+                const theta = (activeCam.azimuth || 0) * Math.PI / 180;
+                const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
+                const r = activeCam.radius || 16;
+                const px = activeCam.pivotX || 0;
+                const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 0;
+                const pz = activeCam.pivotZ || 0;
+                
+                targetLook = [px, py, pz];
+                // Spherical to Cartesian relative to Pivot
+                targetPos = [
+                    px + r * Math.sin(phi) * Math.sin(theta),
+                    py + r * Math.cos(phi),
+                    pz + r * Math.sin(phi) * Math.cos(theta)
+                ];
+                lerpSpeed = 2.0;
+
+                // When in Studio Editor and values jump, applying a faster lerp prevents lag
+                if (showStudioEditor) lerpSpeed = 6.0;
+            } else {
+                targetPos = [0, 0, 14];
+                targetLook = [0, 0, 0];
+            }
         }
 
         // Apply Smoothing

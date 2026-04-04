@@ -14,13 +14,20 @@ const StudioEditor = () => {
     const activeSlug = useAppStore(s => s.activeSlug) || 'default';
     
     // Actions
-    const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
+    const updateSectionCameraId = useAppStore(s => s.updateSectionCameraId);
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
     const updateLight = useAppStore(s => s.updateLight);
     const addLight = useAppStore(s => s.addLight);
     const removeLight = useAppStore(s => s.removeLight);
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
+
+    const updateCamera = useAppStore(s => s.updateCamera);
+    const addCamera = useAppStore(s => s.addCamera);
+    const removeCamera = useAppStore(s => s.removeCamera);
+    const activeCameraId = useAppStore(s => s.activeCameraId);
+    const setActiveCameraId = useAppStore(s => s.setActiveCameraId);
+
     const triggerCapture = useAppStore(s => s.triggerCapture);
 
     const [saving, setSaving] = useState(false);
@@ -138,25 +145,79 @@ const StudioEditor = () => {
 
                 {activeTab === 'camera' && (
                     <div className="space-y-6">
-                        <button 
-                            onClick={captureCamera}
-                            className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ffcc00]/10 hover:border-[#ffcc00]/40 transition-all flex items-center justify-center gap-3"
-                        >
-                            <Camera size={16} className="text-[#ffcc00]" /> 
-                            Capture Viewpoint
-                        </button>
-                        
-                        {renderSlider('Pivot Height', currentSection?.camera.pivotY || 0, -10, 15, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                        {renderSlider('Zoom Distance', currentSection?.camera.zoom || 16, 5, 40, 0.5, (v) => updateSectionCamera(activeSlug, { zoom: v }))}
-                        
-                        <div className="bg-white/5 p-4 rounded-2xl space-y-2 border border-white/10">
-                            <div className="text-[8px] uppercase text-white/40">Stored Position</div>
-                            <div className="font-mono text-[10px] text-[#ffcc00] flex justify-between">
-                                <span>X: {currentSection?.camera.pos[0].toFixed(2)}</span>
-                                <span>Y: {currentSection?.camera.pos[1].toFixed(2)}</span>
-                                <span>Z: {currentSection?.camera.pos[2].toFixed(2)}</span>
-                            </div>
+                        <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                            {(config.cameras || []).map((c) => (
+                                <button 
+                                    key={c.id} 
+                                    onClick={() => setActiveCameraId(c.id)}
+                                    className={`px-3 py-2 rounded-lg text-[9px] font-bold whitespace-nowrap transition-all ${activeCameraId === c.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/60'}`}
+                                >
+                                    {c.name}
+                                </button>
+                            ))}
+                            <button onClick={addCamera} className="p-2 bg-[#ffcc00]/10 text-[#ffcc00] rounded-lg hover:bg-[#ffcc00]/20"><Plus size={14} /></button>
                         </div>
+                        
+                        {(config.cameras || []).find(c => c.id === activeCameraId) && (() => {
+                            const activeCam = config.cameras.find(c => c.id === activeCameraId);
+                            const sectionCamId = currentSection?.cameraId || config.cameras[0]?.id;
+                            const isLinked = sectionCamId === activeCam.id;
+                            
+                            return (
+                                <div className="space-y-4">
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col gap-2">
+                                        <button 
+                                            onClick={() => updateSectionCameraId(activeSlug, activeCam.id)}
+                                            className={`w-full py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${isLinked ? 'bg-indigo-500/10 border-indigo-500/40 text-indigo-400' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10 hover:text-white'}`}
+                                        >
+                                            {isLinked ? '✔ Linked to Section' : 'Link to Current Section'}
+                                        </button>
+                                        
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={captureCamera}
+                                                className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#ffcc00]/10 hover:border-[#ffcc00]/40 transition-all flex items-center justify-center gap-2"
+                                                title="Grab position from Mouse Orbiting"
+                                            >
+                                                <Camera size={14} className="text-[#ffcc00]" /> 
+                                                Capture 
+                                            </button>
+                                            <button 
+                                                onClick={() => updateCamera(activeCam.id, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
+                                                className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Zap size={14} className="text-emerald-400" />
+                                                Refresh Pivot
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Orbital Sliders */}
+                                    <div className="bg-white/5 p-4 rounded-2xl space-y-4 border border-white/10">
+                                        <label className="text-[9px] text-[#ffcc00] font-black uppercase tracking-widest mb-2 block">Orbital Controls</label>
+                                        {renderSlider('Azimuth (Orbit)', activeCam.azimuth, -180, 180, 1, (v) => updateCamera(activeCam.id, { azimuth: v }), v => `${v}°`)}
+                                        {renderSlider('Elevation (Polar)', activeCam.polar, 0, 180, 1, (v) => updateCamera(activeCam.id, { polar: v }), v => `${v}°`)}
+                                        {renderSlider('Zoom (Radius)', activeCam.radius, 1, 50, 0.5, (v) => updateCamera(activeCam.id, { radius: v }))}
+                                    </div>
+
+                                    {/* Pivot Sliders */}
+                                    <div className="bg-white/5 p-4 rounded-2xl space-y-4 border border-white/10">
+                                        <label className="text-[9px] text-indigo-400 font-black uppercase tracking-widest mb-2 block">Target Focus (Pivot)</label>
+                                        {renderSlider('X Offset (Left/Right)', activeCam.pivotX, -20, 20, 0.1, (v) => updateCamera(activeCam.id, { pivotX: v }))}
+                                        {renderSlider('Y Offset (Up/Down)', activeCam.pivotY, -15, 30, 0.1, (v) => updateCamera(activeCam.id, { pivotY: v }))}
+                                        {renderSlider('Z Offset (Fwd/Bck)', activeCam.pivotZ, -20, 20, 0.1, (v) => updateCamera(activeCam.id, { pivotZ: v }))}
+                                    </div>
+
+                                    <button 
+                                        onClick={() => removeCamera(activeCam.id)}
+                                        className="w-full py-2 mt-2 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-[9px] font-black uppercase hover:bg-red-500/20 flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 size={12} /> Delete Preset
+                                    </button>
+                                </div>
+                            );
+                        })()}
                     </div>
                 )}
 

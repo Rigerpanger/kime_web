@@ -56,6 +56,9 @@ const MouseLight = () => {
 
 const Scene = () => {
     const config = useAppStore(s => s.sculptureConfig);
+    const showStudioEditor = useAppStore(s => s.showStudioEditor);
+    const setOrbiting = useAppStore(s => s.setOrbiting);
+    const triggerCapture = useAppStore(s => s.triggerCapture);
 
     return (
         <ErrorBoundary>
@@ -67,6 +70,20 @@ const Scene = () => {
                 eventPrefix="client"
             >
                 <PerspectiveCamera makeDefault position={[0, 0, 16]} fov={35} />
+                
+                {showStudioEditor && (
+                    <OrbitControls 
+                        makeDefault 
+                        enablePan={false}
+                        onStart={() => { if (setOrbiting) setOrbiting(true); }}
+                        onEnd={() => { 
+                            if (setOrbiting) setOrbiting(false); 
+                            // Auto capture on release!
+                            if (triggerCapture) triggerCapture();
+                        }}
+                    />
+                )}
+                
                 <CameraRig />
 
                 <color attach="background" args={['#020202']} />
