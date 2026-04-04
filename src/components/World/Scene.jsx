@@ -112,12 +112,14 @@ const Scene = () => {
                 {/* Interactive Flashlight */}
                 <MouseLight />
 
-                {/* Environment */}
-                {config.hdriUrl ? (
-                    <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={1} />
-                ) : (
-                    <Environment preset="studio" background={false} blur={0.1} environmentIntensity={1} />
-                )}
+                {/* Environment - Wrapped in Suspense so HDRI internet download doesn't freeze the canvas */}
+                <Suspense fallback={null}>
+                    {config.hdriUrl ? (
+                        <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={1} />
+                    ) : (
+                        <Environment preset="studio" background={false} blur={0.1} environmentIntensity={1} />
+                    )}
+                </Suspense>
 
                 {/* --- Museum Room Geometry (Temporarily Disabled by User Request) --- 
                 <MuseumRoom /> 

@@ -87,7 +87,44 @@ const initDB = async () => {
                 content TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS telegram_users (
+                id SERIAL PRIMARY KEY,
+                chat_id BIGINT UNIQUE,
+                username VARCHAR(255) UNIQUE NOT NULL,
+                role VARCHAR(20) DEFAULT 'colleague',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS telegram_tasks (
+                id SERIAL PRIMARY KEY,
+                assigner_chat_id BIGINT,
+                assignee_username VARCHAR(255) NOT NULL,
+                task_description TEXT NOT NULL,
+                status VARCHAR(50) DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS telegram_memory (
+                id SERIAL PRIMARY KEY,
+                fact_content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS telegram_reminders (
+                id SERIAL PRIMARY KEY,
+                chat_id BIGINT NOT NULL,
+                remind_at TIMESTAMP NOT NULL,
+                content TEXT NOT NULL,
+                is_sent BOOLEAN DEFAULT false,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         `);
+        
+        // Вставка стартового администратора
+        await pool.query(`
+            INSERT INTO telegram_users (username, role) 
+            VALUES ('richardsn', 'admin') 
+            ON CONFLICT (username) DO UPDATE SET role = 'admin';
+        `);
+        
         console.log('✅ Database tables checked/initialized');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
@@ -457,7 +494,21 @@ app.post(['/notify', '/api/notify'], async (req, res) => {
     res.json({ success: !!result.ok });
 });
 
-// --- Telegram Webhook (Interact in Group) ---
+// --- TELEGRAM BACKGROUND SCHEDULER ---
+setInterval(async () => {
+    try {
+        // Проверка напоминаний
+        const { rows: reminders } = await pool.query('SELECT * FROM telegram_reminders WHERE is_sent = false AND remind_at <= NOW()');
+        for (const r of reminders) {
+            await sendTelegramMessage(r.chat_id, `🔔 *Напоминание:*\n${r.content}`);
+            await pool.query('UPDATE telegram_reminders SET is_sent = true WHERE id = $1', [r.id]);
+        }
+    } catch (e) {
+        console.error('Cron error:', e.message);
+    }
+}, 30000); // Check every 30 seconds
+
+// --- Telegram Webhook (Interact in Group & DMs) ---
 app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
     try {
         const update = req.body;
@@ -465,43 +516,155 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
 
         const chatId = update.message.chat.id;
         const text = update.message.text;
-        const msgId = update.message.message_id;
-        const user = update.message.from.username || update.message.from.first_name;
+        const MessageId = update.message.message_id;
+        const user = update.message.from.username;
+        if (!user) return res.sendStatus(200); // Требуем, чтобы у сотрудника был @username
 
-        // 1. Save to history
+        const isPrivate = update.message.chat.type === 'private';
+        
+        // --- 1. ПРОВЕРКА БЕЛОГО СПИСКА ---
+        const userCheck = await pool.query('SELECT * FROM telegram_users WHERE username = $1', [user]);
+        if (userCheck.rows.length === 0) {
+            if (isPrivate) await sendTelegramMessage(chatId, `❌ У вас нет доступа к корпоративному ассистенту KIME.`);
+            return res.sendStatus(200);
+        }
+        const dbUser = userCheck.rows[0];
+
+        // Запоминаем chat_id для будущих ЛС, если его еще нет
+        if (isPrivate && !dbUser.chat_id) {
+            await pool.query('UPDATE telegram_users SET chat_id = $1 WHERE username = $2', [chatId, user]);
+        }
+
+        // --- 2. АДМИН-КОМАНДЫ (минуя AI) ---
+        const lowerText = text.toLowerCase();
+        if (lowerText.startsWith('добавь в общение @')) {
+            if (dbUser.role === 'admin') {
+                const newUser = text.split('@')[1].trim();
+                await pool.query('INSERT INTO telegram_users (username) VALUES ($1) ON CONFLICT DO NOTHING', [newUser]);
+                await sendTelegramMessage(chatId, `✅ Пользователь @${newUser} добавлен в белый список.`);
+            } else {
+                await sendTelegramMessage(chatId, `❌ У вас нет прав для добавления сотрудников.`);
+            }
+            return res.sendStatus(200);
+        }
         await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
             [chatId, 'user', `${user}: ${text}`]);
         
-        // Keep only last 10
-        await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 10)', [chatId]);
-
-        // 2. Check for trigger (@kimeprodbot or Тумба)
-        const lowerText = text.toLowerCase();
-        if (text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумба') || lowerText.includes('ты что думаешь')) {
-            // Get history for context
-            const { rows } = await pool.query('SELECT role, content FROM telegram_history WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
+        // --- 3. ПОНИМАНИЕ КОНТЕКСТА ---
+        let shouldProcess = isPrivate; // В ЛС общаемся всегда
+        
+        if (!isPrivate) {
+            const isReplyToBot = update.message.reply_to_message && update.message.reply_to_message.from.username === TG_BOT_USERNAME;
+            const hasTrigger = text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумб') || lowerText.includes('ты что думаешь');
             
-            const aiMessages = [
-                { role: 'system', content: 'Ты — Creative Office Manager KIME. В команде тебя называют "Тумба". Ты находишься в рабочем чате. Твоя задача: помогать с идеями, анализировать обсуждения и отвечать на вопросы профессионально, но креативно. Если тебя зовут по имени "Тумба" или спрашивают "что думаешь", проанализируй последние сообщения в чате и дай свой фидбек.' },
-                ...rows.map(r => ({ role: 'user', content: r.content }))
-            ];
+            // Если последнее сообщение от ассистента было менее 3 минут назад - держим контекст
+            const { rows: historyCheck } = await pool.query('SELECT role, created_at FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC LIMIT 1', [chatId]);
+            const isContextActive = historyCheck.length > 0 && 
+                                    historyCheck[0].role === 'assistant' && 
+                                    (new Date() - new Date(historyCheck[0].created_at)) < 3 * 60 * 1000;
+            
+            if (hasTrigger || isReplyToBot || isContextActive) {
+                shouldProcess = true;
+            }
+        }
 
-            const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
+        // Сохраняем в историю
+        await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
+            [chatId, 'user', `${user}: ${text}`]);
+        // Храним последние 15 сообщений
+        await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 15)', [chatId]);
+
+        if (!shouldProcess) return res.sendStatus(200);
+
+        // --- 4. ПОДГОТОВКА ИИ-ПРОМПТА ---
+        const { rows: historyRows } = await pool.query('SELECT role, content FROM telegram_history WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
+        const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
+        const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
+
+        let memoryString = memoryRows.map(r => `- ${r.fact_content}`).join('\n');
+        let tasksString = tasksRows.map(r => `[ID:${r.id}] @${r.assignee_username}: ${r.task_description} (Статус: ${r.status})`).join('\n');
+
+        const systemPrompt = `Ты — Корпоративный Telegram-ассистент KIME. Твое имя "Тумба". Ты умный Project Manager.
+Текущее время на сервере: ${new Date().toISOString()}
+
+ТВОИ ДОЛГОВРЕМЕННЫЕ ЭТАЛОНЫ И ПРАВИЛА (ПАМЯТЬ):
+${memoryString || '(Пусто)'}
+
+АКТИВНЫЕ ЗАДАЧИ СОТРУДНИКОВ:
+${tasksString || '(Задач нет)'}
+
+ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ (ОБЯЗАТЕЛЬНО ИСПОЛЬЗУЙ ИХ, ЕСЛИ ПРОСЯТ):
+1. Если нужно создать задачу сотруднику, строго выведи на новой строке команду:
+$$TASK_CREATE: @username | описание задачи$$
+
+2. Если просят запомнить что-то на будущее, выведи на новой строке:
+$$MEMORY_SAVE: факт, который нужно выучить$$
+
+3. Если нужно поставить напоминание, выведи строго в формате (YYYY-MM-DD HH:mm):
+$$REMINDER_CREATE: 2026-04-05 15:00 | текст напоминания$$
+
+Отвечай профессионально, дружелюбно, но по делу. Если системные команды не нужны - пиши обычный текст.`;
+
+        const aiMessages = [
+            { role: 'system', content: systemPrompt },
+            ...historyRows.map(r => ({ role: r.role, content: r.content }))
+        ];
+
+        const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
             const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
 
-            const aiRes = await fetch('https://api.openai-proxy.com/v1/chat/completions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-                body: JSON.stringify({ model: 'gpt-4o-mini', messages: aiMessages })
-            });
+        // --- 5. ВЫЗОВ ФЛАГМАНСКОЙ МОДЕЛИ gpt-4o ---
+        const aiRes = await fetch('https://api.openai-proxy.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+            body: JSON.stringify({ model: 'gpt-4o', messages: aiMessages })
+        });
 
-            if (aiRes.ok) {
-                const data = await aiRes.json();
-                const reply = data.choices[0].message.content;
+        if (aiRes.ok) {
+            const data = await aiRes.json();
+            let reply = data.choices[0].message.content;
+
+            // --- 6. ОБРАБОТКА СИСТЕМНЫХ КОМАНД (ПАРСИНГ) ---
+            const taskMatch = reply.match(/\$\$TASK_CREATE:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
+            if (taskMatch) {
+                const targetUser = taskMatch[1].replace('@','').trim();
+                const desc = taskMatch[2].trim();
+                await pool.query('INSERT INTO telegram_tasks (assigner_chat_id, assignee_username, task_description) VALUES ($1, $2, $3)', [chatId, targetUser, desc]);
+                
+                // Пробуем оповестить в ЛС
+                const { rows: tUser } = await pool.query('SELECT chat_id FROM telegram_users WHERE username = $1', [targetUser]);
+                if (tUser.length > 0 && tUser[0].chat_id) {
+                    await sendTelegramMessage(tUser[0].chat_id, `⚡️ *Новая задача:*\n${desc}`);
+                }
+                reply = reply.replace(taskMatch[0], `\n✅ Задача для @${targetUser} добавлена в систему!`);
+            }
+
+            const memoryMatch = reply.match(/\$\$MEMORY_SAVE:\s*([^$]+)\$\$/);
+            if (memoryMatch) {
+                await pool.query('INSERT INTO telegram_memory (fact_content) VALUES ($1)', [memoryMatch[1].trim()]);
+                reply = reply.replace(memoryMatch[0], `\n✅ Запомнил это как эталон.`);
+            }
+
+            const reminderMatch = reply.match(/\$\$REMINDER_CREATE:\s*([\d-]+\s[\d:]+)\s*\|\s*([^$]+)\$\$/);
+            if (reminderMatch) {
+                const datetime = reminderMatch[1].trim();
+                const desc = reminderMatch[2].trim();
+                
+                // Перевод локального времени во время БД, если нужно. Оставляем пока как передал ИИ.
+                await pool.query('INSERT INTO telegram_reminders (chat_id, remind_at, content) VALUES ($1, $2, $3)', [chatId, datetime, desc]);
+                reply = reply.replace(reminderMatch[0], `\n⏰ Установлено напоминание на ${datetime}.`);
+            }
+
+            // Очистка возможных хвостов парсинга
+            reply = reply.replace(/\$\$.+\$\$/g, '').trim();
+
+            if (reply) {
                 await sendTelegramMessage(chatId, reply);
-                // Save AI reply to history
                 await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', [chatId, 'assistant', reply]);
             }
+        } else {
+            const errBody = await aiRes.text();
+            console.error('AI Error Body:', errBody);
         }
         res.sendStatus(200);
     } catch (err) {
