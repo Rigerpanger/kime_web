@@ -85,15 +85,16 @@ const GoldenDust = () => {
 
 const FlashEffect = () => {
     const light = useRef();
-    const activeSlug = useAppStore(s => s.activeSlug);
+    const { activeSlug, sculptureConfig: config } = useAppStore();
+    const flashConfig = config.flashFX || { y: 4.8, distance: 1.2, intensity: 40 };
     const [intensity, setIntensity] = useState(0);
 
     useEffect(() => {
         if (!activeSlug) return;
-        setIntensity(40);
+        setIntensity(flashConfig.intensity);
         const t = setTimeout(() => setIntensity(0), 800);
         return () => clearTimeout(t);
-    }, [activeSlug]);
+    }, [activeSlug, flashConfig.intensity]);
 
     useFrame((state, delta) => {
         if (!light.current) return;
@@ -103,7 +104,7 @@ const FlashEffect = () => {
     return (
         <pointLight
             ref={light}
-            position={[0, 4.8, 1.2]} // At head level
+            position={[0, flashConfig.y, flashConfig.distance]} 
             color="#ffffff"
             distance={20}
             decay={1.5}
@@ -118,6 +119,8 @@ const FlashEffect = () => {
 const NeuralCore = () => {
     const coreRef = useRef();
     const beamsRef = useRef();
+    const { sculptureConfig: config } = useAppStore();
+    const fx = config.aiFX || { y: 4.8, scale: 1.0, orbit: 0 };
     const count = 15;
     
     const [beams, phases] = useMemo(() => {
@@ -134,23 +137,25 @@ const NeuralCore = () => {
         const t = state.clock.elapsedTime;
         coreRef.current.rotation.y += 0.02;
         coreRef.current.rotation.z += 0.01;
-        coreRef.current.scale.setScalar(1 + Math.sin(t * 3) * 0.1);
+        coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * fx.scale);
 
         if (beamsRef.current) {
             const attr = beamsRef.current.geometry.attributes.position;
+            const orbitRad = (fx.orbit * Math.PI) / 180;
+            const center = new THREE.Vector3(Math.sin(orbitRad) * 0.5, fx.y, Math.cos(orbitRad) * 0.5);
+
             for (let i = 0; i < count; i++) {
                 const angle = phases[i] + t * 0.5;
-                const r = 2.5 + Math.sin(t + phases[i]) * 1.5;
-                attr.setXYZ(i * 2, 0, 4.8, 0); // Core center at head level
-                attr.setXYZ(i * 2 + 1, Math.cos(angle) * r, 4.8 + Math.sin(angle * 2) * r, Math.sin(angle) * r);
+                const r = (2.5 + Math.sin(t + phases[i]) * 1.5) * fx.scale;
+                attr.setXYZ(i * 2, center.x, center.y, center.z); 
+                attr.setXYZ(i * 2 + 1, center.x + Math.cos(angle) * r, center.y + Math.sin(angle * 2) * r, center.z + Math.sin(angle) * r);
             }
             attr.needsUpdate = true;
         }
     });
 
     return (
-        <group position={[0, 3.3, 0]}> {/* Adjusted from 1.5 to 4.8 total */}
-            {/* Geometric Core */}
+        <group position={[0, fx.y - 1.5, 0]}> 
             <mesh ref={coreRef} position={[0, 1.5, 0]}>
                 <icosahedronGeometry args={[0.5, 0]} />
                 <meshBasicMaterial color="#ffcc00" wireframe />
@@ -159,7 +164,6 @@ const NeuralCore = () => {
                 <sphereGeometry args={[0.2, 16, 16]} />
                 <meshBasicMaterial color="#ffffff" />
             </mesh>
-            {/* Neural Beams connecting facets */}
             <lineSegments ref={beamsRef}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" count={count * 2} array={beams} itemSize={3} />
@@ -172,21 +176,29 @@ const NeuralCore = () => {
 
 const ShapeShifter = () => {
     const meshRef = useRef();
-    const [shape, setShape] = useState(0); // 0: cube, 1: sphere, 2: pyramid
+    const { sculptureConfig: config } = useAppStore();
+    const fx = config.arFX || { y: 4.8, scale: 1.0, distance: 3.5, orbit: 0 };
+    const [shape, setShape] = useState(0); 
     
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (meshRef.current) {
+            // Orbital Positioning
+            const azimuth = (fx.orbit * Math.PI) / 180;
+            meshRef.current.position.set(
+                Math.sin(azimuth) * fx.distance,
+                fx.y,
+                Math.cos(azimuth) * fx.distance
+            );
+
             meshRef.current.rotation.y = t * 0.5;
             meshRef.current.rotation.z = t * 0.2;
+            meshRef.current.scale.setScalar(fx.scale);
             
-            // Material Flip every 1.5s
             const cycle = (t % 3) / 3;
-            const isWireframe = cycle > 0.5;
-            meshRef.current.material.wireframe = isWireframe;
-            meshRef.current.material.opacity = 0.5 + Math.sin(t * 2) * 0.3;
+            meshRef.current.material.wireframe = cycle > 0.5;
+            meshRef.current.material.opacity = (0.5 + Math.sin(t * 2) * 0.3) * fx.scale;
             
-            // Switch shape every 3s
             if (Math.floor(t / 3) % 4 !== shape) {
                 setShape(Math.floor(t / 3) % 3);
             }
@@ -194,7 +206,7 @@ const ShapeShifter = () => {
     });
 
     return (
-        <group position={[0, 1.5, 0]}>
+        <group>
             <mesh ref={meshRef}>
                 {shape === 0 ? <boxGeometry args={[2, 2, 2]} /> : 
                  shape === 1 ? <sphereGeometry args={[1.5, 32, 32]} /> : 
@@ -206,14 +218,17 @@ const ShapeShifter = () => {
                     blending={THREE.AdditiveBlending} 
                 />
             </mesh>
-            <pointLight distance={10} intensity={2} color="#ffaa44" />
+            <pointLight position={[0, fx.y, 0]} distance={15} intensity={3} color="#ffaa44" />
         </group>
     );
 };
 
 const TetrisReveal = ({ onRevealed }) => {
+    const { sculptureConfig: config } = useAppStore();
+    const fx = config.gamedevFX || { y: 0, scale: 1.0 };
     const [blocks, setBlocks] = useState([]);
     const sculptureRevealed = useRef(false);
+    const landedCount = useRef(0);
 
     useEffect(() => {
         const spawnBlock = () => {
@@ -222,7 +237,8 @@ const TetrisReveal = ({ onRevealed }) => {
                 return [...prev, {
                     id: Math.random(),
                     pos: new THREE.Vector3((Math.random() - 0.5) * 4, 15, (Math.random() - 0.5) * 4),
-                    speed: 0.08 + Math.random() * 0.05 // Slower speed
+                    speed: 0.12, // Faster but stable
+                    landed: false
                 }];
             });
         };
@@ -231,31 +247,37 @@ const TetrisReveal = ({ onRevealed }) => {
     }, []);
 
     useFrame((state, delta) => {
-        let lowestY = 15;
+        let currentLanded = 0;
         blocks.forEach(b => {
-            if (b.pos.y > -5) {
+            if (!b.landed) {
                 b.pos.y -= b.speed;
-                lowestY = Math.min(lowestY, b.pos.y);
+                if (b.pos.y <= -2) { // "Land" on the model area
+                    b.landed = true;
+                    landedCount.current += 1;
+                }
+            } else {
+                currentLanded++;
+                b.pos.y = -2; // Stay at landing height
             }
         });
         
-        // Reveal model based on block progress
-        if (!sculptureRevealed.current) {
-            const h = Math.max(-5, 12 - lowestY * 1.5);
-            onRevealed(h);
-            if (h >= 12) {
-                sculptureRevealed.current = true;
-                // Clear blocks after a delay
-                setTimeout(() => setBlocks([]), 2000);
-            }
+        // SYNC REVEAL: Quantized steps
+        // If 6 blocks total, each block adds 1/6th of total height (from -5 to 12 = 17 units)
+        const step = 17 / 6;
+        const h = -5 + (currentLanded * step);
+        onRevealed(h);
+
+        if (currentLanded >= 6 && !sculptureRevealed.current) {
+            sculptureRevealed.current = true;
+            setTimeout(() => setBlocks([]), 3000);
         }
     });
 
     return (
-        <group>
+        <group scale={fx.scale} position={[0, fx.y, 0]}>
             {blocks.map(b => (
                 <mesh key={b.id} position={b.pos}>
-                    <boxGeometry args={[1.5, 1.5, 1.5]} />
+                    <boxGeometry args={[2.5, 2.5, 2.5]} />
                     <meshBasicMaterial color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
                 </mesh>
             ))}
@@ -319,48 +341,42 @@ const NeuralHalo = () => {
 
 const SoftwareSilhouette = ({ targetVertices }) => {
     const pointsRef = useRef();
-    const count = 2000;
-    const state = useRef({ phase: 'fall', timer: 0 }); // fall -> form -> shift
+    const { sculptureConfig: config } = useAppStore();
+    const fx = config.softwareFX || { y: 1.5, scale: 1.0, orbit: 0 };
+    const count = 3000;
+    const state = useRef({ phase: 'fall', timer: 0 }); 
 
-    const [positions, data, colors] = useMemo(() => {
+    const [positions] = useMemo(() => {
         const pos = new Float32Array(count * 3);
-        const d = new Float32Array(count * 3); // random sky start
-        const cols = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            pos[i * 3] = (Math.random() - 0.5) * 15;
             pos[i * 3 + 1] = 20 + Math.random() * 10;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 15;
-            cols[i * 3] = 1; cols[i * 3 + 1] = 0.6; cols[i * 3 + 2] = 0.2;
         }
-        return [pos, d, cols];
+        return [pos];
     }, []);
 
     useFrame((stateObj, delta) => {
         if (!pointsRef.current || !targetVertices.length) return;
-        const t = stateObj.clock.elapsedTime;
         const array = pointsRef.current.geometry.attributes.position.array;
-        
         state.current.timer += delta;
+
+        const azimuth = (fx.orbit * Math.PI) / 180;
+        const offset = new THREE.Vector3(Math.sin(azimuth) * 5, fx.y, Math.cos(azimuth) * 5);
 
         for (let i = 0; i < count; i++) {
             const idx = i * 3;
-            // Target is a vertex from the actual model
             const vIdx = i % targetVertices.length;
-            const targetPos = targetVertices[vIdx];
+            const targetPos = targetVertices[vIdx].clone().multiplyScalar(fx.scale);
 
             if (state.current.timer < 5) {
-                // FALL and FORM
-                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x, 0.05);
-                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y, 0.05);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z, 0.05);
+                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + offset.x, 0.05);
+                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y + offset.y, 0.05);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z + offset.z, 0.05);
             } else if (state.current.timer < 10) {
-                // SHIFT SIDEWAYS
-                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + 8, 0.02);
-                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y, 0.02);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z, 0.02);
+                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + offset.x + 8, 0.02);
+                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y + offset.y, 0.02);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z + offset.z, 0.02);
                 pointsRef.current.material.opacity = Math.max(0, 1 - (state.current.timer - 8) / 2);
             } else {
-                // RESET
                 state.current.timer = 0;
                 pointsRef.current.material.opacity = 0.8;
                 for (let j = 0; j < count; j++) {
@@ -376,7 +392,7 @@ const SoftwareSilhouette = ({ targetVertices }) => {
             <bufferGeometry>
                 <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
             </bufferGeometry>
-            <pointsMaterial size={0.25} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+            <pointsMaterial size={0.25 * fx.scale} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
@@ -486,19 +502,22 @@ const SculptureModel = () => {
                                     shader.fragmentShader = `
                                         uniform float uTime;
                                         uniform float uIrisMix;
+                                        varying vec3 vNormal;
+                                        varying vec3 vViewPosition;
                                         ${shader.fragmentShader}
                                     `.replace(
                                         `#include <color_fragment>`,
                                         `#include <color_fragment>
-                                         vec2 uv = (vUv.x == 0.0 && vUv.y == 0.0) ? vNormal.xy : vUv;
-                                         float wave = sin(uv.x * 20.0 + uTime * 2.0) * cos(uv.y * 20.0 + uTime);
+                                         // More robust iridescence math using world normal if UV is missing
+                                         vec3 irisUV = vNormal;
+                                         float fresnel = 1.0 - max(0.0, dot(vNormal, normalize(vViewPosition)));
                                          vec3 iris = vec3(
-                                             sin(uv.x * 10.0 + uTime) * 0.5 + 0.5,
-                                             sin(uv.y * 10.0 + uTime + 2.0) * 0.5 + 0.5,
-                                             sin(uv.x * 10.0 - uTime + 4.0) * 0.5 + 0.5
+                                             sin(irisUV.x * 5.0 + uTime) * 0.5 + 0.5,
+                                             sin(irisUV.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
+                                             sin(irisUV.z * 5.0 - uTime + 4.0) * 0.5 + 0.5
                                          );
-                                         iris = smoothstep(0.1, 0.9, iris);
-                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, (0.8 + wave * 0.2) * uIrisMix);
+                                         iris = mix(vec3(1.0), iris, smoothstep(0.0, 1.0, fresnel));
+                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, uIrisMix * 0.8);
                                         `
                                     );
                                     mat.userData.shader = shader;

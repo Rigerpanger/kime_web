@@ -31,7 +31,12 @@ const useAppStore = create(
         lights: [
           { id: '1', name: 'Main Spot', intensity: 600, color: '#ffffff', y: 30, radius: 0, azimuth: 0 },
           { id: '2', name: 'Back Rim', intensity: 400, color: '#ffffff', y: 8, radius: 6, azimuth: 180 }
-        ]
+        ],
+        aiFX: { y: 4.8, scale: 1.0, orbit: 0 },
+        softwareFX: { y: 1.5, scale: 1.0, orbit: 0 },
+        arFX: { y: 4.8, scale: 1.0, distance: 3.5, orbit: 0 },
+        gamedevFX: { y: 0, scale: 1.0 },
+        flashFX: { y: 4.8, distance: 1.2, intensity: 40 }
       },
       activeLightId: '1',
       showStudioEditor: false,
