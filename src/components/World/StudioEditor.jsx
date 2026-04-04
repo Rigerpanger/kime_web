@@ -2,21 +2,20 @@ import React, { useState } from 'react';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Lightbulb, Plus, Trash2, Upload } from 'lucide-react';
-import * as THREE from 'three';
 
 const AzimuthDial = ({ value, onChange }) => {
     const handleDrag = (e, rect) => {
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
         const angleRad = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-        let angleDeg = (angleRad * 180) / Math.PI + 90; // Adjust so 0 is North
+        let angleDeg = (angleRad * 180) / Math.PI + 90;
         if (angleDeg < 0) angleDeg += 360;
         onChange(Math.round(angleDeg));
     };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', letterSpacing: '1px', textTransform: 'uppercase' }}>Orbit (Azimuth)</span>
+            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', letterSpacing: '1px', textTransform: 'uppercase' }}>Orbit</span>
             <div 
                 onMouseDown={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -29,26 +28,10 @@ const AzimuthDial = ({ value, onChange }) => {
                     window.addEventListener('mousemove', moveHandler);
                     window.addEventListener('mouseup', upHandler);
                 }}
-                style={{
-                    width: '80px', height: '80px', borderRadius: '50%',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    position: 'relative', cursor: 'grab',
-                    background: 'radial-gradient(circle, rgba(255,204,0,0.05) 0%, rgba(0,0,0,0.5) 100%)',
-                    boxShadow: 'inset 0 0 10px rgba(0,0,0,0.5)'
-                }}
+                style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)', position: 'relative', cursor: 'grab', background: 'radial-gradient(circle, rgba(255,204,0,0.05) 0%, rgba(0,0,0,0.5) 100%)' }}
             >
-                <div style={{ position: 'absolute', top: '50%', left: '50%', width: '4px', height: '4px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%', transform: 'translate(-50%, -50%)' }} />
-                <div style={{
-                    position: 'absolute', top: '50%', left: '50%',
-                    width: '1px', height: '38px', background: 'rgba(255, 204, 0, 0.5)',
-                    transformOrigin: 'top center',
-                    transform: `rotate(${value - 180}deg)`,
-                }}>
-                    <div style={{ 
-                        width: '8px', height: '8px', borderRadius: '50%', 
-                        background: '#ffcc00', position: 'absolute', bottom: '-4px', left: '-3.5px',
-                        boxShadow: '0 0 10px #ffcc00'
-                    }}/>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', width: '1px', height: '38px', background: 'rgba(255, 204, 0, 0.5)', transformOrigin: 'top center', transform: `rotate(${value - 180}deg)` }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ffcc00', position: 'absolute', bottom: '-4px', left: '-3.5px', boxShadow: '0 0 10px #ffcc00' }}/>
                 </div>
             </div>
             <span style={{ fontSize: '10px', color: '#ffcc00', fontWeight: 'bold' }}>{value}°</span>
@@ -59,7 +42,6 @@ const AzimuthDial = ({ value, onChange }) => {
 const StudioEditor = () => {
     const { session } = useAuthStore();
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    
     const config = useAppStore(s => s.sculptureConfig);
     const setConfig = useAppStore(s => s.setSculptureConfig);
     const activeLightId = useAppStore(s => s.activeLightId);
@@ -71,238 +53,111 @@ const StudioEditor = () => {
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-    const [uploadingHdri, setUploadingHdri] = useState(false);
-    const [activeTab, setActiveTab] = useState('light'); 
-
-    const handleSlider = (key, val) => {
-        setConfig({ [key]: parseFloat(val) });
-        setSaved(false);
-    };
-
-    const handleHdriUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        setUploadingHdri(true);
-        try {
-            if (!session?.token) throw new Error("Только администратор может загружать файлы");
-            const data = new FormData();
-            data.append('image', file);
-            const response = await fetch(`${apiUrl}/upload`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${session.token}` },
-                body: data
-            });
-            const resData = await response.json();
-            if (!response.ok) throw new Error(resData.error || 'Upload failed');
-            setConfig({ hdriUrl: apiUrl + resData.url });
-            setSaved(false);
-            alert('HDRI Uploaded successfully!');
-        } catch (error) {
-            console.error('HDRI upload error:', error);
-            alert(`HDRI Upload Failed: ${error.message}`);
-        } finally {
-            setUploadingHdri(false);
-            e.target.value = '';
-        }
-    };
+    const [activeTab, setActiveTab] = useState('fx');
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            if (!session?.token) throw new Error("Вы не авторизованы как администратор.");
+            if (!session?.token) throw new Error("Вы не авторизованы.");
             const response = await fetch(`${apiUrl}/content/sculpture_config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
                 body: JSON.stringify(config)
             });
-            if (!response.ok) throw new Error('Failed to save');
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
-        } catch (error) {
-            console.error('Error saving sculpture config:', error);
-            alert('Error saving: ' + error.message);
-        } finally {
-            setSaving(false);
-        }
+            if (response.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
+        } catch (error) { alert('Error: ' + error.message); }
+        finally { setSaving(false); }
     };
 
     const renderTabButton = (id, icon, label) => (
-        <button
-            onClick={() => setActiveTab(id)}
-            style={{
-                flex: 1, padding: '10px 4px',
-                background: activeTab === id ? 'rgba(255,204,0,0.1)' : 'transparent',
-                border: `1px solid ${activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.1)'}`,
-                color: activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.5)',
-                borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                gap: '6px', cursor: 'pointer', transition: 'all 0.2s',
-                fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px'
-            }}
-        >
-            {icon}
-            {label}
-        </button>
+        <button onClick={() => setActiveTab(id)} style={{ flex: 1, padding: '10px', background: activeTab === id ? 'rgba(255,204,0,0.1)' : 'transparent', border: `1px solid ${activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.1)'}`, color: activeTab === id ? '#ffcc00' : 'rgba(255,255,255,0.5)', borderRadius: '8px', cursor: 'pointer', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase' }}>{icon}{label}</button>
     );
 
-    const renderGlobalSlider = (label, key, min, max, step, format = (v) => v.toFixed(2), customAction = null) => {
-        const val = customAction ? 0 : (config[key] ?? 0); // customAction logic handles its own value display in format
-        return (
-            <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '9px', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.5 }}>
-                    <span>{label}</span>
-                    <span style={{ color: '#ffcc00', fontWeight: 'bold' }}>{format(val)}</span>
-                </div>
-                <input type="range" min={min} max={max} step={step} value={customAction ? (parseFloat(format(0)) || 0) : val} 
-                    onChange={e => customAction ? customAction(e.target.value) : handleSlider(key, e.target.value)} 
-                    style={{ width: '100%', cursor: 'pointer', accentColor: '#ffcc00' }}
-                />
+    const renderSlider = (label, value, min, max, step, onChange, format = (v) => v.toFixed(1)) => (
+        <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '9px', textTransform: 'uppercase', opacity: 0.5 }}>
+                <span>{label}</span><span style={{ color: '#ffcc00' }}>{format(value ?? 0)}</span>
             </div>
-        );
-    };
+            <input type="range" min={min} max={max} step={step} value={value ?? 0} onChange={e => onChange(parseFloat(e.target.value))} style={{ width: '100%', accentColor: '#ffcc00' }} />
+        </div>
+    );
 
     const activeLight = config.lights?.find(l => l.id === activeLightId);
 
     return (
-        <div style={{
-            position: 'fixed', bottom: '40px', right: '40px', 
-            background: 'rgba(5, 5, 5, 0.98)', padding: '24px', 
-            borderRadius: '24px', border: '1px solid rgba(255, 204, 0, 0.2)',
-            color: 'white', zIndex: 999999, width: '340px',
-            fontFamily: 'Inter, system-ui, sans-serif', fontSize: '13px',
-            boxShadow: '0 20px 80px rgba(0,0,0,1)',
-            pointerEvents: 'auto', backdropFilter: 'blur(20px)',
-            userSelect: 'none', display: 'flex', flexDirection: 'column', gap: '24px'
-        }}>
+        <div style={{ position: 'fixed', bottom: '40px', right: '40px', background: 'rgba(5, 5, 5, 0.95)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255, 204, 0, 0.2)', color: 'white', zIndex: 999999, width: '340px', boxShadow: '0 20px 80px rgba(0,0,0,0.8)', backdropFilter: 'blur(20px)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h4 style={{ margin: 0, color: '#ffcc00', letterSpacing: '4px', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase' }}>
-                    Sculpture Studio
-                </h4>
-                <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ffcc00', boxShadow: '0 0 15px #ffcc00' }} />
+                <h4 style={{ margin: 0, color: '#ffcc00', letterSpacing: '4px', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase' }}>STUDIO</h4>
             </div>
 
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {renderTabButton('transform', <Box size={14}/>, 'Trans')}
+            <div style={{ display: 'flex', gap: '8px' }}>
+                {renderTabButton('transform', <Box size={14}/>, 'Pos')}
                 {renderTabButton('material', <Palette size={14}/>, 'Mat')}
-                {renderTabButton('light', <Lightbulb size={14}/>, 'Light')}
                 {renderTabButton('fx', <Box size={14}/>, 'FX')}
             </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '260px' }}>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', minHeight: '300px' }}>
                 {activeTab === 'transform' && (
                     <>
-                        {renderGlobalSlider('Position Y', 'y', -18, 25, 0.1)}
-                        {renderGlobalSlider('Scale', 'scale', 1, 250, 1.0, v => v.toFixed(1))}
-                        {renderGlobalSlider('Rotation Y', 'rotationY', 0, 360, 1, v => `${v.toFixed(0)}°`)}
+                        {renderSlider('Body Height (Y)', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
+                        {renderSlider('Body Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
+                        {renderSlider('Body Rotation', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
                     </>
                 )}
 
                 {activeTab === 'material' && (
                     <>
-                        {renderGlobalSlider('Roughness', 'roughness', 0, 1, 0.01)}
-                        {renderGlobalSlider('Metalness', 'metalness', 0, 1, 0.01)}
-                        {renderGlobalSlider('Env Reflection', 'envMapIntensity', 0, 2, 0.01)}
-                        {renderGlobalSlider('Glow/Intensity', 'emissiveIntensity', 0, 10, 0.1)}
-                    </>
-                )}
-
-                {activeTab === 'light' && (
-                    <>
-                        {renderGlobalSlider('Bloom Intensity', 'bloomIntensity', 0, 5, 0.05)}
-                        {renderGlobalSlider('Bloom Radius', 'bloomRadius', 0, 3, 0.05)}
-                        {renderGlobalSlider('Mouse Flashlight', 'mouseLightIntensity', 0, 1000, 10, v => v.toFixed(0))}
-                        <div style={{ border: '1px solid rgba(255,204,0,0.2)', padding: '16px', borderRadius: '12px', background: 'rgba(255,204,0,0.02)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <select value={activeLightId || ''} onChange={(e) => setActiveLightId(e.target.value)} style={{ background: 'rgba(0,0,0,0.5)', color: 'white', padding: '6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.1)', fontSize: '11px', outline: 'none', width: '60%' }}>
-                                    {config.lights?.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                                </select>
-                                <button onClick={() => addLight()} style={{ background: 'rgba(255,255,255,0.1)', color: 'white', border: 'none', display:'flex', alignItems:'center', justifyContent:'center', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}><Plus size={14} /></button>
-                            </div>
-                            {activeLight ? (
-                                <>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <input value={activeLight.name} onChange={(e) => updateLight(activeLight.id, { name: e.target.value })} style={{ background: 'transparent', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.2)', color: '#ffcc00', outline: 'none', fontSize: '11px', paddingBottom: '4px' }} />
-                                        <button onClick={() => removeLight(activeLight.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '12px' }}>
-                                        <AzimuthDial value={activeLight.azimuth} onChange={(val) => { updateLight(activeLight.id, { azimuth: val }); setSaved(false); }} />
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-                                            <div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '4px' }}><span>Distance</span><span>{activeLight.radius}</span></div>
-                                                <input type="range" min="0" max="60" step="0.5" value={activeLight.radius} onChange={e => { updateLight(activeLight.id, { radius: parseFloat(e.target.value) }); setSaved(false); }} style={{ width: '100%', accentColor: 'white' }} />
-                                            </div>
-                                            <div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '4px' }}><span>Height</span><span>{activeLight.y}</span></div>
-                                                <input type="range" min="-10" max="60" step="0.5" value={activeLight.y} onChange={e => { updateLight(activeLight.id, { y: parseFloat(e.target.value) }); setSaved(false); }} style={{ width: '100%', accentColor: 'white' }} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                        <div style={{ flex: 1 }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', marginBottom: '4px' }}><span>Intensity</span><span>{activeLight.intensity}</span></div>
-                                            <input type="range" min="0" max="10000" step="50" value={activeLight.intensity} onChange={e => { updateLight(activeLight.id, { intensity: parseFloat(e.target.value) }); setSaved(false); }} style={{ width: '100%', accentColor: 'white' }} />
-                                        </div>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Color</span>
-                                            <input type="color" value={activeLight.color} onChange={e => { updateLight(activeLight.id, { color: e.target.value }); setSaved(false); }} style={{ width: '28px', height: '28px', border: 'none', padding: 0, borderRadius: '4px', cursor: 'pointer', background: 'transparent' }} />
-                                        </div>
-                                    </div>
-                                </>
-                            ) : <p style={{ fontSize: '10px', opacity: 0.4, textAlign: 'center' }}>No lights available.</p>}
-                        </div>
+                        {renderSlider('Roughness', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
+                        {renderSlider('Metalness', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
+                        {renderSlider('Reflections', config.envMapIntensity, 0, 2, 0.01, (v) => setConfig({ envMapIntensity: v }))}
                     </>
                 )}
 
                 {activeTab === 'fx' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                         <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>
-                            <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#ffcc00', marginBottom: '10px' }}>Global Flash Intensity</div>
-                            {renderGlobalSlider('Flash Height', 'flashFX_y', -10, 60, 0.1, v => config.flashFX?.y.toFixed(1), (val) => setConfig({ flashFX: { ...config.flashFX, y: parseFloat(val) } }))}
-                            {renderGlobalSlider('Flash Dist', 'flashFX_dist', -20, 20, 0.1, v => config.flashFX?.distance.toFixed(1), (val) => setConfig({ flashFX: { ...config.flashFX, distance: parseFloat(val) } }))}
-                            {renderGlobalSlider('Flash Power', 'flashFX_pow', 0, 500, 10, v => config.flashFX?.intensity.toFixed(0), (val) => setConfig({ flashFX: { ...config.flashFX, intensity: parseFloat(val) } }))}
+                            <div style={{ fontSize: '9px', color: '#ffcc00', marginBottom: '10px' }}>FLASH CONFIG</div>
+                            {renderSlider('Height', config.flashFX?.y, -10, 30, 0.1, (v) => setConfig({ flashFX: { ...config.flashFX, y: v } }))}
+                            {renderSlider('Power', config.flashFX?.intensity, 0, 500, 10, (v) => setConfig({ flashFX: { ...config.flashFX, intensity: v } }), v => v.toFixed(0))}
                         </div>
 
                         <div style={{ padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#ffcc00' }}>Active Section: {activeSlug || 'None'}</div>
+                            <div style={{ fontSize: '9px', color: '#ffcc00' }}>SECTION: {activeSlug || 'NONE'}</div>
                             {activeSlug === 'ai-ml' && (
                                 <>
-                                    {renderGlobalSlider('AI Core Y', 'aiFX_y', -10, 30, 0.1, v => config.aiFX?.y.toFixed(1), (val) => setConfig({ aiFX: { ...config.aiFX, y: parseFloat(val) } }))}
-                                    {renderGlobalSlider('AI Scale', 'aiFX_s', 0.1, 10, 0.1, v => config.aiFX?.scale.toFixed(1), (val) => setConfig({ aiFX: { ...config.aiFX, scale: parseFloat(val) } }))}
+                                    {renderSlider('Core Y', config.aiFX?.y, -10, 30, 0.1, (v) => setConfig({ aiFX: { ...config.aiFX, y: v } }))}
+                                    {renderSlider('Core Scale', config.aiFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ aiFX: { ...config.aiFX, scale: v } }))}
                                     <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.aiFX?.orbit || 0} onChange={(v) => setConfig({ aiFX: { ...config.aiFX, orbit: v } })} /></div>
                                 </>
                             )}
                             {activeSlug === 'software-dev' && (
                                 <>
-                                    {renderGlobalSlider('Part. Y', 'softFX_y', -10, 30, 0.1, v => config.softwareFX?.y.toFixed(1), (val) => setConfig({ softwareFX: { ...config.softwareFX, y: parseFloat(val) } }))}
-                                    {renderGlobalSlider('Part. Scale', 'softFX_s', 0.1, 8, 0.1, v => config.softwareFX?.scale.toFixed(1), (val) => setConfig({ softwareFX: { ...config.softwareFX, scale: parseFloat(val) } }))}
+                                    {renderSlider('Points Y', config.softwareFX?.y, -10, 30, 0.1, (v) => setConfig({ softwareFX: { ...config.softwareFX, y: v } }))}
+                                    {renderSlider('Points Scale', config.softwareFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ softwareFX: { ...config.softwareFX, scale: v } }))}
                                     <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.softwareFX?.orbit || 0} onChange={(v) => setConfig({ softwareFX: { ...config.softwareFX, orbit: v } })} /></div>
                                 </>
                             )}
                             {activeSlug === 'ar-vr' && (
                                 <>
-                                    {renderGlobalSlider('Shapes Y', 'arFX_y', -10, 30, 0.1, v => config.arFX?.y.toFixed(1), (val) => setConfig({ arFX: { ...config.arFX, y: parseFloat(val) } }))}
-                                    {renderGlobalSlider('Shapes Scale', 'arFX_s', 0.1, 10, 0.1, v => config.arFX?.scale.toFixed(1), (val) => setConfig({ arFX: { ...config.arFX, scale: parseFloat(val) } }))}
-                                    {renderGlobalSlider('Shapes Radius', 'arFX_r', 0.1, 20, 0.1, v => config.arFX?.distance.toFixed(1), (val) => setConfig({ arFX: { ...config.arFX, distance: parseFloat(val) } }))}
+                                    {renderSlider('Shape Y', config.arFX?.y, -10, 30, 0.1, (v) => setConfig({ arFX: { ...config.arFX, y: v } }))}
+                                    {renderSlider('Distance', config.arFX?.distance, 0, 15, 0.1, (v) => setConfig({ arFX: { ...config.arFX, distance: v } }))}
                                     <div style={{ alignSelf: 'center' }}><AzimuthDial value={config.arFX?.orbit || 0} onChange={(v) => setConfig({ arFX: { ...config.arFX, orbit: v } })} /></div>
                                 </>
                             )}
                             {activeSlug === 'gamedev' && (
                                 <>
-                                    {renderGlobalSlider('Gamedev Y', 'gameFX_y', -10, 30, 0.1, v => config.gamedevFX?.y.toFixed(1), (val) => setConfig({ gamedevFX: { ...config.gamedevFX, y: parseFloat(val) } }))}
-                                    {renderGlobalSlider('Gamedev Scale', 'gameFX_s', 0.1, 10, 0.1, v => config.gamedevFX?.scale.toFixed(1), (val) => setConfig({ gamedevFX: { ...config.gamedevFX, scale: parseFloat(val) } }))}
+                                    {renderSlider('Blocks Y', config.gamedevFX?.y, -10, 30, 0.1, (v) => setConfig({ gamedevFX: { ...config.gamedevFX, y: v } }))}
+                                    {renderSlider('Scale', config.gamedevFX?.scale, 0.1, 10, 0.1, (v) => setConfig({ gamedevFX: { ...config.gamedevFX, scale: v } }))}
                                 </>
                             )}
-                            {!activeSlug && <div style={{ fontSize: '10px', opacity: 0.5, textAlign: 'center' }}>Выберите раздел в меню Направления.</div>}
                         </div>
                     </div>
                 )}
             </div>
 
-            <button 
-                onClick={handleSave} disabled={saving}
-                style={{ background: saved ? '#10b981' : '#ffcc00', color: saved ? 'white' : 'black', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.3s ease', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginTop: '8px' }}
-            >
+            <button onClick={handleSave} disabled={saving} style={{ background: saved ? '#10b981' : '#ffcc00', color: 'black', border: 'none', padding: '14px', borderRadius: '12px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                 {saving ? <Loader2 size={16} className="animate-spin" /> : (saved ? <Check size={16} /> : <Save size={16} />)}
-                {saving ? 'Saving...' : (saved ? 'Saved!' : 'Save Changes')}
+                {saving ? 'SAVING...' : (saved ? 'SAVED!' : 'SAVE CONFIG')}
             </button>
         </div>
     );

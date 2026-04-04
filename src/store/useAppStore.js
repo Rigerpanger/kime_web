@@ -46,9 +46,31 @@ const useAppStore = create(
       setView: (view) => set({ view }),
       setHoveredChunk: (chunkId) => set({ hoveredChunk: chunkId }),
       setActiveSlug: (slug) => set({ activeSlug: slug }),
-      setSculptureConfig: (config) => set((state) => ({ 
-        sculptureConfig: { ...state.sculptureConfig, ...config } 
-      })),
+      setSculptureConfig: (newConfig) => set((state) => {
+        const merged = { ...state.sculptureConfig, ...newConfig };
+        // Ensure FX sub-objects exist to prevent crashes in Studio or Shaders
+        const ensureFX = (obj) => ({
+          y: obj?.y ?? 0,
+          scale: obj?.scale ?? 1.0,
+          orbit: obj?.orbit ?? 0,
+          ...obj
+        });
+        
+        return {
+          sculptureConfig: {
+            ...merged,
+            aiFX: ensureFX(merged.aiFX),
+            softwareFX: ensureFX(merged.softwareFX),
+            arFX: { ...ensureFX(merged.arFX), distance: merged.arFX?.distance ?? 3.5 },
+            gamedevFX: { y: merged.gamedevFX?.y ?? 0, scale: merged.gamedevFX?.scale ?? 1.0 },
+            flashFX: { 
+              y: merged.flashFX?.y ?? 4.8, 
+              distance: merged.flashFX?.distance ?? 1.2, 
+              intensity: merged.flashFX?.intensity ?? 40 
+            }
+          }
+        };
+      }),
       setShowStudioEditor: (show) => set({ showStudioEditor: show }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
       setScrollLocked: (isLocked) => set({ isScrollLocked: isLocked }),

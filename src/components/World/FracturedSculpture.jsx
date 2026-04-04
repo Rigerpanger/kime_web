@@ -1,87 +1,8 @@
-import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import { Text, useGLTF, Float, Environment, ContactShadows, Center, useProgress, Html } from '@react-three/drei';
+import React, { useMemo, useRef, useEffect, useState, Suspense } from 'react';
+import { useGLTF, Float, Center, Html, useProgress, ContactShadows } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
-
-
-// --- CINEMATIC CAMERA RIG ---
-const TotemCameraRig = () => {
-    const view = useAppStore(s => s.view);
-    const { camera } = useThree();
-    const currentLookAt = useRef(new THREE.Vector3(0, 1, 0));
-
-    useFrame((state, delta) => {
-        const targetPos = new THREE.Vector3(0, 1, 42); 
-        const targetLook = new THREE.Vector3(0, 1, 0);
-
-        switch (view) {
-            case VIEWS.HOME:
-                targetPos.set(0, 0.0, 32); // Slightly closer for the real model
-                targetLook.set(0, 0.0, 0);
-                break;
-            case VIEWS.ABOUT:
-                targetPos.set(0, 4.5, 6); // Focus on upper part
-                targetLook.set(0, 4.5, 0);
-                break;
-            case VIEWS.SERVICES:
-                targetPos.set(12, 1.5, 0); // Side view
-                targetLook.set(0, 1.5, 0);
-                break;
-            case VIEWS.PROJECTS:
-                targetPos.set(0, 1.5, 9.0); // Focus on chest area
-                targetLook.set(0, 1.5, 0);
-                break;
-            case VIEWS.CONTACT:
-                targetPos.set(0, -3.5, 12); // Focus on base
-                targetLook.set(0, -3.5, 0);
-                break;
-            default: break;
-        }
-
-        const alpha = 1 - Math.exp(-2.0 * delta);
-        state.camera.position.lerp(targetPos, alpha);
-        currentLookAt.current.lerp(targetLook, alpha);
-        state.camera.lookAt(currentLookAt.current);
-    });
-
-    return null;
-};
-
-const GoldenDust = () => {
-    const count = 50;
-    const meshRef = useRef();
-    const parts = useMemo(() => new Array(count).fill(0).map(() => ({
-        pos: new THREE.Vector3((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 10, (Math.random() - 0.5) * 5),
-        speed: Math.random() * 0.1 + 0.05,
-        phase: Math.random() * Math.PI * 2
-    })), []);
-
-    useFrame((state) => {
-        if (!meshRef.current) return;
-        const t = state.clock.elapsedTime;
-        meshRef.current.children.forEach((child, i) => {
-            const p = parts[i];
-            child.position.y = -5 + ((p.pos.y + t * p.speed + p.phase * 5) % 15);
-            child.position.x = p.pos.x + Math.sin(t * 0.5 + p.phase) * 0.2;
-            child.position.z = p.pos.z + Math.cos(t * 0.5 + p.phase) * 0.2;
-            const dist = Math.abs(child.position.y - 1.5);
-            const scale = Math.max(0, 1 - dist / 8.0) * 0.03;
-            child.scale.setScalar(scale);
-        });
-    });
-
-    return (
-        <group ref={meshRef}>
-            {parts.map((_, i) => (
-                <mesh key={i}>
-                    <octahedronGeometry args={[1, 0]} />
-                    <meshBasicMaterial color="#ffcc00" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
-                </mesh>
-            ))}
-        </group>
-    );
-};
 
 const FlashEffect = () => {
     const light = useRef();
@@ -91,12 +12,12 @@ const FlashEffect = () => {
 
     useEffect(() => {
         if (!activeSlug) return;
-        setIntensity(flashConfig.intensity);
+        setIntensity(flashConfig.intensity || 40);
         const t = setTimeout(() => setIntensity(0), 800);
         return () => clearTimeout(t);
     }, [activeSlug, flashConfig.intensity]);
 
-    useFrame((state, delta) => {
+    useFrame(() => {
         if (!light.current) return;
         light.current.intensity = THREE.MathUtils.lerp(light.current.intensity, intensity, 0.1);
     });
@@ -104,17 +25,13 @@ const FlashEffect = () => {
     return (
         <pointLight
             ref={light}
-            position={[0, flashConfig.y, flashConfig.distance]} 
+            position={[0, flashConfig.y || 4.8, flashConfig.distance || 1.2]} 
             color="#ffffff"
             distance={20}
-            decay={1.5}
+            decay={1.8}
         />
     );
 };
-
-// --- ARTISTIC INTERVENTIONS (The Kime-style Digital Art) ---
-
-// ScanLine removed as per request for more contrasty Iris Shader directly on mesh.
 
 const NeuralCore = () => {
     const coreRef = useRef();
@@ -126,9 +43,7 @@ const NeuralCore = () => {
     const [beams, phases] = useMemo(() => {
         const positions = new Float32Array(count * 2 * 3);
         const phs = new Float32Array(count);
-        for (let i = 0; i < count; i++) {
-            phs[i] = Math.random() * Math.PI * 2;
-        }
+        for (let i = 0; i < count; i++) phs[i] = Math.random() * Math.PI * 2;
         return [positions, phs];
     }, []);
 
@@ -137,16 +52,15 @@ const NeuralCore = () => {
         const t = state.clock.elapsedTime;
         coreRef.current.rotation.y += 0.02;
         coreRef.current.rotation.z += 0.01;
-        coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * fx.scale);
+        coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * (fx.scale || 1.0));
 
         if (beamsRef.current) {
             const attr = beamsRef.current.geometry.attributes.position;
-            const orbitRad = (fx.orbit * Math.PI) / 180;
-            const center = new THREE.Vector3(Math.sin(orbitRad) * 0.5, fx.y, Math.cos(orbitRad) * 0.5);
-
+            const orbitRad = ((fx.orbit || 0) * Math.PI) / 180;
+            const center = new THREE.Vector3(Math.sin(orbitRad) * 0.5, fx.y || 4.8, Math.cos(orbitRad) * 0.5);
             for (let i = 0; i < count; i++) {
                 const angle = phases[i] + t * 0.5;
-                const r = (2.5 + Math.sin(t + phases[i]) * 1.5) * fx.scale;
+                const r = (2.5 + Math.sin(t + phases[i]) * 1.5) * (fx.scale || 1.0);
                 attr.setXYZ(i * 2, center.x, center.y, center.z); 
                 attr.setXYZ(i * 2 + 1, center.x + Math.cos(angle) * r, center.y + Math.sin(angle * 2) * r, center.z + Math.sin(angle) * r);
             }
@@ -155,7 +69,7 @@ const NeuralCore = () => {
     });
 
     return (
-        <group position={[0, fx.y - 1.5, 0]}> 
+        <group position={[0, (fx.y || 4.8) - 1.5, 0]}> 
             <mesh ref={coreRef} position={[0, 1.5, 0]}>
                 <icosahedronGeometry args={[0.5, 0]} />
                 <meshBasicMaterial color="#ffcc00" wireframe />
@@ -183,43 +97,22 @@ const ShapeShifter = () => {
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (meshRef.current) {
-            // Orbital Positioning
-            const azimuth = (fx.orbit * Math.PI) / 180;
-            meshRef.current.position.set(
-                Math.sin(azimuth) * fx.distance,
-                fx.y,
-                Math.cos(azimuth) * fx.distance
-            );
-
+            const azimuth = ((fx.orbit || 0) * Math.PI) / 180;
+            meshRef.current.position.set(Math.sin(azimuth) * (fx.distance || 3.5), fx.y || 4.8, Math.cos(azimuth) * (fx.distance || 3.5));
             meshRef.current.rotation.y = t * 0.5;
             meshRef.current.rotation.z = t * 0.2;
-            meshRef.current.scale.setScalar(fx.scale);
-            
-            const cycle = (t % 3) / 3;
-            meshRef.current.material.wireframe = cycle > 0.5;
-            meshRef.current.material.opacity = (0.5 + Math.sin(t * 2) * 0.3) * fx.scale;
-            
-            if (Math.floor(t / 3) % 4 !== shape) {
-                setShape(Math.floor(t / 3) % 3);
-            }
+            meshRef.current.scale.setScalar(fx.scale || 1.0);
+            meshRef.current.material.wireframe = ((t % 3) / 3) > 0.5;
+            meshRef.current.material.opacity = (0.5 + Math.sin(t * 2) * 0.3) * (fx.scale || 1.0);
+            if (Math.floor(t / 3) % 4 !== shape) setShape(Math.floor(t / 3) % 3);
         }
     });
 
     return (
-        <group>
-            <mesh ref={meshRef}>
-                {shape === 0 ? <boxGeometry args={[2, 2, 2]} /> : 
-                 shape === 1 ? <sphereGeometry args={[1.5, 32, 32]} /> : 
-                 <coneGeometry args={[1.5, 2.5, 4]} />}
-                <meshBasicMaterial 
-                    color="#ffaa44" 
-                    transparent 
-                    opacity={0.8} 
-                    blending={THREE.AdditiveBlending} 
-                />
-            </mesh>
-            <pointLight position={[0, fx.y, 0]} distance={15} intensity={3} color="#ffaa44" />
-        </group>
+        <mesh ref={meshRef}>
+            {shape === 0 ? <boxGeometry args={[2, 2, 2]} /> : shape === 1 ? <sphereGeometry args={[1.5, 32, 32]} /> : <coneGeometry args={[1.5, 2.5, 4]} />}
+            <meshBasicMaterial color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+        </mesh>
     );
 };
 
@@ -227,114 +120,47 @@ const TetrisReveal = ({ onRevealed }) => {
     const { sculptureConfig: config } = useAppStore();
     const fx = config.gamedevFX || { y: 0, scale: 1.0 };
     const [blocks, setBlocks] = useState([]);
-    const sculptureRevealed = useRef(false);
+    const meshes = useRef([]);
     const landedCount = useRef(0);
 
     useEffect(() => {
-        const spawnBlock = () => {
+        const interval = setInterval(() => {
             setBlocks(prev => {
                 if (prev.length >= 6) return prev;
-                return [...prev, {
-                    id: Math.random(),
-                    pos: new THREE.Vector3((Math.random() - 0.5) * 4, 15, (Math.random() - 0.5) * 4),
-                    speed: 0.12, // Faster but stable
-                    landed: false
-                }];
+                return [...prev, { id: Math.random(), pos: [ (Math.random() - 0.5) * 4, 15, (Math.random() - 0.5) * 4 ], speed: 0.15, landed: false }];
             });
-        };
-        const interval = setInterval(spawnBlock, 1500);
+        }, 1200);
         return () => clearInterval(interval);
     }, []);
 
-    useFrame((state, delta) => {
+    useFrame(() => {
         let currentLanded = 0;
-        blocks.forEach(b => {
+        blocks.forEach((b, i) => {
+            const mesh = meshes.current[i];
+            if (!mesh) return;
             if (!b.landed) {
-                b.pos.y -= b.speed;
-                if (b.pos.y <= -2) { // "Land" on the model area
+                mesh.position.y -= b.speed;
+                if (mesh.position.y <= -2) {
                     b.landed = true;
-                    landedCount.current += 1;
+                    landedCount.current++;
                 }
             } else {
+                mesh.position.y = -2;
                 currentLanded++;
-                b.pos.y = -2; // Stay at landing height
             }
         });
-        
-        // SYNC REVEAL: Quantized steps
-        // If 6 blocks total, each block adds 1/6th of total height (from -5 to 12 = 17 units)
-        const step = 17 / 6;
-        const h = -5 + (currentLanded * step);
+        const h = -5 + (currentLanded * (17 / 6));
         onRevealed(h);
-
-        if (currentLanded >= 6 && !sculptureRevealed.current) {
-            sculptureRevealed.current = true;
-            setTimeout(() => setBlocks([]), 3000);
-        }
     });
 
     return (
-        <group scale={fx.scale} position={[0, fx.y, 0]}>
-            {blocks.map(b => (
-                <mesh key={b.id} position={b.pos}>
+        <group scale={fx.scale || 1.0} position={[0, fx.y || 0, 0]}>
+            {blocks.map((b, i) => (
+                <mesh key={b.id} ref={el => meshes.current[i] = el} position={b.pos}>
                     <boxGeometry args={[2.5, 2.5, 2.5]} />
-                    <meshBasicMaterial color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+                    <meshBasicMaterial color="#ffaa44" transparent opacity={0.7} blending={THREE.AdditiveBlending} />
                 </mesh>
             ))}
-        </group>
-    );
-};
-
-const NeuralHalo = () => {
-    const segmentsRef = useRef();
-    const ringRef = useRef();
-    const count = 50; 
-    
-    // Using a single buffer geometry with LineSegments is MUCH more performant
-    const [positions, data] = useMemo(() => {
-        const pos = new Float32Array(count * 4 * 3); // 2 segments (4 points) per path
-        const d = new Float32Array(count); // Phase
-        for (let i = 0; i < count; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const r = 2.5 + Math.random() * 0.5;
-            const top = new THREE.Vector3(Math.cos(angle) * r, 8.5, Math.sin(angle) * r);
-            const mid = new THREE.Vector3(Math.cos(angle) * (r * 0.6), 6.5, Math.sin(angle) * (r * 0.6));
-            const bottom = new THREE.Vector3(Math.cos(angle) * 0.3, 5.2, Math.sin(angle) * 0.3);
-            
-            top.toArray(pos, i * 12 + 0);
-            mid.toArray(pos, i * 12 + 3);
-            mid.toArray(pos, i * 12 + 6);
-            bottom.toArray(pos, i * 12 + 9);
-            
-            d[i] = Math.random() * Math.PI * 2;
-        }
-        return [pos, d];
-    }, []);
-
-    useFrame((state) => {
-        if (!segmentsRef.current) return;
-        const t = state.clock.elapsedTime;
-        // Overall pulse for the halo
-        const pulse = (Math.sin(t * 1.5) + 1) / 2;
-        segmentsRef.current.material.opacity = 0.2 + pulse * 0.3;
-        if (ringRef.current) {
-            ringRef.current.position.y = 8.5 + Math.sin(t) * 0.05;
-            ringRef.current.material.opacity = 0.4 + Math.sin(t * 2) * 0.1;
-        }
-    });
-
-    return (
-        <group>
-            <lineSegments ref={segmentsRef}>
-                <bufferGeometry>
-                    <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
-                </bufferGeometry>
-                <lineBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
-            </lineSegments>
-            <mesh ref={ringRef} position={[0, 8.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[2.5, 0.015, 16, 100]} />
-                <meshBasicMaterial color="#ffaa44" transparent opacity={0.5} blending={THREE.AdditiveBlending} />
-            </mesh>
         </group>
     );
 };
@@ -344,281 +170,130 @@ const SoftwareSilhouette = ({ targetVertices }) => {
     const { sculptureConfig: config } = useAppStore();
     const fx = config.softwareFX || { y: 1.5, scale: 1.0, orbit: 0 };
     const count = 3000;
-    const state = useRef({ phase: 'fall', timer: 0 }); 
+    const timer = useRef(0);
 
     const [positions] = useMemo(() => {
         const pos = new Float32Array(count * 3);
-        for (let i = 0; i < count; i++) {
-            pos[i * 3 + 1] = 20 + Math.random() * 10;
-        }
+        for (let i = 0; i < count; i++) pos[i * 3 + 1] = 20 + Math.random() * 10;
         return [pos];
     }, []);
 
-    useFrame((stateObj, delta) => {
+    useFrame((state, delta) => {
         if (!pointsRef.current || !targetVertices.length) return;
-        const array = pointsRef.current.geometry.attributes.position.array;
-        state.current.timer += delta;
-
-        const azimuth = (fx.orbit * Math.PI) / 180;
-        const offset = new THREE.Vector3(Math.sin(azimuth) * 5, fx.y, Math.cos(azimuth) * 5);
+        const attr = pointsRef.current.geometry.attributes.position;
+        timer.current += delta;
+        const orbitRad = ((fx.orbit || 0) * Math.PI) / 180;
+        const offset = [Math.sin(orbitRad) * 5, fx.y || 1.5, Math.cos(orbitRad) * 5];
 
         for (let i = 0; i < count; i++) {
             const idx = i * 3;
-            const vIdx = i % targetVertices.length;
-            const targetPos = targetVertices[vIdx].clone().multiplyScalar(fx.scale);
-
-            if (state.current.timer < 5) {
-                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + offset.x, 0.05);
-                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y + offset.y, 0.05);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z + offset.z, 0.05);
-            } else if (state.current.timer < 10) {
-                array[idx] = THREE.MathUtils.lerp(array[idx], targetPos.x + offset.x + 8, 0.02);
-                array[idx + 1] = THREE.MathUtils.lerp(array[idx + 1], targetPos.y + offset.y, 0.02);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetPos.z + offset.z, 0.02);
-                pointsRef.current.material.opacity = Math.max(0, 1 - (state.current.timer - 8) / 2);
+            const target = targetVertices[i % targetVertices.length].clone().multiplyScalar(fx.scale || 1.0);
+            if (timer.current < 5) {
+                attr.array[idx] = THREE.MathUtils.lerp(attr.array[idx], target.x + offset[0], 0.05);
+                attr.array[idx + 1] = THREE.MathUtils.lerp(attr.array[idx + 1], target.y + offset[1], 0.05);
+                attr.array[idx + 2] = THREE.MathUtils.lerp(attr.array[idx + 2], target.z + offset[2], 0.05);
+            } else if (timer.current < 10) {
+                attr.array[idx] = THREE.MathUtils.lerp(attr.array[idx], target.x + offset[0] + 8, 0.02);
+                pointsRef.current.material.opacity = Math.max(0, 1 - (timer.current - 8) / 2);
             } else {
-                state.current.timer = 0;
-                pointsRef.current.material.opacity = 0.8;
-                for (let j = 0; j < count; j++) {
-                    array[j * 3 + 1] = 20 + Math.random() * 10;
-                }
+                timer.current = 0; pointsRef.current.material.opacity = 0.8;
+                for (let j = 0; j < count; j++) attr.array[j * 3 + 1] = 20 + Math.random() * 10;
             }
         }
-        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        attr.needsUpdate = true;
     });
 
     return (
         <points ref={pointsRef}>
-            <bufferGeometry>
-                <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
-            </bufferGeometry>
-            <pointsMaterial size={0.25 * fx.scale} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+            <bufferGeometry><bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} /></bufferGeometry>
+            <pointsMaterial size={0.25 * (fx.scale || 1.0)} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
 
-const ArtisticIntervention = ({ slug, targetVertices, onRevealed }) => {
-    switch (slug) {
-        case 'ar-vr':
-            return <ShapeShifter />;
-        case 'ai-ml':
-            return <NeuralCore />;
-        case 'software-dev':
-            return <SoftwareSilhouette targetVertices={targetVertices} />;
-        case 'gamedev':
-            return <TetrisReveal onRevealed={onRevealed} />;
-        case 'digital-graphics':
-            return null; // Effect moved directly to sculpture mesh via Iris Shader
-        default:
-            return null;
-    }
+const UnifiedShaderInjection = (mat) => {
+    if (mat.userData.unifiedCompiled) return;
+    mat.onBeforeCompile = (shader) => {
+        shader.uniforms.uTime = { value: 0 };
+        shader.uniforms.uIrisMix = { value: 0 };
+        shader.uniforms.uRevealMix = { value: 0 };
+        shader.uniforms.uRevealHeight = { value: 15 };
+        
+        shader.vertexShader = `
+            varying vec3 vWorldPos;
+            varying vec3 vNormalVec;
+            varying vec3 vViewPos;
+            ${shader.vertexShader}
+        `.replace(`#include <worldpos_vertex>`, `#include <worldpos_vertex>
+            vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+            vNormalVec = normalize(normalMatrix * normal);
+            vViewPos = -mvPosition.xyz;
+        `);
+
+        shader.fragmentShader = `
+            uniform float uTime;
+            uniform float uIrisMix;
+            uniform float uRevealMix;
+            uniform float uRevealHeight;
+            varying vec3 vWorldPos;
+            varying vec3 vNormalVec;
+            varying vec3 vViewPos;
+            ${shader.fragmentShader}
+        `.replace(`#include <clipping_planes_fragment>`, `#include <clipping_planes_fragment>
+            if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
+        `).replace(`#include <color_fragment>`, `#include <color_fragment>
+            float fresnel = 1.0 - max(0.0, dot(normalize(vNormalVec), normalize(vViewPos)));
+            vec3 iris = vec3(sin(vNormalVec.x*5.0+uTime)*0.5+0.5, sin(vNormalVec.y*5.0+uTime+2.0)*0.5+0.5, sin(vNormalVec.z*5.0-uTime+4.0)*0.5+0.5);
+            iris = mix(vec3(1.0), iris, smoothstep(0.0, 1.0, fresnel));
+            diffuseColor.rgb = mix(diffuseColor.rgb, iris, uIrisMix * 0.8);
+        `);
+        mat.userData.shader = shader;
+    };
+    mat.userData.unifiedCompiled = true;
 };
 
 const SculptureModel = () => {
     const { scene } = useGLTF('/models/sculpture.glb');
     const { sculptureConfig: config, activeSlug, view } = useAppStore();
-    
-    // Safety check for scale and position from admin config
-    const safeScale = Math.max(0.1, config.scale || 1.0);
-    const safeY = Math.max(-15, Math.min(15, config.y || 0));
-
-    // Tetris Reveal Height
     const [revealHeight, setRevealHeight] = useState(15);
     const targetVertices = useMemo(() => {
         const verts = [];
-        scene.traverse(n => {
-            if (n.isMesh && n.geometry.attributes.position) {
-                const pos = n.geometry.attributes.position;
-                for (let i = 0; i < pos.count; i += 10) { // Sample every 10th vertex
-                    verts.push(new THREE.Vector3().fromBufferAttribute(pos, i));
-                }
-            }
-        });
+        scene.traverse(n => { if (n.isMesh && n.geometry.attributes.position) { 
+            const p = n.geometry.attributes.position;
+            for (let i = 0; i < p.count; i += 15) verts.push(new THREE.Vector3().fromBufferAttribute(p, i));
+        }});
         return verts;
     }, [scene]);
 
-    // Debug log
-    useEffect(() => {
-        if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
-            console.log("3D Artistic State:", { view, activeSlug });
-        }
-        // RESET REVEAL when changing section
-        if (activeSlug === 'gamedev') setRevealHeight(-5);
-        else setRevealHeight(15);
-    }, [view, activeSlug]);
-
     const clonedScene = useMemo(() => {
         const clone = scene.clone();
-        clone.traverse(node => {
-            if (node.isMesh && node.material) {
-                node.material = node.material.clone();
-            }
-        });
+        clone.traverse(n => { if (n.isMesh) UnifiedShaderInjection(n.material); });
         return clone;
     }, [scene]);
 
-    // Ref for iris-shaded materials to update in useFrame without traversal
-    const irisMaterials = useRef([]);
-
-    useEffect(() => {
-        irisMaterials.current = [];
-        clonedScene.traverse((node) => {
-            if (node.isMesh) {
-                node.castShadow = true;
-                node.receiveShadow = true;
-                const mat = node.material;
-                if (mat) {
-                    const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
-                    
-                    // --- RESET TO BASE (CRITICAL BUG FIX) ---
-                    mat.wireframe = false;
-                    mat.opacity = 1.0;
-                    mat.transparent = false;
-                    mat.color.set("#ffffff");
-                    mat.clippingPlanes = []; 
-                    if (mat.emissive) {
-                        mat.emissive.set("#000000");
-                        mat.emissiveIntensity = 0;
-                    }
-
-                    // --- APPLY EFFECTS ---
-                    if (isServicesOrDetail) {
-                        // 1. Digital Graphics (Iris Shader)
-                        if (activeSlug === 'digital-graphics') {
-                            mat.wireframe = true;
-                            mat.opacity = 0.9;
-                            mat.transparent = true;
-                            if (mat.emissive) {
-                                mat.emissive.set("#ffaa44");
-                                mat.emissiveIntensity = 4.0;
-                            }
-                            
-                            irisMaterials.current.push(mat);
-
-                            if (!mat.userData.irisApplied) {
-                                mat.onBeforeCompile = (shader) => {
-                                    shader.uniforms.uTime = { value: 0 };
-                                    shader.uniforms.uIrisMix = { value: 1.0 }; // ADD MIX UNIFORM
-                                    shader.fragmentShader = `
-                                        uniform float uTime;
-                                        uniform float uIrisMix;
-                                        varying vec3 vNormal;
-                                        varying vec3 vViewPosition;
-                                        ${shader.fragmentShader}
-                                    `.replace(
-                                        `#include <color_fragment>`,
-                                        `#include <color_fragment>
-                                         // More robust iridescence math using world normal if UV is missing
-                                         vec3 irisUV = vNormal;
-                                         float fresnel = 1.0 - max(0.0, dot(vNormal, normalize(vViewPosition)));
-                                         vec3 iris = vec3(
-                                             sin(irisUV.x * 5.0 + uTime) * 0.5 + 0.5,
-                                             sin(irisUV.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
-                                             sin(irisUV.z * 5.0 - uTime + 4.0) * 0.5 + 0.5
-                                         );
-                                         iris = mix(vec3(1.0), iris, smoothstep(0.0, 1.0, fresnel));
-                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, uIrisMix * 0.8);
-                                        `
-                                    );
-                                    mat.userData.shader = shader;
-                                };
-                                mat.userData.irisApplied = true;
-                            }
-                            // Set mix to 1.0 if mode active
-                            if (mat.userData.shader) {
-                                mat.userData.shader.uniforms.uIrisMix.value = 1.0;
-                            }
-                        } 
-                        // 2. Gamedev (Mask/Reveal)
-                        else if (activeSlug === 'gamedev') {
-                            if (!mat.userData.revealApplied) {
-                                mat.onBeforeCompile = (shader) => {
-                                    shader.uniforms.uRevealHeight = { value: 20 };
-                                    shader.uniforms.uRevealMix = { value: 1.0 }; // ADD REVEAL MIX
-                                    shader.vertexShader = `
-                                        varying vec3 vWorldPos;
-                                        ${shader.vertexShader}
-                                    `.replace(
-                                        `#include <worldpos_vertex>`,
-                                        `#include <worldpos_vertex>
-                                         vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
-                                        `
-                                    );
-                                    shader.fragmentShader = `
-                                        uniform float uRevealHeight;
-                                        uniform float uRevealMix;
-                                        varying vec3 vWorldPos;
-                                        ${shader.fragmentShader}
-                                    `.replace(
-                                        `#include <clipping_planes_fragment>`,
-                                        `#include <clipping_planes_fragment>
-                                         if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
-                                        `
-                                    );
-                                    mat.userData.revealShader = shader;
-                                };
-                                mat.userData.revealApplied = true;
-                            }
-                            mat.opacity = 0.4;
-                            mat.transparent = true;
-                            if (mat.userData.revealShader) {
-                                mat.userData.revealShader.uniforms.uRevealMix.value = 1.0;
-                            }
-                        }
-                    }
-
-                    // Turn off effects if mode changed (ensuring model doesn't stay invisible)
-                    if (activeSlug !== 'digital-graphics' && mat.userData.shader) {
-                        mat.userData.shader.uniforms.uIrisMix.value = 0.0;
-                    }
-                    if (activeSlug !== 'gamedev' && mat.userData.revealShader) {
-                        mat.userData.revealShader.uniforms.uRevealMix.value = 0.0;
-                    }
-
-                    mat.envMapIntensity = config.envMapIntensity ?? 0.02;
-                    mat.roughness = config.roughness ?? 0.85;
-                    mat.metalness = config.metalness ?? 0;
-                    mat.needsUpdate = true;
-                }
-            }
-        });
-    }, [clonedScene, activeSlug, view]);
-
     useFrame((state) => {
-        irisMaterials.current.forEach(mat => {
-            if (mat.userData.shader) {
-                mat.userData.shader.uniforms.uTime.value = state.clock.elapsedTime;
+        clonedScene.traverse(n => {
+            const shader = n.material?.userData?.shader;
+            if (shader) {
+                shader.uniforms.uTime.value = state.clock.elapsedTime;
+                shader.uniforms.uIrisMix.value = activeSlug === 'digital-graphics' ? 1 : 0;
+                shader.uniforms.uRevealMix.value = activeSlug === 'gamedev' ? 1 : 0;
+                shader.uniforms.uRevealHeight.value = revealHeight;
             }
-        });
-        
-        // Update reveal height for Gamedev
-        clonedScene.traverse(node => {
-            if (node.isMesh && node.material?.userData?.revealShader) {
-                node.material.userData.revealShader.uniforms.uRevealHeight.value = revealHeight;
+            if (n.isMesh) {
+                n.material.envMapIntensity = config.envMapIntensity ?? 0.02;
+                n.material.opacity = activeSlug === 'gamedev' ? 0.4 : 1.0;
+                n.material.transparent = activeSlug === 'gamedev';
             }
         });
     });
 
-    const isGamedev = activeSlug === 'gamedev' && (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL);
-
     return (
-        <Float 
-            speed={isGamedev ? 0.2 : 0.4} // 2x Slower for gamedev
-            rotationIntensity={isGamedev ? 0.02 : 0.05} 
-            floatIntensity={isGamedev ? 0.05 : 0.1}
-        >
-            <Center bottom position={[0, safeY, 0]}>
-                <primitive 
-                    object={clonedScene} 
-                    scale={safeScale} 
-                    rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
-                />
+        <Float speed={activeSlug === 'gamedev' ? 0.2 : 0.4} rotationIntensity={0.05} floatIntensity={0.1}>
+            <Center bottom position={[0, config.y || 0, 0]}>
+                <primitive object={clonedScene} scale={config.scale || 1} rotation={[0, (config.rotationY || 0) * (Math.PI / 180), 0]} />
                 {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && (
-                    <ArtisticIntervention 
-                        slug={activeSlug} 
-                        targetVertices={targetVertices} 
-                        onRevealed={(h) => setRevealHeight(prev => Math.max(prev, h))}
-                    />
+                    <ArtisticIntervention slug={activeSlug} targetVertices={targetVertices} onRevealed={setRevealHeight} />
                 )}
                 <FlashEffect />
             </Center>
@@ -626,43 +301,44 @@ const SculptureModel = () => {
     );
 };
 
+const ArtisticIntervention = ({ slug, targetVertices, onRevealed }) => {
+    switch (slug) {
+        case 'ar-vr': return <ShapeShifter />;
+        case 'ai-ml': return <NeuralCore />;
+        case 'software-dev': return <SoftwareSilhouette targetVertices={targetVertices} />;
+        case 'gamedev': return <TetrisReveal onRevealed={onRevealed} />;
+        default: return null;
+    }
+};
+
 const SmoothLoader = ({ progress }) => {
-    const [smoothProgress, setSmoothProgress] = useState(0);
-    useFrame(() => {
-        setSmoothProgress(prev => THREE.MathUtils.lerp(prev, progress, 0.1));
-    });
+    const [pseudo, setPseudo] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => setPseudo(p => p < 98 ? p + (100-p)*0.01 : p), 200);
+        return () => clearInterval(interval);
+    }, []);
+    const displayProgress = Math.max(progress, pseudo);
     return (
         <Html center>
-            <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '14px', whiteSpace: 'nowrap' }}>
-                LOADING ARTIFACT... {Math.round(smoothProgress)}%
+            <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '13px', textAlign: 'center', letterSpacing: '4px' }}>
+                LOADING_ARTIFACT<br/>{Math.round(displayProgress)}%
             </div>
         </Html>
     );
 };
 
 const BrutalistTotem = () => {
-    const { view, activeSlug } = useAppStore();
     const { progress } = useProgress();
-    
     return (
         <group>
-            <TotemCameraRig />
-
             <Suspense fallback={<SmoothLoader progress={progress} />}>
-                <ambientLight intensity={0.005} /> 
-                <pointLight position={[10, 10, 10]} intensity={0.01} />
                 <SculptureModel />
-                
                 <ContactShadows position={[0, -5, 0]} opacity={0.3} scale={20} blur={2.5} far={10} color="#000000" />
             </Suspense>
-
-            {/* Extremely subtle inner core glow - base level */}
             <pointLight position={[0, 1.5, 0]} intensity={0.02} color="#ffaa00" distance={10} decay={2} />
-            <GoldenDust />
         </group>
     );
 };
 
 useGLTF.preload('/models/sculpture.glb');
-
 export default BrutalistTotem;
