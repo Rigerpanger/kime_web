@@ -83,12 +83,118 @@ const GoldenDust = () => {
     );
 };
 
+// --- ARTISTIC INTERVENTIONS (The Banksy-style effects) ---
+
+const ScanLine = () => {
+    const mesh = useRef();
+    useFrame((state) => {
+        if (!mesh.current) return;
+        mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 4 + 2;
+    });
+
+    return (
+        <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[10, 10]} />
+            <meshBasicMaterial 
+                color="#ffcc00" 
+                transparent 
+                opacity={0.15} 
+                side={THREE.DoubleSide}
+                blending={THREE.AdditiveBlending}
+            />
+            <gridHelper args={[10, 20, "#ffcc00", "#ffcc00"]} rotation={[Math.PI / 2, 0, 0]} opacity={0.2} transparent />
+        </mesh>
+    );
+};
+
+const NeuralVeins = () => {
+    const group = useRef();
+    const count = 20;
+    const lines = useMemo(() => {
+        return new Array(count).fill(0).map(() => {
+            const start = new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * 8 - 2, (Math.random() - 0.5) * 3);
+            const end = start.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2));
+            return { points: [start, end], phase: Math.random() * Math.PI * 2 };
+        });
+    }, []);
+
+    useFrame((state) => {
+        if (!group.current) return;
+        group.current.children.forEach((child, i) => {
+            const pulse = (Math.sin(state.clock.elapsedTime * 2 + lines[i].phase) + 1) / 2;
+            child.material.opacity = 0.1 + pulse * 0.4;
+        });
+    });
+
+    return (
+        <group ref={group}>
+            {lines.map((line, i) => (
+                <line key={i}>
+                    <bufferGeometry attach="geometry" onUpdate={self => self.setFromPoints(line.points)} />
+                    <lineBasicMaterial color="#ffcc00" transparent opacity={0.2} blending={THREE.AdditiveBlending} />
+                </line>
+            ))}
+        </group>
+    );
+};
+
+const LogicRain = () => {
+    const points = useRef();
+    const count = 100;
+    const [positions, speeds] = useMemo(() => {
+        const pos = new Float32Array(count * 3);
+        const spd = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+            pos[i * 3] = (Math.random() - 0.5) * 4;
+            pos[i * 3 + 1] = Math.random() * 10 - 2;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 4;
+            spd[i] = Math.random() * 0.05 + 0.02;
+        }
+        return [pos, spd];
+    }, []);
+
+    useFrame(() => {
+        if (!points.current) return;
+        const array = points.current.geometry.attributes.position.array;
+        for (let i = 0; i < count; i++) {
+            array[i * 3 + 1] -= speeds[i];
+            if (array[i * 3 + 1] < -3) array[i * 3 + 1] = 7;
+        }
+        points.current.geometry.attributes.position.needsUpdate = true;
+    });
+
+    return (
+        <points ref={points}>
+            <bufferGeometry>
+                <bufferAttribute
+                    attach="attributes-position"
+                    count={positions.length / 3}
+                    array={positions}
+                    itemSize={3}
+                />
+            </bufferGeometry>
+            <pointsMaterial size={0.05} color="#ffcc00" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+        </points>
+    );
+};
+
+const ArtisticIntervention = ({ slug }) => {
+    switch (slug) {
+        case 'ar-vr':
+            return <ScanLine />;
+        case 'ai-ml':
+            return <NeuralVeins />;
+        case 'software-dev':
+            return <LogicRain />;
+        default:
+            return null;
+    }
+};
+
 const SculptureModel = () => {
     const { scene } = useGLTF('/models/sculpture.glb');
-    const config = useAppStore(s => s.sculptureConfig);
+    const { sculptureConfig: config, activeSlug, view } = useAppStore();
     
-    // CRITICAL: Clone the scene to avoid caching bugs where Three.js 
-    // struggles to re-mount or re-compile shaders for a dirty/disposed cached object
     const clonedScene = useMemo(() => scene.clone(), [scene]);
     
     useEffect(() => {
@@ -97,8 +203,21 @@ const SculptureModel = () => {
                 node.castShadow = true;
                 node.receiveShadow = true;
                 if (node.material) {
-                    // Clone the material to prevent polluting the cache
                     node.material = node.material.clone();
+                    
+                    // Special coloring for "Digital Graphics"
+                    if (view === VIEWS.SERVICES && activeSlug === 'digital-graphics') {
+                        node.material.color.set("#ffcc00");
+                        node.material.wireframe = true;
+                        node.material.opacity = 0.3;
+                        node.material.transparent = true;
+                    } else {
+                        node.material.wireframe = false;
+                        node.material.opacity = 1.0;
+                        node.material.transparent = false;
+                        node.material.color.set("#ffffff"); // Reset to white base
+                    }
+
                     node.material.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
                     node.material.roughness = config.roughness !== undefined ? config.roughness : 0.85;
                     node.material.metalness = config.metalness !== undefined ? config.metalness : 0;
@@ -109,10 +228,14 @@ const SculptureModel = () => {
                 }
             }
         });
-    }, [clonedScene, config.envMapIntensity, config.roughness, config.metalness, config.emissiveIntensity]);
+    }, [clonedScene, config, activeSlug, view]);
 
     return (
-        <Float speed={0.4} rotationIntensity={0.05} floatIntensity={0.1}>
+        <Float 
+            speed={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 2.5 : 0.4} 
+            rotationIntensity={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 0.8 : 0.05} 
+            floatIntensity={activeSlug === 'gamedev' && view === VIEWS.SERVICES ? 1.5 : 0.1}
+        >
             <Center bottom position={[0, config.y, 0]}>
                 <primitive 
                     object={clonedScene} 
@@ -123,7 +246,10 @@ const SculptureModel = () => {
         </Float>
     );
 };
+
 const BrutalistTotem = () => {
+    const { view, activeSlug } = useAppStore();
+    
     return (
         <group>
             <TotemCameraRig />
@@ -137,6 +263,8 @@ const BrutalistTotem = () => {
                 <pointLight position={[10, 10, 10]} intensity={0.01} />
                 <SculptureModel />
                 
+                {view === VIEWS.SERVICES && <ArtisticIntervention slug={activeSlug} />}
+
                 <ContactShadows position={[0, -5, 0]} opacity={0.3} scale={20} blur={2.5} far={10} color="#000000" />
             </Suspense>
 
