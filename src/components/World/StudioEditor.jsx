@@ -29,7 +29,15 @@ const StudioEditor = () => {
     const [activeSlot, setActiveSlot] = useState(0);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-    const currentFX = currentSection?.fx?.[activeSlot] || { type: 'None', pos: [0,0,0], scale: 1, color: '#ffffff', intensity: 1, active: false };
+    const rawFX = currentSection?.fx?.[activeSlot] || {};
+    const currentFX = {
+        type: rawFX.type || 'None',
+        pos: rawFX.pos || [0, 0, 0],
+        scale: rawFX.scale || 1,
+        color: rawFX.color || '#ffffff',
+        intensity: rawFX.intensity || 1,
+        active: rawFX.active || false
+    };
 
     const handleSave = async () => {
         setSaving(true);
@@ -98,7 +106,7 @@ const StudioEditor = () => {
                 {activeTab === 'light' && (
                     <div className="space-y-6">
                         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-                            {config.lights.map((l, i) => (
+                            {(config.lights || []).map((l, i) => (
                                 <button 
                                     key={l.id} 
                                     onClick={() => setActiveLightId(l.id)}
@@ -110,12 +118,12 @@ const StudioEditor = () => {
                             <button onClick={addLight} className="p-2 bg-[#ffcc00]/10 text-[#ffcc00] rounded-lg hover:bg-[#ffcc00]/20"><Plus size={14} /></button>
                         </div>
                         
-                        {config.lights.find(l => l.id === activeLightId) && (
+                        {(config.lights || []).find(l => l.id === activeLightId) && (
                             <div className="space-y-4">
-                                {renderSlider('Intensity', config.lights.find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
-                                {renderSlider('Azimuth', config.lights.find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
-                                {renderSlider('Radius', config.lights.find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
-                                {renderSlider('Height', config.lights.find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
+                                {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
+                                {renderSlider('Azimuth', (config.lights || []).find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
+                                {renderSlider('Radius', (config.lights || []).find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
+                                {renderSlider('Height', (config.lights || []).find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
                                 
                                 <button 
                                     onClick={() => removeLight(activeLightId)}
