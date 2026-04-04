@@ -294,15 +294,27 @@ const SculptureModel = () => {
         }
     }, [view, activeSlug]);
 
-    const clonedScene = useMemo(() => scene.clone(), [scene]);
-    
+    const clonedScene = useMemo(() => {
+        const clone = scene.clone();
+        clone.traverse(node => {
+            if (node.isMesh && node.material) {
+                node.material = node.material.clone();
+            }
+        });
+        return clone;
+    }, [scene]);
+
+    // Ref for iris-shaded materials to update in useFrame without traversal
+    const irisMaterials = useRef([]);
+
     useEffect(() => {
+        irisMaterials.current = [];
         clonedScene.traverse((node) => {
             if (node.isMesh) {
                 node.castShadow = true;
                 node.receiveShadow = true;
-                if (node.material) {
-                    node.material = node.material.clone();
+                const mat = node.material;
+                if (mat) {
                     
                     const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
                     
@@ -360,19 +372,30 @@ const SculptureModel = () => {
                         }
                     }
 
-                    node.material.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
-                    node.material.roughness = config.roughness !== undefined ? config.roughness : 0.85;
-                    node.material.metalness = config.metalness !== undefined ? config.metalness : 0;
-                    node.material.needsUpdate = true;
+                    mat.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
+                    mat.roughness = config.roughness !== undefined ? config.roughness : 0.85;
+                    mat.metalness = config.metalness !== undefined ? config.metalness : 0;
+                    mat.needsUpdate = true;
                 }
             }
         });
-    }, [clonedScene, config, activeSlug, view]);
+    }, [clonedScene, activeSlug, view]); // REMOVED 'config' here to prevent re-cloning materials on slider moves
+
+    // Separate effect for config/slider updates (only basic props, NO CLONING)
+    useEffect(() => {
+        clonedScene.traverse((node) => {
+            if (node.isMesh && node.material) {
+                node.material.envMapIntensity = config.envMapIntensity;
+                node.material.roughness = config.roughness;
+                node.material.metalness = config.metalness;
+            }
+        });
+    }, [clonedScene, config.envMapIntensity, config.roughness, config.metalness]);
 
     useFrame((state) => {
-        clonedScene.traverse((node) => {
-            if (node.isMesh && node.material?.userData?.shader) {
-                node.material.userData.shader.uniforms.uTime.value = state.clock.elapsedTime;
+        irisMaterials.current.forEach(mat => {
+            if (mat.userData.shader) {
+                mat.userData.shader.uniforms.uTime.value = state.clock.elapsedTime;
             }
         });
     });
