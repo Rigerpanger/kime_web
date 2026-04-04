@@ -113,28 +113,7 @@ const FlashEffect = () => {
 
 // --- ARTISTIC INTERVENTIONS (The Kime-style Digital Art) ---
 
-const ScanLine = () => {
-    const mesh = useRef();
-    useFrame((state) => {
-        if (!mesh.current) return;
-        // Move the scan beam up and down
-        mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 4 + 3;
-    });
-
-    return (
-        <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0,0,0.5]}>
-            <planeGeometry args={[12, 12]} />
-            <meshBasicMaterial 
-                color="#ffaa44" 
-                transparent 
-                opacity={0.3} 
-                side={THREE.DoubleSide}
-                blending={THREE.AdditiveBlending}
-            />
-            <gridHelper args={[12, 60, "#ffaa44", "#ffaa44"]} rotation={[Math.PI / 2, 0, 0]} opacity={0.6} transparent />
-        </mesh>
-    );
-};
+// ScanLine removed as per request for more contrasty Iris Shader directly on mesh.
 
 const ARGhosts = () => {
     const group = useRef();
@@ -172,39 +151,52 @@ const ARGhosts = () => {
 };
 
 const NeuralHalo = () => {
-    const group = useRef();
-    const count = 40;
-    const connections = useMemo(() => {
-        return new Array(count).fill(0).map(() => {
+    const segmentsRef = useRef();
+    const ringRef = useRef();
+    const count = 50; 
+    
+    // Using a single buffer geometry with LineSegments is MUCH more performant
+    const [positions, data] = useMemo(() => {
+        const pos = new Float32Array(count * 4 * 3); // 2 segments (4 points) per path
+        const d = new Float32Array(count); // Phase
+        for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const r = 2.5 + Math.random() * 0.5;
             const top = new THREE.Vector3(Math.cos(angle) * r, 8.5, Math.sin(angle) * r);
             const mid = new THREE.Vector3(Math.cos(angle) * (r * 0.6), 6.5, Math.sin(angle) * (r * 0.6));
-            const bottom = new THREE.Vector3(Math.cos(angle) * 0.3, 5.2, Math.sin(angle) * 0.3); // Touches head
-            return { points: [top, mid, bottom], phase: Math.random() * Math.PI * 2 };
-        });
+            const bottom = new THREE.Vector3(Math.cos(angle) * 0.3, 5.2, Math.sin(angle) * 0.3);
+            
+            top.toArray(pos, i * 12 + 0);
+            mid.toArray(pos, i * 12 + 3);
+            mid.toArray(pos, i * 12 + 6);
+            bottom.toArray(pos, i * 12 + 9);
+            
+            d[i] = Math.random() * Math.PI * 2;
+        }
+        return [pos, d];
     }, []);
 
     useFrame((state) => {
-        if (!group.current) return;
+        if (!segmentsRef.current) return;
         const t = state.clock.elapsedTime;
-        group.current.children.forEach((child, i) => {
-            const pulse = (Math.sin(t * 1.5 + connections[i].phase) + 1) / 2;
-            child.material.opacity = pulse * 0.4;
-            child.scale.setScalar(0.95 + pulse * 0.1);
-        });
+        // Overall pulse for the halo
+        const pulse = (Math.sin(t * 1.5) + 1) / 2;
+        segmentsRef.current.material.opacity = 0.2 + pulse * 0.3;
+        if (ringRef.current) {
+            ringRef.current.position.y = 8.5 + Math.sin(t) * 0.05;
+            ringRef.current.material.opacity = 0.4 + Math.sin(t * 2) * 0.1;
+        }
     });
 
     return (
-        <group ref={group}>
-            {connections.map((conn, i) => (
-                <line key={i}>
-                    <bufferGeometry attach="geometry" onUpdate={self => self.setFromPoints(conn.points)} />
-                    <lineBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
-                </line>
-            ))}
-            {/* Halo Ring */}
-            <mesh position={[0, 8.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <group>
+            <lineSegments ref={segmentsRef}>
+                <bufferGeometry>
+                    <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+                </bufferGeometry>
+                <lineBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+            </lineSegments>
+            <mesh ref={ringRef} position={[0, 8.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
                 <torusGeometry args={[2.5, 0.015, 16, 100]} />
                 <meshBasicMaterial color="#ffaa44" transparent opacity={0.5} blending={THREE.AdditiveBlending} />
             </mesh>
@@ -214,56 +206,78 @@ const NeuralHalo = () => {
 
 const DataPipeline = () => {
     const pointsRef = useRef();
-    const count = 600;
-    const [positions, data] = useMemo(() => {
+    const count = 800; // More particles for cluster effect
+    const clustersCount = 8;
+    
+    const [positions, data, colors] = useMemo(() => {
         const pos = new Float32Array(count * 3);
-        const d = new Float32Array(count * 2); // 0: phase, 1: speed
+        const d = new Float32Array(count * 3); // 0: clusterId, 1: speed, 2: phase offset
+        const cols = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            pos[i * 3] = (Math.random() - 0.5) * 8;
-            pos[i * 3 + 1] = Math.random() * 15 - 5;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
-            d[i * 2] = Math.random() * Math.PI * 2;
-            d[i * 2 + 1] = Math.random() * 0.05 + 0.05;
+            pos[i * 3] = (Math.random() - 0.5) * 10;
+            pos[i * 3 + 1] = Math.random() * 20 - 5;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 10;
+            
+            d[i * 3] = Math.floor(Math.random() * clustersCount);
+            d[i * 3 + 1] = Math.random() * 0.08 + 0.04;
+            d[i * 3 + 2] = Math.random() * Math.PI * 2;
+
+            cols[i * 3] = 1;
+            cols[i * 3 + 1] = 0.6;
+            cols[i * 3 + 2] = 0.2;
         }
-        return [pos, d];
+        return [pos, d, cols];
     }, []);
 
     useFrame((state) => {
         if (!pointsRef.current) return;
         const t = state.clock.elapsedTime;
         const array = pointsRef.current.geometry.attributes.position.array;
+        const colorArray = pointsRef.current.geometry.attributes.color.array;
+        
         for (let i = 0; i < count; i++) {
             const idx = i * 3;
-            // Phase 1: Chaos (falling)
-            array[idx + 1] -= data[i * 2 + 1];
+            const clusterId = data[i * 3];
+            const speed = data[i * 3 + 1];
+            const phase = data[i * 3 + 2];
+
+            // Core falling movement
+            array[idx + 1] -= speed;
+
+            // Clustered Trajectory Logic
+            const clusterAngle = (clusterId / clustersCount) * Math.PI * 2 + t * 0.2;
+            const radius = 3.5 + Math.sin(t * 0.5 + phase) * 0.5;
             
-            // Phase 2: Structural Pipeline (if y is between 1 and 4)
-            if (array[idx + 1] > 1 && array[idx + 1] < 4) {
-                const angle = data[i * 2];
-                array[idx] = THREE.MathUtils.lerp(array[idx], Math.cos(t * 0.5 + angle) * 4, 0.02);
-                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], Math.sin(t * 0.5 + angle) * 4, 0.02);
+            // Particles pull towards cluster path as they pass through "active" zone
+            if (array[idx + 1] > -2 && array[idx + 1] < 6) {
+                const targetX = Math.cos(clusterAngle) * radius;
+                const targetZ = Math.sin(clusterAngle) * radius;
+                array[idx] = THREE.MathUtils.lerp(array[idx], targetX, 0.05);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], targetZ, 0.05);
+                
+                // Color shift based on position
+                colorArray[idx] = 1.0;
+                colorArray[idx + 1] = 0.4 + Math.sin(t + phase) * 0.3;
+                colorArray[idx + 2] = 0.1;
             }
 
-            if (array[idx + 1] < -5) {
-                array[idx + 1] = 10;
-                array[idx] = (Math.random() - 0.5) * 8;
-                array[idx + 2] = (Math.random() - 0.5) * 8;
+            if (array[idx + 1] < -6) {
+                array[idx + 1] = 12;
+                array[idx] = (Math.random() - 0.5) * 10;
+                array[idx + 2] = (Math.random() - 0.5) * 10;
             }
         }
         pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        pointsRef.current.geometry.attributes.color.needsUpdate = true;
     });
 
     return (
         <points ref={pointsRef}>
             <bufferGeometry>
-                <bufferAttribute
-                    attach="attributes-position"
-                    count={positions.length / 3}
-                    array={positions}
-                    itemSize={3}
-                />
+                <bufferAttribute attach="attributes-position" count={positions.length / 3} array={positions} itemSize={3} />
+                <bufferAttribute attach="attributes-color" count={colors.length / 3} array={colors} itemSize={3} />
             </bufferGeometry>
-            <pointsMaterial size={0.06} color="#ffaa44" transparent opacity={0.6} blending={THREE.AdditiveBlending} />
+            <pointsMaterial size={0.07} vertexColors transparent opacity={0.8} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
@@ -277,7 +291,7 @@ const ArtisticIntervention = ({ slug }) => {
         case 'software-dev':
             return <DataPipeline />;
         case 'digital-graphics':
-            return <ScanLine />; // Add scanline as back backup
+            return null; // Effect moved directly to sculpture mesh via Iris Shader
         default:
             return null;
     }
@@ -287,7 +301,11 @@ const SculptureModel = () => {
     const { scene } = useGLTF('/models/sculpture.glb');
     const { sculptureConfig: config, activeSlug, view } = useAppStore();
     
-    // Debug log to help identify why effects might not trigger
+    // Safety check for scale and position from admin config
+    const safeScale = Math.max(0.1, config.scale || 1.0);
+    const safeY = Math.max(-15, Math.min(15, config.y || 0));
+
+    // Debug log
     useEffect(() => {
         if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
             console.log("3D Artistic State:", { view, activeSlug });
@@ -329,14 +347,14 @@ const SculptureModel = () => {
 
                     // --- APPLY EFFECTS ---
                     if (isServicesOrDetail) {
-                        // 1. Digital Graphics (Iris Shader)
+                        // 1. Digital Graphics (Enhanced Iris Shader)
                         if (activeSlug === 'digital-graphics') {
                             mat.wireframe = true;
-                            mat.opacity = 0.8;
+                            mat.opacity = 0.9;
                             mat.transparent = true;
                             if (mat.emissive) {
                                 mat.emissive.set("#ffaa44");
-                                mat.emissiveIntensity = 2.0;
+                                mat.emissiveIntensity = 4.0; // Stronger glow
                             }
                             
                             // Track for animation
@@ -351,12 +369,15 @@ const SculptureModel = () => {
                                     `.replace(
                                         `#include <color_fragment>`,
                                         `#include <color_fragment>
+                                         float wave = sin(vUv.x * 20.0 + uTime * 2.0) * cos(vUv.y * 20.0 + uTime);
                                          vec3 iris = vec3(
-                                             sin(vUv.x * 5.0 + uTime) * 0.5 + 0.5,
-                                             sin(vUv.y * 5.0 + uTime + 2.0) * 0.5 + 0.5,
-                                             sin(vUv.x * 5.0 - uTime + 4.0) * 0.5 + 0.5
+                                             sin(vUv.x * 10.0 + uTime) * 0.5 + 0.5,
+                                             sin(vUv.y * 10.0 + uTime + 2.0) * 0.5 + 0.5,
+                                             sin(vUv.x * 10.0 - uTime + 4.0) * 0.5 + 0.5
                                          );
-                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.6);
+                                         // High contrast sharpening
+                                         iris = smoothstep(0.1, 0.9, iris);
+                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.8 + wave * 0.2);
                                         `
                                     );
                                     mat.userData.shader = shader;
@@ -383,7 +404,7 @@ const SculptureModel = () => {
         });
     }, [clonedScene, activeSlug, view]);
 
-    // Lightweight separate effect for slider updates (no material cloning, no re-compile)
+    // Lightweight separate effect for slider updates
     useEffect(() => {
         clonedScene.traverse((node) => {
             if (node.isMesh && node.material) {
@@ -410,10 +431,10 @@ const SculptureModel = () => {
             rotationIntensity={isGamedev ? 2.5 : 0.05} 
             floatIntensity={isGamedev ? 3.5 : 0.1}
         >
-            <Center bottom position={[0, config.y, 0]}>
+            <Center bottom position={[0, safeY, 0]}>
                 <primitive 
                     object={clonedScene} 
-                    scale={config.scale} 
+                    scale={safeScale} 
                     rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
                 />
                 {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && (
