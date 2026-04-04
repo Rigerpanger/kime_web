@@ -60,14 +60,10 @@ const CameraRig = () => {
         let lerpSpeed = 1.5;
 
         // Determine Section Context
-        if (view === VIEWS.HOME && !showStudioEditor) {
-            targetPos = [0, 0, 18];
-            targetLook = [0, 0, 0];
-        } else {
-            // Read Camera connected to the active website section directly
-            const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-            
-            let activeCam = currentSection?.camera;
+        // Read Camera connected to the active website section directly
+        const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+        
+        let activeCam = currentSection?.camera;
             
             // Legacy Migration on the fly
             if (activeCam && activeCam.pos && activeCam.azimuth === undefined) {
@@ -108,7 +104,6 @@ const CameraRig = () => {
                 targetPos = [0, 0, 14];
                 targetLook = [0, 0, 0];
             }
-        }
 
         // Apply Smoothing
         vecPos.set(...targetPos);

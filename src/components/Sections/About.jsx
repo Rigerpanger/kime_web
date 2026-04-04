@@ -11,6 +11,13 @@ const About = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [selectedFullCert, setSelectedFullCert] = useState(null);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
+    const setActiveSlug = useAppStore(s => s.setActiveSlug);
+
+    useEffect(() => {
+        if (!isMobile) {
+            setActiveSlug(`about-slide-${currentSlide}`);
+        }
+    }, [currentSlide, isMobile, setActiveSlug]);
 
     const [content, setContent] = useState({
         slide1_title: 'О СТУДИИ',

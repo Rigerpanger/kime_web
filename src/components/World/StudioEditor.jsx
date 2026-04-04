@@ -95,11 +95,19 @@ const StudioEditor = () => {
 
     const SECTION_NAMES = {
         "default": "Главная (Home)",
-        "digital-graphics": "Digital Graphics",
-        "ar-vr": "AR/VR",
-        "software-dev": "Software Dev",
-        "gamedev": "GameDev",
-        "ai-ml": "AI / ML"
+        "about": "О компании (About)",
+        "services": "Услуги (Services)",
+        "projects": "Проекты (Projects)",
+        "contact": "Контакты (Contact)",
+        "about-slide-0": "О компании: Слайд 1 (О Студии)",
+        "about-slide-1": "О компании: Слайд 2 (Наш подход)",
+        "about-slide-2": "О компании: Слайд 3 (Лидерство)",
+        "about-slide-3": "О компании: Слайд 4 (Нам доверяют)",
+        "digital-graphics": "Служба: Digital Graphics",
+        "ar-vr": "Служба: AR/VR",
+        "software-dev": "Служба: Software Dev",
+        "gamedev": "Служба: GameDev",
+        "ai-ml": "Служба: AI / ML"
     };
 
     return (
@@ -141,24 +149,10 @@ const StudioEditor = () => {
                 </button>
             </div>
 
-            {/* Column 2: The List (Navigation/Context) */}
-            <div className="w-[240px] shrink-0 border-r border-white/5 p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-white/[0.02]">
-                <h4 className="text-[9px] uppercase font-bold tracking-widest text-white/30 mb-2">Навигация</h4>
-
-                {activeTab === 'camera' && (
-                    Object.keys(SECTION_NAMES).map(slug => (
-                        <button 
-                            key={slug} 
-                            onClick={() => {
-                                setActiveSlug(slug);
-                                setView('SERVICES'); // Force camera to move
-                            }}
-                            className={`w-full text-left px-4 py-3 rounded-xl text-[10px] font-bold transition-all ${activeSlug === slug ? 'bg-white/10 text-[#ffcc00] border border-[#ffcc00]/30 shadow-lg shadow-[#ffcc00]/10' : 'bg-white/5 text-white/60 hover:bg-white/10 border border-transparent'}`}
-                        >
-                            {SECTION_NAMES[slug]}
-                        </button>
-                    ))
-                )}
+            {/* Column 2: Contextual Configuration (Lights & FX) */}
+            {activeTab !== 'camera' && activeTab !== 'mat' && (
+                <div className="w-[240px] shrink-0 border-r border-white/5 p-5 flex flex-col gap-2 overflow-y-auto custom-scrollbar bg-white/[0.02]">
+                    <h4 className="text-[9px] uppercase font-bold tracking-widest text-white/30 mb-2">Объекты</h4>
 
                 {activeTab === 'light' && (
                     <>
@@ -192,7 +186,8 @@ const StudioEditor = () => {
                         ))}
                     </div>
                 )}
-            </div>
+                </div>
+            )}
 
             {/* Column 3: Properties (Grid) */}
             <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">

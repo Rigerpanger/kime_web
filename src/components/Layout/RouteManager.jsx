@@ -12,34 +12,39 @@ const RouteManager = () => {
 
         if (path === '/') {
             setView(VIEWS.HOME);
-            setActiveSlug(null);
+            setActiveSlug('default');
         }
         else if (path.startsWith('/services')) {
             if (path === '/services') {
                 setView(VIEWS.SERVICES);
-                setActiveSlug(null);
+                setActiveSlug('services');
             } else {
                 const slug = path.split('/')[2];
                 setView(VIEWS.SERVICE_DETAIL);
                 setActiveSlug(slug);
             }
         }
-        else if (path === '/projects') {
-            setView(VIEWS.PROJECTS);
-            setActiveSlug(null);
+        else if (path.startsWith('/projects')) {
+            if (path === '/projects') {
+                setView(VIEWS.PROJECTS);
+                setActiveSlug('projects');
+            } else {
+                const slug = path.split('/')[2];
+                setView(VIEWS.PROJECTS);
+                setActiveSlug(slug);
+            }
         }
         else if (path === '/about') {
             setView(VIEWS.ABOUT);
-            setActiveSlug(null);
+            setActiveSlug('about');
         }
         else if (path === '/contact') {
             setView(VIEWS.CONTACT);
-            setActiveSlug(null);
+            setActiveSlug('contact');
         }
-
         else {
             setView(VIEWS.HOME); // Fallback
-            setActiveSlug(null);
+            setActiveSlug('default');
         }
 
     }, [location, setView, setActiveSlug]);

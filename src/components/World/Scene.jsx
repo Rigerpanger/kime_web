@@ -76,10 +76,27 @@ const Scene = () => {
                         makeDefault 
                         enablePan={false}
                         onStart={() => { if (setOrbiting) setOrbiting(true); }}
-                        onEnd={() => { 
+                        onEnd={(e) => { 
+                            try {
+                                const cam = e.target.object;
+                                const tgt = e.target.target;
+                                
+                                const rad = cam.position.distanceTo(tgt);
+                                const dVec = new THREE.Vector3().subVectors(cam.position, tgt);
+                                const pol = (Math.acos(dVec.y / rad) * 180) / Math.PI;
+                                const azi = (Math.atan2(dVec.x, dVec.z) * 180) / Math.PI;
+
+                                const store = useAppStore.getState();
+                                store.updateSectionCamera(store.activeSlug, {
+                                    pivotX: tgt.x, pivotY: tgt.y, pivotZ: tgt.z,
+                                    radius: isNaN(rad) ? 16 : rad, 
+                                    polar: isNaN(pol) ? 90 : pol, 
+                                    azimuth: isNaN(azi) ? 0 : azi
+                                });
+                            } catch(err) {
+                                console.error('Orbit End Error:', err);
+                            }
                             if (setOrbiting) setOrbiting(false); 
-                            // Auto capture on release!
-                            if (triggerCapture) triggerCapture();
                         }}
                     />
                 )}
