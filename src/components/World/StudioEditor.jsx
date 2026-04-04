@@ -235,7 +235,7 @@ const StudioEditor = () => {
                                     <Check size={14} /> Авто-захват активен
                                 </div>
                                 <button 
-                                    onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
+                                    onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
                                     className="px-4 py-3 bg-white/5 text-white/60 border border-white/10 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 flex items-center justify-center gap-2 transition-all"
                                 >
                                     <Zap size={14} /> Центр Модели
@@ -243,22 +243,28 @@ const StudioEditor = () => {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-8">
+                        <div className="grid grid-cols-3 gap-8">
                             <div className="space-y-4">
                                 <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-1">Фокус (Точка куда смотрит камера)</h5>
-                                {renderSlider('X (Влево/Вправо)', activeCam.pivotX, -25, 25, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
-                                {renderSlider('Y (Вверх/Вниз)', activeCam.pivotY, -15, 35, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                {renderSlider('Z (Вперед/Назад)', activeCam.pivotZ, -25, 25, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
+                                {renderSlider('Focus X Offset', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotX: v }))}
+                                {renderSlider('Focus Y Offset', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotY: v }))}
+                                {renderSlider('Focus Z Offset', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { ...activeCam, pivotZ: v }))}
+                            </div>
+                            <div className="space-y-4">
+                                <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-1">Трансформация Скульптуры (Глобально)</h5>
+                                {renderSlider('Placement (Выше/Ниже)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                {renderSlider('Global Scale (Больше/Меньше)', config.scale, 1, 200, 1, (v) => setConfig({ scale: v }))}
+                                {renderSlider('Base Rotation (Поворот)', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
                             </div>
                             <div className="space-y-6 pt-2">
                                 <h5 className="text-[8px] uppercase tracking-widest text-indigo-400/50 mb-1">Линза & Центровка</h5>
-                                {renderSlider('Zoom (Приближение/Дистанция)', activeCam.radius, 1, 55, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
-                                <div className="pt-4">
+                                {renderSlider('Zoom (Приближение/Дистанция)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { ...activeCam, radius: v }))}
+                                <div className="pt-2">
                                     <button 
-                                        onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
+                                        onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 12.5, pivotZ: 0 })}
                                         className="w-full py-4 bg-white/5 border border-white/10 text-white/80 rounded-xl text-[10px] font-black uppercase hover:bg-white/10 hover:text-[#ffcc00] flex items-center justify-center gap-3 transition-all"
                                     >
-                                        <Zap size={16} /> Сбросить фокус в центр
+                                        <Zap size={16} /> Центровать по груди
                                     </button>
                                     <p className="text-[8px] text-white/20 mt-3 text-center uppercase tracking-widest">
                                         Вращение (Поворот/Наклон) выполняется мышью во вьюпорте

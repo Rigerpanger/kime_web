@@ -44,7 +44,7 @@ function migrateOldCamera(oldCam) {
 
 const DEFAULT_SECTIONS = {
   "default": {
-    camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
+    camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 12.5, pivotZ: 0 },
     fx: Array(5).fill(0).map((_, i) => ({ id: `${i+1}`, type: 'None', active: false }))
   }
 };
