@@ -517,8 +517,11 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         const chatId = update.message.chat.id;
         const text = update.message.text;
         const MessageId = update.message.message_id;
-        const user = update.message.from.username;
-        if (!user) return res.sendStatus(200); // Требуем, чтобы у сотрудника был @username
+        let user = update.message.from.username;
+        // Если у пользователя нет @username в настройках Telegram, берем его Имя
+        if (!user) {
+            user = update.message.from.first_name || update.message.from.id.toString();
+        }
 
         const isPrivate = update.message.chat.type === 'private';
         
@@ -691,6 +694,7 @@ $$IGNORE$$
         } else {
             const errBody = await aiRes.text();
             console.error('AI Error Body:', errBody);
+            await sendTelegramMessage(chatId, `❌ Ошибка доступа к нейросети (Proxy). Код: ${aiRes.status}`);
         }
         res.sendStatus(200);
     } catch (err) {
