@@ -15,23 +15,11 @@ const StudioEditor = () => {
     const setView = useAppStore(s => s.setView);
     const setActiveSlug = useAppStore(s => s.setActiveSlug);
     
-    const panelRef = React.useRef(null);
+    const setIsOverPanel = useAppStore(s => s.setIsOverPanel);
+    
+    // Clean up redundant manual listeners - we'll use isOverPanel + disabled OrbitControls instead
     useEffect(() => {
-        const el = panelRef.current;
-        if (!el) return;
-        const stopEvent = (e) => e.stopPropagation();
-        el.addEventListener('wheel', stopEvent, { passive: false });
-        el.addEventListener('touchmove', stopEvent, { passive: false });
-        el.addEventListener('mousedown', stopEvent, { passive: false });
-        el.addEventListener('mouseup', stopEvent, { passive: false });
-        el.addEventListener('click', stopEvent, { passive: false });
-        return () => {
-            el.removeEventListener('wheel', stopEvent);
-            el.removeEventListener('touchmove', stopEvent);
-            el.removeEventListener('mousedown', stopEvent);
-            el.removeEventListener('mouseup', stopEvent);
-            el.removeEventListener('click', stopEvent);
-        };
+        return () => setIsOverPanel(false);
     }, []);
     
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
@@ -108,30 +96,25 @@ const StudioEditor = () => {
 
     return (
         <div 
-            ref={panelRef} 
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerUp={(e) => e.stopPropagation()}
-            onPointerMove={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-            onMouseUp={(e) => e.stopPropagation()}
+            onMouseEnter={() => setIsOverPanel(true)}
+            onMouseLeave={() => setIsOverPanel(false)}
             className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[40px]' : 'h-[180px]'}`}
         >
             <button 
                 onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-                className="absolute top-[-1px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-b-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10000]"
+                className="absolute top-[-26px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-t-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10001] shadow-lg"
             >
                 {isCollapsed ? <><ChevronUp size={12} /> Развернуть</> : <><ChevronDown size={12} /> Свернуть</>}
             </button>
 
             {isCollapsed ? (
-                <div className="w-full h-full flex items-center px-6 gap-6 pointer-events-none">
+                <div className="w-full h-full flex items-center px-6 gap-6">
                     <div className="flex items-center gap-2 opacity-50">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse" />
                         <h3 className="text-[8px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
                     </div>
                     <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
-                        Режим: {SECTION_NAMES[activeSlug] || activeSlug}
+                        Раздел: {SECTION_NAMES[activeSlug] || activeSlug}
                     </div>
                 </div>
             ) : (

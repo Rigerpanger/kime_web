@@ -8,14 +8,15 @@ const CameraRig = () => {
     const activeSlug = useAppStore(s => s.activeSlug) || 'default';
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
-    const isOrbiting = useAppStore(s => s.isOrbiting);
-
+    const isOverPanel = useAppStore(s => s.isOverPanel);
+ 
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
-
+ 
     useFrame((state, delta) => {
         // If the user uses OrbitControls mouse interaction in editor, pause smoothing
-        if (isOrbiting && showStudioEditor) return;
+        // UNLESS we are currently over the panel (adjusting sliders)
+        if (isOrbiting && showStudioEditor && !isOverPanel) return;
 
         let targetPos = [0, 0, 16];
         let targetLook = [0, 0, 0];
@@ -56,25 +57,25 @@ const CameraRig = () => {
                 pz + r * Math.sin(phi) * Math.cos(theta)
             ];
 
-            // Faster LERP in editor for real-time slider feedback
-            if (showStudioEditor) {
-                lerpSpeed = 8.0; 
+            // Cinematic Smoothing using damp
+            const smoothing = isOverPanel ? 12.0 : 3.5; 
+            
+            // Apply Position Smoothing
+            camera.position.x = THREE.MathUtils.damp(camera.position.x, targetPos[0], smoothing, delta);
+            camera.position.y = THREE.MathUtils.damp(camera.position.y, targetPos[1], smoothing, delta);
+            camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos[2], smoothing, delta);
+
+            // Apply Target Smoothing
+            if (controls) {
+                controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLook[0], smoothing, delta);
+                controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLook[1], smoothing, delta);
+                controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLook[2], smoothing, delta);
+                controls.update();
+            } else {
+                vecTarget.set(...targetLook);
+                camera.lookAt(vecTarget);
             }
-        } else {
-            targetPos = [0, 0, 14];
-            targetLook = [0, 0, 0];
-        }
-
-        // Apply Smoothing
-        vecPos.set(...targetPos);
-        camera.position.lerp(vecPos, delta * lerpSpeed);
-
-        vecTarget.set(...targetLook);
-        if (controls) {
-            controls.target.lerp(vecTarget, delta * lerpSpeed);
-            controls.update();
-        } else {
-            camera.lookAt(vecTarget);
+            return;
         }
     });
 

@@ -82,9 +82,11 @@ const useAppStore = create(
       isModalOpen: false,
       isScrollLocked: false,
       isOrbiting: false,
+      isOverPanel: false,
 
       setView: (view) => set({ view }),
       setOrbiting: (status) => set({ isOrbiting: status }),
+      setIsOverPanel: (val) => set({ isOverPanel: val }),
       setHoveredChunk: (chunkId) => set({ hoveredChunk: chunkId }),
       setActiveSlug: (slug) => set({ activeSlug: slug }),
       

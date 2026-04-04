@@ -59,6 +59,7 @@ const Scene = () => {
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const setOrbiting = useAppStore(s => s.setOrbiting);
     const triggerCapture = useAppStore(s => s.triggerCapture);
+    const isOverPanel = useAppStore(s => s.isOverPanel);
 
     return (
         <ErrorBoundary>
@@ -74,7 +75,10 @@ const Scene = () => {
                 {showStudioEditor && (
                     <OrbitControls 
                         makeDefault 
-                        enablePan={false}
+                        enabled={!isOverPanel}
+                        enablePan={true}
+                        enableDamping={true}
+                        dampingFactor={0.05}
                         onStart={() => { if (setOrbiting) setOrbiting(true); }}
                         onEnd={(e) => { 
                             try {
@@ -85,7 +89,7 @@ const Scene = () => {
                                 const dVec = new THREE.Vector3().subVectors(cam.position, tgt);
                                 const pol = (Math.acos(dVec.y / rad) * 180) / Math.PI;
                                 const azi = (Math.atan2(dVec.x, dVec.z) * 180) / Math.PI;
-
+ 
                                 const store = useAppStore.getState();
                                 store.updateSectionCamera(store.activeSlug, {
                                     pivotX: tgt.x, pivotY: tgt.y, pivotZ: tgt.z,
