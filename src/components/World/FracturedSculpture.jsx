@@ -90,7 +90,7 @@ const FlashEffect = () => {
 
     useEffect(() => {
         if (!activeSlug) return;
-        setIntensity(40); // Increased intensity
+        setIntensity(40);
         const t = setTimeout(() => setIntensity(0), 800);
         return () => clearTimeout(t);
     }, [activeSlug]);
@@ -103,7 +103,7 @@ const FlashEffect = () => {
     return (
         <pointLight
             ref={light}
-            position={[0, 4.8, 1.2]} // Slightly higher and more forward
+            position={[0, 4.8, 1.2]} // At head level
             color="#ffffff"
             distance={20}
             decay={1.5}
@@ -141,15 +141,15 @@ const NeuralCore = () => {
             for (let i = 0; i < count; i++) {
                 const angle = phases[i] + t * 0.5;
                 const r = 2.5 + Math.sin(t + phases[i]) * 1.5;
-                attr.setXYZ(i * 2, 0, 1.5, 0); // Core center
-                attr.setXYZ(i * 2 + 1, Math.cos(angle) * r, 1.5 + Math.sin(angle * 2) * r, Math.sin(angle) * r);
+                attr.setXYZ(i * 2, 0, 4.8, 0); // Core center at head level
+                attr.setXYZ(i * 2 + 1, Math.cos(angle) * r, 4.8 + Math.sin(angle * 2) * r, Math.sin(angle) * r);
             }
             attr.needsUpdate = true;
         }
     });
 
     return (
-        <group>
+        <group position={[0, 3.3, 0]}> {/* Adjusted from 1.5 to 4.8 total */}
             {/* Geometric Core */}
             <mesh ref={coreRef} position={[0, 1.5, 0]}>
                 <icosahedronGeometry args={[0.5, 0]} />
@@ -170,36 +170,85 @@ const NeuralCore = () => {
     );
 };
 
+const ShapeShifter = () => {
+    const meshRef = useRef();
+    const [shape, setShape] = useState(0); // 0: cube, 1: sphere, 2: pyramid
+    
+    useFrame((state) => {
+        const t = state.clock.elapsedTime;
+        if (meshRef.current) {
+            meshRef.current.rotation.y = t * 0.5;
+            meshRef.current.rotation.z = t * 0.2;
+            
+            // Material Flip every 1.5s
+            const cycle = (t % 3) / 3;
+            const isWireframe = cycle > 0.5;
+            meshRef.current.material.wireframe = isWireframe;
+            meshRef.current.material.opacity = 0.5 + Math.sin(t * 2) * 0.3;
+            
+            // Switch shape every 3s
+            if (Math.floor(t / 3) % 4 !== shape) {
+                setShape(Math.floor(t / 3) % 3);
+            }
+        }
+    });
+
+    return (
+        <group position={[0, 1.5, 0]}>
+            <mesh ref={meshRef}>
+                {shape === 0 ? <boxGeometry args={[2, 2, 2]} /> : 
+                 shape === 1 ? <sphereGeometry args={[1.5, 32, 32]} /> : 
+                 <coneGeometry args={[1.5, 2.5, 4]} />}
+                <meshBasicMaterial 
+                    color="#ffaa44" 
+                    transparent 
+                    opacity={0.8} 
+                    blending={THREE.AdditiveBlending} 
+                />
+            </mesh>
+            <pointLight distance={10} intensity={2} color="#ffaa44" />
+        </group>
+    );
+};
+
 const TetrisReveal = ({ onRevealed }) => {
     const [blocks, setBlocks] = useState([]);
-    const [count, setCount] = useState(0);
+    const sculptureRevealed = useRef(false);
 
     useEffect(() => {
-        // Spawn 6 blocks sequentially
-        const interval = setInterval(() => {
+        const spawnBlock = () => {
             setBlocks(prev => {
-                if (prev.length >= 6) {
-                    clearInterval(interval);
-                    return prev;
-                }
+                if (prev.length >= 6) return prev;
                 return [...prev, {
                     id: Math.random(),
                     pos: new THREE.Vector3((Math.random() - 0.5) * 4, 15, (Math.random() - 0.5) * 4),
-                    speed: 0.15 + Math.random() * 0.1
+                    speed: 0.08 + Math.random() * 0.05 // Slower speed
                 }];
             });
-        }, 1000);
+        };
+        const interval = setInterval(spawnBlock, 1500);
         return () => clearInterval(interval);
     }, []);
 
     useFrame((state, delta) => {
+        let lowestY = 15;
         blocks.forEach(b => {
             if (b.pos.y > -5) {
                 b.pos.y -= b.speed;
-                // As blocks fall, they "reveal" the model based on their lowest achievement
-                onRevealed(Math.max(-5, 12 - b.pos.y * 1.5));
+                lowestY = Math.min(lowestY, b.pos.y);
             }
         });
+        
+        // Reveal model based on block progress
+        if (!sculptureRevealed.current) {
+            const h = Math.max(-5, 12 - lowestY * 1.5);
+            onRevealed(h);
+            if (h >= 12) {
+                sculptureRevealed.current = true;
+                // Clear blocks after a delay
+                setTimeout(() => setBlocks([]), 2000);
+            }
+        }
     });
 
     return (
@@ -327,7 +376,7 @@ const SoftwareSilhouette = ({ targetVertices }) => {
             <bufferGeometry>
                 <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
             </bufferGeometry>
-            <pointsMaterial size={0.05} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
+            <pointsMaterial size={0.25} color="#ffaa44" transparent opacity={0.8} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
@@ -335,7 +384,7 @@ const SoftwareSilhouette = ({ targetVertices }) => {
 const ArtisticIntervention = ({ slug, targetVertices, onRevealed }) => {
     switch (slug) {
         case 'ar-vr':
-            return <ARGhosts />;
+            return <ShapeShifter />;
         case 'ai-ml':
             return <NeuralCore />;
         case 'software-dev':
@@ -405,12 +454,12 @@ const SculptureModel = () => {
                 if (mat) {
                     const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
                     
-                    // --- RESET TO BASE ---
+                    // --- RESET TO BASE (CRITICAL BUG FIX) ---
                     mat.wireframe = false;
                     mat.opacity = 1.0;
                     mat.transparent = false;
                     mat.color.set("#ffffff");
-                    mat.clippingPlanes = []; // Reset any clipping
+                    mat.clippingPlanes = []; 
                     if (mat.emissive) {
                         mat.emissive.set("#000000");
                         mat.emissiveIntensity = 0;
@@ -418,7 +467,7 @@ const SculptureModel = () => {
 
                     // --- APPLY EFFECTS ---
                     if (isServicesOrDetail) {
-                        // 1. Digital Graphics (Enhanced Iris Shader with fallback)
+                        // 1. Digital Graphics (Iris Shader)
                         if (activeSlug === 'digital-graphics') {
                             mat.wireframe = true;
                             mat.opacity = 0.9;
@@ -428,19 +477,19 @@ const SculptureModel = () => {
                                 mat.emissiveIntensity = 4.0;
                             }
                             
-                            // Track for animation
                             irisMaterials.current.push(mat);
 
                             if (!mat.userData.irisApplied) {
                                 mat.onBeforeCompile = (shader) => {
                                     shader.uniforms.uTime = { value: 0 };
+                                    shader.uniforms.uIrisMix = { value: 1.0 }; // ADD MIX UNIFORM
                                     shader.fragmentShader = `
                                         uniform float uTime;
+                                        uniform float uIrisMix;
                                         ${shader.fragmentShader}
                                     `.replace(
                                         `#include <color_fragment>`,
                                         `#include <color_fragment>
-                                         // Fallback to world position / normals if UV is broken
                                          vec2 uv = (vUv.x == 0.0 && vUv.y == 0.0) ? vNormal.xy : vUv;
                                          float wave = sin(uv.x * 20.0 + uTime * 2.0) * cos(uv.y * 20.0 + uTime);
                                          vec3 iris = vec3(
@@ -449,12 +498,16 @@ const SculptureModel = () => {
                                              sin(uv.x * 10.0 - uTime + 4.0) * 0.5 + 0.5
                                          );
                                          iris = smoothstep(0.1, 0.9, iris);
-                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, 0.8 + wave * 0.2);
+                                         diffuseColor.rgb = mix(diffuseColor.rgb, iris, (0.8 + wave * 0.2) * uIrisMix);
                                         `
                                     );
                                     mat.userData.shader = shader;
                                 };
                                 mat.userData.irisApplied = true;
+                            }
+                            // Set mix to 1.0 if mode active
+                            if (mat.userData.shader) {
+                                mat.userData.shader.uniforms.uIrisMix.value = 1.0;
                             }
                         } 
                         // 2. Gamedev (Mask/Reveal)
@@ -462,6 +515,7 @@ const SculptureModel = () => {
                             if (!mat.userData.revealApplied) {
                                 mat.onBeforeCompile = (shader) => {
                                     shader.uniforms.uRevealHeight = { value: 20 };
+                                    shader.uniforms.uRevealMix = { value: 1.0 }; // ADD REVEAL MIX
                                     shader.vertexShader = `
                                         varying vec3 vWorldPos;
                                         ${shader.vertexShader}
@@ -473,24 +527,35 @@ const SculptureModel = () => {
                                     );
                                     shader.fragmentShader = `
                                         uniform float uRevealHeight;
+                                        uniform float uRevealMix;
                                         varying vec3 vWorldPos;
                                         ${shader.fragmentShader}
                                     `.replace(
                                         `#include <clipping_planes_fragment>`,
                                         `#include <clipping_planes_fragment>
-                                         if (vWorldPos.y > uRevealHeight) discard;
+                                         if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
                                         `
                                     );
                                     mat.userData.revealShader = shader;
                                 };
                                 mat.userData.revealApplied = true;
                             }
-                            mat.opacity = 0.4; // Base ghostly look before reveal
+                            mat.opacity = 0.4;
                             mat.transparent = true;
+                            if (mat.userData.revealShader) {
+                                mat.userData.revealShader.uniforms.uRevealMix.value = 1.0;
+                            }
                         }
                     }
 
-                    // --- CONFIG / SLIDER VALUES ---
+                    // Turn off effects if mode changed (ensuring model doesn't stay invisible)
+                    if (activeSlug !== 'digital-graphics' && mat.userData.shader) {
+                        mat.userData.shader.uniforms.uIrisMix.value = 0.0;
+                    }
+                    if (activeSlug !== 'gamedev' && mat.userData.revealShader) {
+                        mat.userData.revealShader.uniforms.uRevealMix.value = 0.0;
+                    }
+
                     mat.envMapIntensity = config.envMapIntensity ?? 0.02;
                     mat.roughness = config.roughness ?? 0.85;
                     mat.metalness = config.metalness ?? 0;
@@ -542,6 +607,20 @@ const SculptureModel = () => {
     );
 };
 
+const SmoothLoader = ({ progress }) => {
+    const [smoothProgress, setSmoothProgress] = useState(0);
+    useFrame(() => {
+        setSmoothProgress(prev => THREE.MathUtils.lerp(prev, progress, 0.1));
+    });
+    return (
+        <Html center>
+            <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '14px', whiteSpace: 'nowrap' }}>
+                LOADING ARTIFACT... {Math.round(smoothProgress)}%
+            </div>
+        </Html>
+    );
+};
+
 const BrutalistTotem = () => {
     const { view, activeSlug } = useAppStore();
     const { progress } = useProgress();
@@ -550,13 +629,7 @@ const BrutalistTotem = () => {
         <group>
             <TotemCameraRig />
 
-            <Suspense fallback={
-                <Html center>
-                    <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '14px', whiteSpace: 'nowrap' }}>
-                        LOADING ARTIFACT... {Math.round(progress)}%
-                    </div>
-                </Html>
-            }>
+            <Suspense fallback={<SmoothLoader progress={progress} />}>
                 <ambientLight intensity={0.005} /> 
                 <pointLight position={[10, 10, 10]} intensity={0.01} />
                 <SculptureModel />
