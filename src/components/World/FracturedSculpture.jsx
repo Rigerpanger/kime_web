@@ -89,6 +89,7 @@ const ScanLine = () => {
     const mesh = useRef();
     useFrame((state) => {
         if (!mesh.current) return;
+        // Position relative to sculpture center
         mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 4 + 2;
     });
 
@@ -195,6 +196,13 @@ const SculptureModel = () => {
     const { scene } = useGLTF('/models/sculpture.glb');
     const { sculptureConfig: config, activeSlug, view } = useAppStore();
     
+    // Debug log to help identify why effects might not trigger
+    useEffect(() => {
+        if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
+            console.log("3D Intervention State:", { view, activeSlug });
+        }
+    }, [view, activeSlug]);
+
     const clonedScene = useMemo(() => scene.clone(), [scene]);
     
     useEffect(() => {
@@ -245,6 +253,7 @@ const SculptureModel = () => {
                     scale={config.scale} 
                     rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
                 />
+                {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && <ArtisticIntervention slug={activeSlug} />}
             </Center>
         </Float>
     );
@@ -266,8 +275,6 @@ const BrutalistTotem = () => {
                 <pointLight position={[10, 10, 10]} intensity={0.01} />
                 <SculptureModel />
                 
-                {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && <ArtisticIntervention slug={activeSlug} />}
-
                 <ContactShadows position={[0, -5, 0]} opacity={0.3} scale={20} blur={2.5} far={10} color="#000000" />
             </Suspense>
 
