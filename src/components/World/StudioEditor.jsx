@@ -32,28 +32,25 @@ const StudioEditor = () => {
     // Actions
     const updateSectionCameraId = useAppStore(s => s.updateSectionCameraId);
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
+    const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
     const updateLight = useAppStore(s => s.updateLight);
     const addLight = useAppStore(s => s.addLight);
     const removeLight = useAppStore(s => s.removeLight);
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
 
-    const updateCamera = useAppStore(s => s.updateCamera);
-    const addCamera = useAppStore(s => s.addCamera);
-    const removeCamera = useAppStore(s => s.removeCamera);
-    const globalActiveCameraId = useAppStore(s => s.activeCameraId);
-    const setActiveCameraId = useAppStore(s => s.setActiveCameraId);
-
     const triggerCapture = useAppStore(s => s.triggerCapture);
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
-    const [activeTab, setActiveTab] = useState('fx');
+    const [activeTab, setActiveTab] = useState('camera');
     const [activeSlot, setActiveSlot] = useState(0);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-    const activeCameraId = currentSection?.cameraId;
-    const activeCam = config.cameras?.find(c => c.id === activeCameraId);
+    
+    // Use the camera directly attached to the section (or fallback to defaults)
+    const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 };
+
     const rawFX = currentSection?.fx?.[activeSlot] || {};
     const currentFX = {
         type: rawFX.type || 'None',
@@ -200,7 +197,7 @@ const StudioEditor = () => {
             {/* Column 3: Properties (Grid) */}
             <div className="flex-1 p-6 overflow-y-auto custom-scrollbar">
                 
-                {activeTab === 'camera' && activeCam && (
+                {activeTab === 'camera' && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between pb-4 border-b border-white/5">
                             <div>
@@ -215,7 +212,7 @@ const StudioEditor = () => {
                                     <Camera size={14} /> Сохранить позицию мыши (Capture)
                                 </button>
                                 <button 
-                                    onClick={() => updateCamera(activeCam.id, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
+                                    onClick={() => updateSectionCamera(activeSlug, { pivotX: 0, pivotY: 5.1, pivotZ: 0 })}
                                     className="px-4 py-3 bg-white/5 text-white/60 border border-white/10 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 flex items-center justify-center gap-2 transition-all"
                                 >
                                     <Zap size={14} /> Центр Модели
@@ -226,15 +223,15 @@ const StudioEditor = () => {
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-5">
                                 <h5 className="text-[8px] uppercase tracking-widest text-[#ffcc00]/50 mb-2">Орбитальные настройки (Поворот / Приближение)</h5>
-                                {renderSlider('Azimuth (Поворот вокруг)', activeCam.azimuth, -180, 180, 1, (v) => updateCamera(activeCam.id, { azimuth: v }), v => `${v}°`)}
-                                {renderSlider('Elevation (Высота/Наклон)', activeCam.polar, 0, 180, 1, (v) => updateCamera(activeCam.id, { polar: v }), v => `${v}°`)}
-                                {renderSlider('Zoom (Радиус/Отдаление)', activeCam.radius, 1, 50, 0.5, (v) => updateCamera(activeCam.id, { radius: v }))}
+                                {renderSlider('Azimuth (Поворот вокруг)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
+                                {renderSlider('Elevation (Высота/Наклон)', activeCam.polar, 0, 180, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
+                                {renderSlider('Zoom (Радиус/Отдаление)', activeCam.radius, 1, 50, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                             </div>
                             <div className="space-y-5">
                                 <h5 className="text-[8px] uppercase tracking-widest text-indigo-400/50 mb-2">Настройки фокуса (Точка куда смотрит камера)</h5>
-                                {renderSlider('X (Влево/Вправо)', activeCam.pivotX, -20, 20, 0.1, (v) => updateCamera(activeCam.id, { pivotX: v }))}
-                                {renderSlider('Y (Вверх/Вниз)', activeCam.pivotY, -15, 30, 0.1, (v) => updateCamera(activeCam.id, { pivotY: v }))}
-                                {renderSlider('Z (Вперед/Назад)', activeCam.pivotZ, -20, 20, 0.1, (v) => updateCamera(activeCam.id, { pivotZ: v }))}
+                                {renderSlider('X (Влево/Вправо)', activeCam.pivotX, -20, 20, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
+                                {renderSlider('Y (Вверх/Вниз)', activeCam.pivotY, -15, 30, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                {renderSlider('Z (Вперед/Назад)', activeCam.pivotZ, -20, 20, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
                             </div>
                         </div>
                     </div>

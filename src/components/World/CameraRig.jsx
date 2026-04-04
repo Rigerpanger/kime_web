@@ -33,11 +33,12 @@ const CameraRig = () => {
             // Azimuthal angle (-PI to PI -> -180 to 180 degrees)
             const azimuth = (Math.atan2(deltaVec.x, deltaVec.z) * 180) / Math.PI;
 
+            const updateSectionCamera = useAppStore.getState().updateSectionCamera;
             const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-            const camIdToUpdate = currentSection?.cameraId;
-
-            if (camIdToUpdate) {
-                updateCamera(camIdToUpdate, {
+            
+            // Allow capture mapping strictly to activeSlug
+            if (activeSlug) {
+                updateSectionCamera(activeSlug, {
                     pivotX: target.x,
                     pivotY: target.y,
                     pivotZ: target.z,
@@ -45,7 +46,7 @@ const CameraRig = () => {
                     polar: isNaN(polar) ? 90 : polar,
                     azimuth: isNaN(azimuth) ? 0 : azimuth
                 });
-                console.log("Captured Orbital View for Camera:", camIdToUpdate);
+                console.log("Captured Orbital View for Section:", activeSlug);
             }
         }
     }, [captureTrigger, activeSlug, config.sections]);
@@ -63,11 +64,26 @@ const CameraRig = () => {
             targetPos = [0, 0, 18];
             targetLook = [0, 0, 0];
         } else {
-            // Find Active Camera connected to the active website section
+            // Read Camera connected to the active website section directly
             const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-            const currentCamId = currentSection?.cameraId;
-
-            const activeCam = config.cameras?.find(c => c.id === currentCamId) || config.cameras?.[0];
+            
+            let activeCam = currentSection?.camera;
+            
+            // Legacy Migration on the fly
+            if (activeCam && activeCam.pos && activeCam.azimuth === undefined) {
+               const dx = activeCam.pos[0] - (activeCam.target?.[0] || 0);
+               const dy = activeCam.pos[1] - (activeCam.pivotY !== undefined ? activeCam.pivotY : 0);
+               const dz = activeCam.pos[2] - (activeCam.target?.[2] || 0);
+               const radius = activeCam.zoom || Math.sqrt(dx*dx + dy*dy + dz*dz) || 16;
+               activeCam = {
+                  azimuth: isNaN(Math.atan2(dx, dz) * 180 / Math.PI) ? 0 : Math.atan2(dx, dz) * 180 / Math.PI,
+                  polar: isNaN(Math.acos(dy / radius) * 180 / Math.PI) ? 90 : Math.acos(dy / radius) * 180 / Math.PI,
+                  radius: radius,
+                  pivotX: activeCam.target?.[0] || 0,
+                  pivotY: activeCam.pivotY !== undefined ? activeCam.pivotY : 0,
+                  pivotZ: activeCam.target?.[2] || 0
+               };
+            }
 
             if (activeCam) {
                 const theta = (activeCam.azimuth || 0) * Math.PI / 180;

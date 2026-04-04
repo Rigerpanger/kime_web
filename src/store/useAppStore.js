@@ -228,6 +228,25 @@ const useAppStore = create(
       })),
 
       // NEW: Section-specific updates
+      updateSectionCamera: (slug, updates) => set((state) => {
+          const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
+          if (!sections[slug]) sections[slug] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
+          
+          sections[slug].camera = { 
+              ...(sections[slug].camera || {}), 
+              ...updates 
+          };
+          
+          // Clean up old legacy fields if orbital fields exist to avoid mixing formats
+          if (updates.azimuth !== undefined) {
+             delete sections[slug].camera.pos;
+             delete sections[slug].camera.target;
+             delete sections[slug].camera.zoom;
+          }
+
+          return { sculptureConfig: { ...state.sculptureConfig, sections } };
+      }),
+
       updateSectionCameraId: (slug, cameraId) => set((state) => {
           const sections = { ...state.sculptureConfig.sections };
           if (!sections[slug]) sections[slug] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
