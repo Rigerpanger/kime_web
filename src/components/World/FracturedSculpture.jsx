@@ -83,89 +83,178 @@ const GoldenDust = () => {
     );
 };
 
-// --- ARTISTIC INTERVENTIONS (The Banksy-style effects) ---
+const FlashEffect = () => {
+    const light = useRef();
+    const activeSlug = useAppStore(s => s.activeSlug);
+    const [intensity, setIntensity] = useState(0);
+
+    useEffect(() => {
+        if (!activeSlug) return;
+        setIntensity(20);
+        const t = setTimeout(() => setIntensity(0), 600);
+        return () => clearTimeout(t);
+    }, [activeSlug]);
+
+    useFrame((state, delta) => {
+        if (!light.current) return;
+        light.current.intensity = THREE.MathUtils.lerp(light.current.intensity, intensity, 0.15);
+    });
+
+    return (
+        <pointLight
+            ref={light}
+            position={[0, 4.5, 1]} // At "face" height
+            color="#ffffff"
+            distance={15}
+            decay={2}
+        />
+    );
+};
+
+// --- ARTISTIC INTERVENTIONS (The Kime-style Digital Art) ---
 
 const ScanLine = () => {
     const mesh = useRef();
     useFrame((state) => {
         if (!mesh.current) return;
-        // Position relative to sculpture center
-        mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 4 + 2;
+        // Move the scan beam up and down
+        mesh.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 4 + 3;
     });
 
     return (
-        <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[10, 10]} />
+        <mesh ref={mesh} rotation={[-Math.PI / 2, 0, 0]} position={[0,0,0.5]}>
+            <planeGeometry args={[12, 12]} />
             <meshBasicMaterial 
-                color="#ffcc00" 
+                color="#ffaa44" 
                 transparent 
-                opacity={0.15} 
+                opacity={0.3} 
                 side={THREE.DoubleSide}
                 blending={THREE.AdditiveBlending}
             />
-            <gridHelper args={[10, 20, "#ffcc00", "#ffcc00"]} rotation={[Math.PI / 2, 0, 0]} opacity={0.2} transparent />
+            <gridHelper args={[12, 60, "#ffaa44", "#ffaa44"]} rotation={[Math.PI / 2, 0, 0]} opacity={0.6} transparent />
         </mesh>
     );
 };
 
-const NeuralVeins = () => {
+const ARGhosts = () => {
     const group = useRef();
-    const count = 20;
-    const lines = useMemo(() => {
-        return new Array(count).fill(0).map(() => {
-            const start = new THREE.Vector3((Math.random() - 0.5) * 3, Math.random() * 8 - 2, (Math.random() - 0.5) * 3);
-            const end = start.clone().add(new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2));
-            return { points: [start, end], phase: Math.random() * Math.PI * 2 };
-        });
-    }, []);
+    const count = 5;
+    const ghosts = useMemo(() => new Array(count).fill(0).map((_, i) => ({
+        pos: new THREE.Vector3((Math.random() - 0.5) * 10, Math.random() * 8, (Math.random() - 0.5) * 8),
+        speed: Math.random() * 0.2 + 0.1,
+        type: i % 3, // 0: box, 1: sphere, 2: octahedron
+        id: i
+    })), []);
 
     useFrame((state) => {
         if (!group.current) return;
+        const t = state.clock.elapsedTime;
         group.current.children.forEach((child, i) => {
-            const pulse = (Math.sin(state.clock.elapsedTime * 2 + lines[i].phase) + 1) / 2;
-            child.material.opacity = 0.1 + pulse * 0.4;
+            child.position.y = ghosts[i].pos.y + Math.sin(t * ghosts[i].speed) * 0.5;
+            child.rotation.y += 0.01;
+            child.material.wireframe = Math.sin(t * 3 + ghosts[i].id) > 0;
+            child.material.opacity = 0.2 + (Math.sin(t + ghosts[i].id) + 1) * 0.2;
         });
     });
 
     return (
         <group ref={group}>
-            {lines.map((line, i) => (
-                <line key={i}>
-                    <bufferGeometry attach="geometry" onUpdate={self => self.setFromPoints(line.points)} />
-                    <lineBasicMaterial color="#ffcc00" transparent opacity={0.2} blending={THREE.AdditiveBlending} />
-                </line>
+            {ghosts.map((g, i) => (
+                <mesh key={i} position={g.pos}>
+                    {g.type === 0 ? <boxGeometry args={[1.5, 1.5, 1.5]} /> : 
+                     g.type === 1 ? <sphereGeometry args={[1]} /> : 
+                     <octahedronGeometry args={[1.2]} />}
+                    <meshBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+                </mesh>
             ))}
         </group>
     );
 };
 
-const LogicRain = () => {
-    const points = useRef();
-    const count = 100;
-    const [positions, speeds] = useMemo(() => {
-        const pos = new Float32Array(count * 3);
-        const spd = new Float32Array(count);
-        for (let i = 0; i < count; i++) {
-            pos[i * 3] = (Math.random() - 0.5) * 4;
-            pos[i * 3 + 1] = Math.random() * 10 - 2;
-            pos[i * 3 + 2] = (Math.random() - 0.5) * 4;
-            spd[i] = Math.random() * 0.05 + 0.02;
-        }
-        return [pos, spd];
+const NeuralHalo = () => {
+    const group = useRef();
+    const count = 40;
+    const connections = useMemo(() => {
+        return new Array(count).fill(0).map(() => {
+            const angle = Math.random() * Math.PI * 2;
+            const r = 2.5 + Math.random() * 0.5;
+            const top = new THREE.Vector3(Math.cos(angle) * r, 8.5, Math.sin(angle) * r);
+            const mid = new THREE.Vector3(Math.cos(angle) * (r * 0.6), 6.5, Math.sin(angle) * (r * 0.6));
+            const bottom = new THREE.Vector3(Math.cos(angle) * 0.3, 5.2, Math.sin(angle) * 0.3); // Touches head
+            return { points: [top, mid, bottom], phase: Math.random() * Math.PI * 2 };
+        });
     }, []);
 
-    useFrame(() => {
-        if (!points.current) return;
-        const array = points.current.geometry.attributes.position.array;
-        for (let i = 0; i < count; i++) {
-            array[i * 3 + 1] -= speeds[i];
-            if (array[i * 3 + 1] < -3) array[i * 3 + 1] = 7;
-        }
-        points.current.geometry.attributes.position.needsUpdate = true;
+    useFrame((state) => {
+        if (!group.current) return;
+        const t = state.clock.elapsedTime;
+        group.current.children.forEach((child, i) => {
+            const pulse = (Math.sin(t * 1.5 + connections[i].phase) + 1) / 2;
+            child.material.opacity = pulse * 0.4;
+            child.scale.setScalar(0.95 + pulse * 0.1);
+        });
     });
 
     return (
-        <points ref={points}>
+        <group ref={group}>
+            {connections.map((conn, i) => (
+                <line key={i}>
+                    <bufferGeometry attach="geometry" onUpdate={self => self.setFromPoints(conn.points)} />
+                    <lineBasicMaterial color="#ffaa44" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+                </line>
+            ))}
+            {/* Halo Ring */}
+            <mesh position={[0, 8.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                <torusGeometry args={[2.5, 0.015, 16, 100]} />
+                <meshBasicMaterial color="#ffaa44" transparent opacity={0.5} blending={THREE.AdditiveBlending} />
+            </mesh>
+        </group>
+    );
+};
+
+const DataPipeline = () => {
+    const pointsRef = useRef();
+    const count = 600;
+    const [positions, data] = useMemo(() => {
+        const pos = new Float32Array(count * 3);
+        const d = new Float32Array(count * 2); // 0: phase, 1: speed
+        for (let i = 0; i < count; i++) {
+            pos[i * 3] = (Math.random() - 0.5) * 8;
+            pos[i * 3 + 1] = Math.random() * 15 - 5;
+            pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
+            d[i * 2] = Math.random() * Math.PI * 2;
+            d[i * 2 + 1] = Math.random() * 0.05 + 0.05;
+        }
+        return [pos, d];
+    }, []);
+
+    useFrame((state) => {
+        if (!pointsRef.current) return;
+        const t = state.clock.elapsedTime;
+        const array = pointsRef.current.geometry.attributes.position.array;
+        for (let i = 0; i < count; i++) {
+            const idx = i * 3;
+            // Phase 1: Chaos (falling)
+            array[idx + 1] -= data[i * 2 + 1];
+            
+            // Phase 2: Structural Pipeline (if y is between 1 and 4)
+            if (array[idx + 1] > 1 && array[idx + 1] < 4) {
+                const angle = data[i * 2];
+                array[idx] = THREE.MathUtils.lerp(array[idx], Math.cos(t * 0.5 + angle) * 4, 0.02);
+                array[idx + 2] = THREE.MathUtils.lerp(array[idx + 2], Math.sin(t * 0.5 + angle) * 4, 0.02);
+            }
+
+            if (array[idx + 1] < -5) {
+                array[idx + 1] = 10;
+                array[idx] = (Math.random() - 0.5) * 8;
+                array[idx + 2] = (Math.random() - 0.5) * 8;
+            }
+        }
+        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+    });
+
+    return (
+        <points ref={pointsRef}>
             <bufferGeometry>
                 <bufferAttribute
                     attach="attributes-position"
@@ -174,7 +263,7 @@ const LogicRain = () => {
                     itemSize={3}
                 />
             </bufferGeometry>
-            <pointsMaterial size={0.05} color="#ffcc00" transparent opacity={0.4} blending={THREE.AdditiveBlending} />
+            <pointsMaterial size={0.06} color="#ffaa44" transparent opacity={0.6} blending={THREE.AdditiveBlending} />
         </points>
     );
 };
@@ -182,11 +271,13 @@ const LogicRain = () => {
 const ArtisticIntervention = ({ slug }) => {
     switch (slug) {
         case 'ar-vr':
-            return <ScanLine />;
+            return <ARGhosts />;
         case 'ai-ml':
-            return <NeuralVeins />;
+            return <NeuralHalo />;
         case 'software-dev':
-            return <LogicRain />;
+            return <DataPipeline />;
+        case 'digital-graphics':
+            return <ScanLine />; // Add scanline as back backup
         default:
             return null;
     }
@@ -199,7 +290,7 @@ const SculptureModel = () => {
     // Debug log to help identify why effects might not trigger
     useEffect(() => {
         if (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) {
-            console.log("3D Intervention State:", { view, activeSlug });
+            console.log("3D Artistic State:", { view, activeSlug });
         }
     }, [view, activeSlug]);
 
@@ -213,39 +304,77 @@ const SculptureModel = () => {
                 if (node.material) {
                     node.material = node.material.clone();
                     
-                    // Special coloring for "Digital Graphics"
                     const isServicesOrDetail = view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL;
+                    
+                    // --- EFFECT: Digital Graphics (IRIS SHADER) ---
                     if (isServicesOrDetail && activeSlug === 'digital-graphics') {
-                        node.material.color.set("#ffcc00");
+                        node.material.onBeforeCompile = (shader) => {
+                            shader.uniforms.uTime = { value: 0 };
+                            shader.fragmentShader = `
+                                uniform float uTime;
+                                ${shader.fragmentShader}
+                            `.replace(
+                                `#include <color_fragment>`,
+                                `#include <color_fragment>
+                                 float rainbow = sin(vUv.x * 10.0 + uTime * 2.0) * 0.5 + 0.5;
+                                 diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rainbow, 0.5, 1.0 - rainbow), 0.8);
+                                `
+                            );
+                            node.material.userData.shader = shader;
+                        };
                         node.material.wireframe = true;
-                        node.material.opacity = 0.3;
+                        node.material.opacity = 0.8;
                         node.material.transparent = true;
-                    } else {
+                        if (node.material.emissive) {
+                            node.material.emissive.set("#ffaa44");
+                            node.material.emissiveIntensity = 2.0;
+                        }
+                    } 
+                    // --- EFFECT: AI Synthesis Glow ---
+                    else if (isServicesOrDetail && activeSlug === 'ai-ml') {
+                        node.material.wireframe = false;
+                        node.material.color.set("#ffffff");
+                        if (node.material.emissive) {
+                            node.material.emissive.set("#ffaa44");
+                            node.material.emissiveIntensity = 1.5;
+                        }
+                    }
+                    else {
+                        node.material.onBeforeCompile = null;
                         node.material.wireframe = false;
                         node.material.opacity = 1.0;
                         node.material.transparent = false;
-                        node.material.color.set("#ffffff"); // Reset to white base
+                        node.material.color.set("#ffffff"); 
+                        if (node.material.emissive) {
+                            node.material.emissive.set("#000000");
+                            node.material.emissiveIntensity = 0;
+                        }
                     }
 
                     node.material.envMapIntensity = config.envMapIntensity !== undefined ? config.envMapIntensity : 0.02;
                     node.material.roughness = config.roughness !== undefined ? config.roughness : 0.85;
                     node.material.metalness = config.metalness !== undefined ? config.metalness : 0;
-                    if (node.material.emissiveMap || node.material.emissive) {
-                        node.material.emissiveIntensity = config.emissiveIntensity !== undefined ? config.emissiveIntensity : 1.0;
-                    }
                     node.material.needsUpdate = true;
                 }
             }
         });
     }, [clonedScene, config, activeSlug, view]);
 
+    useFrame((state) => {
+        clonedScene.traverse((node) => {
+            if (node.isMesh && node.material?.userData?.shader) {
+                node.material.userData.shader.uniforms.uTime.value = state.clock.elapsedTime;
+            }
+        });
+    });
+
     const isGamedev = activeSlug === 'gamedev' && (view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL);
 
     return (
         <Float 
-            speed={isGamedev ? 2.5 : 0.4} 
-            rotationIntensity={isGamedev ? 0.8 : 0.05} 
-            floatIntensity={isGamedev ? 1.5 : 0.1}
+            speed={isGamedev ? 4.5 : 0.4} 
+            rotationIntensity={isGamedev ? 2.5 : 0.05} 
+            floatIntensity={isGamedev ? 3.5 : 0.1}
         >
             <Center bottom position={[0, config.y, 0]}>
                 <primitive 
@@ -253,7 +382,11 @@ const SculptureModel = () => {
                     scale={config.scale} 
                     rotation={[0, config.rotationY * (Math.PI / 180), 0]} 
                 />
-                {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && <ArtisticIntervention slug={activeSlug} />}
+                {(view === VIEWS.SERVICES || view === VIEWS.SERVICE_DETAIL) && (
+                    <ArtisticIntervention slug={activeSlug} />
+                )}
+                {/* Global Flash Response */}
+                <FlashEffect />
             </Center>
         </Float>
     );
