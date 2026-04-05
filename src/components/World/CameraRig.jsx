@@ -16,6 +16,7 @@ const CameraRig = () => {
     const vecTarget = new THREE.Vector3();
     const lastSlug = useRef(activeSlug);
     const isTransitioning = useRef(false);
+    const isFirstRun = useRef(true);
  
     // Use a ref for reactive state within useFrame to avoid stale closure issues
     const stateRef = useRef({ activeSlug, config, showStudioEditor, isOverPanel });
@@ -98,8 +99,17 @@ const CameraRig = () => {
                 // We keep controls.update() to sync camera matrix
                 controls.update();
             } else {
-                vecTarget.set(...targetLookArr);
-                camera.lookAt(vecTarget);
+                if (isFirstRun.current) {
+                    vecTarget.set(...targetLookArr);
+                    camera.position.set(...targetPosArr);
+                    camera.lookAt(vecTarget);
+                    isFirstRun.current = false;
+                } else {
+                    vecTarget.x = THREE.MathUtils.damp(vecTarget.x, targetLookArr[0], s, d);
+                    vecTarget.y = THREE.MathUtils.damp(vecTarget.y, targetLookArr[1], s, d);
+                    vecTarget.z = THREE.MathUtils.damp(vecTarget.z, targetLookArr[2], s, d);
+                    camera.lookAt(vecTarget);
+                }
             }
 
             return;

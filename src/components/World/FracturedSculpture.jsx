@@ -607,7 +607,11 @@ const SculptureModel = () => {
         return clone;
     }, [scene]);
 
-    useFrame((state) => {
+    const primRef = useRef();
+    const groupRef = useRef();
+    const isFirstRun = useRef(true);
+
+    useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig } = stateRef.current;
         const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
         
@@ -615,6 +619,31 @@ const SculptureModel = () => {
         const holoGridFX = (currentSection?.fx || []).find(f => f.type === 'HoloGrid' && f.active);
         const neonEdgesFX = (currentSection?.fx || []).find(f => f.type === 'NeonEdges' && f.active);
         const tetrisFX = (currentSection?.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
+
+        // Target calculations for model shape/position
+        let tgtScale = currentSection?.scale ?? currentConfig?.scale ?? 17;
+        if (tgtScale < 5 || tgtScale > 50) tgtScale = 17;
+        
+        let baseY = currentSection?.modelY ?? 5.1;
+        if (typeof baseY !== 'number' || baseY < -20 || baseY > 50) baseY = 5.1;
+        const tgtY = baseY + (currentConfig?.y ?? 0);
+        
+        const tgtRot = Number.isFinite(Number(currentConfig?.rotationY)) ? Number(currentConfig.rotationY) : 248;
+
+        const s = isEditing ? 4.0 : 1.0;
+        const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
+
+        // Smoothly damp model properties
+        if (isFirstRun.current && groupRef.current && primRef.current) {
+            groupRef.current.position.y = tgtY;
+            primRef.current.scale.setScalar(tgtScale);
+            primRef.current.rotation.y = THREE.MathUtils.degToRad(tgtRot);
+            isFirstRun.current = false;
+        } else if (groupRef.current && primRef.current) {
+            groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, tgtY, s, d);
+            primRef.current.scale.setScalar(THREE.MathUtils.damp(primRef.current.scale.x, tgtScale, s, d));
+            primRef.current.rotation.y = THREE.MathUtils.damp(primRef.current.rotation.y, THREE.MathUtils.degToRad(tgtRot), s, d);
+        }
 
         clonedScene.traverse(n => {
             const shader = n.material?.userData?.shader;
@@ -677,31 +706,17 @@ const SculptureModel = () => {
     // Defensive parsing against destructive DB string/null formats
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     
-    // --- SAFETY CHECK FOR CORRUPTED DATA ---
-    // Use section-specific scale and height, with limits to prevent disappearing model
-    let safeScale = currentSection?.scale ?? config?.scale ?? 17;
-    if (safeScale < 5 || safeScale > 50) safeScale = 17; // prevent vanishing bounds
-    
-    let baseModelY = currentSection?.modelY ?? 5.1;
-    if (typeof baseModelY !== 'number' || baseModelY < -20 || baseModelY > 50) baseModelY = 5.1;
-    
-    // config.y as a MASTER ADDITIVE offset
-    const safeY = baseModelY + (config?.y ?? 0);
-    
-    const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
-
     return (
         <Float 
             speed={isEditing ? 0 : 0.4} 
             rotationIntensity={isEditing ? 0 : 0.5} 
             floatIntensity={isEditing ? 0 : 0.5}
         >
-            <group position={[0, safeY, 0]}>
+            <group ref={groupRef}>
                 <Center bottom>
                     <primitive 
+                        ref={primRef}
                         object={clonedScene} 
-                        scale={safeScale} 
-                        rotation={[0, THREE.MathUtils.degToRad(safeRot), 0]}
                     />
                     
                     {/* NEW DYNAMIC FX SYSTEM */}
