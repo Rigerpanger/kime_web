@@ -363,7 +363,7 @@ const SculptureModel = () => {
                 
                 {/* Render ALL section FX for smooth transitions */}
                 {Object.entries(config.sections || {}).map(([slug, section]) => (
-                    section.fx.map((fx, idx) => (
+                    section.fx?.map((fx, idx) => (
                         <FXWrapper 
                             key={`${slug}-${idx}`}
                             type={fx.type}
