@@ -183,7 +183,7 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
             if (i > 0 && Math.random() < 0.85) {
                 offsets[i] = offsets[i-1] + (Math.random() - 0.5) * 0.15;
                 lanes[i] = lanes[i-1];
-                pos[i*3 + 1] = pos[i-1*3 + 1] + (Math.random() - 0.5) * 0.8;
+                pos[i*3 + 1] = pos[(i-1)*3 + 1] + (Math.random() - 0.5) * 0.8;
                 speeds[i] = speeds[i-1];
             }
         }
@@ -301,7 +301,7 @@ const UnifiedShaderInjection = (mat) => {
 const SculptureModel = () => {
     // Enable Draco decompression for 10x faster loading and GPU upload
     const { scene } = useGLTF('/models/sculpture.glb', 'https://www.gstatic.com/draco/versioned/decoders/1.5.5/');
-    const { sculptureConfig: config, activeSlug, view } = useAppStore();
+    const { sculptureConfig: config, activeSlug, view, showStudioEditor } = useAppStore();
     const [revealHeight, setRevealHeight] = useState(15);
 
     const clonedScene = useMemo(() => {
