@@ -8,6 +8,39 @@ import CameraRig from './CameraRig';
 import FracturedSculpture from './FracturedSculpture';
 import MuseumRoom from './MuseumRoom';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
+ 
+// A lighting component for the Studio mode with auto-focus
+const StudioLight = ({ light, safeY }) => {
+    const targetRef = useRef();
+    const lightRef = useRef();
+    const angleInRadians = (light.azimuth * Math.PI) / 180;
+    const x = light.radius * Math.sin(angleInRadians);
+    const z = light.radius * Math.cos(angleInRadians);
+
+    useEffect(() => {
+        if (lightRef.current && targetRef.current) {
+            lightRef.current.target = targetRef.current;
+        }
+    }, [light, safeY]);
+
+    return (
+        <group>
+            <group ref={targetRef} position={[0, safeY + 4.5, 0]} />
+            <spotLight
+                ref={lightRef}
+                position={[x, safeY + light.y, z]}
+                intensity={light.intensity}
+                color={light.color}
+                angle={0.6}
+                penumbra={1}
+                castShadow
+                shadow-bias={-0.0001}
+                distance={0}
+                decay={0}
+            />
+        </group>
+    );
+};
 
 // A refined interactive light system (Flashlight)
 const MouseLight = () => {
@@ -119,7 +152,18 @@ const Scene = () => {
                 <CameraRig />
 
                 <color attach="background" args={['#020202']} />
-                <fog attach="fog" args={['#020202', 20, 100]} />
+                {!showStudioEditor && (
+                    <fog attach="fog" args={['#020202', 20, 100]} />
+                )}
+                
+                {/* --- Dynamic Lighting System (Restored and Synced to Height) --- */}
+                {config.lights?.map(light => {
+                    const currentSection = config.sections?.[useAppStore.getState().activeSlug] || config.sections?.default;
+                    const sectionY = currentSection?.modelY;
+                    const safeY = Number.isFinite(Number(sectionY)) ? Number(sectionY) : 
+                                (Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1);
+                    return <StudioLight key={light.id} light={light} safeY={safeY} />;
+                })}
 
 
                 {/* Interactive Flashlight */}

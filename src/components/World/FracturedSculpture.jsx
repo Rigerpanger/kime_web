@@ -15,45 +15,6 @@ const FX_COMPONENTS = {
 };
 
 // A spotlight that stays focused on the model group
-const DynamicLight = ({ light, modelScale = 17 }) => {
-    const targetRef = useRef();
-    const lightRef = useRef();
-    
-    // Scale the light's orbit relative to the model's scale
-    // Normalizing so that radius 10 at scale 17 feels the same as at scale 30
-    const scaleFactor = modelScale / 17;
-    const angleInRadians = (light.azimuth * Math.PI) / 180;
-    const x = light.radius * Math.sin(angleInRadians) * scaleFactor;
-    const z = light.radius * Math.cos(angleInRadians) * scaleFactor;
-    const y = light.y * scaleFactor;
-
-    useEffect(() => {
-        if (lightRef.current && targetRef.current) {
-            lightRef.current.target = targetRef.current;
-        }
-    }, [light, modelScale]);
-
-    return (
-        <group>
-            {/* The target follows the model's Y translation and scale */}
-            <group ref={targetRef} position={[0, 4.5 * scaleFactor, 0]} />
-            <spotLight
-                ref={lightRef}
-                position={[x, y, z]}
-                intensity={light.intensity}
-                color={light.color}
-                angle={0.6}
-                penumbra={1}
-                castShadow
-                shadow-bias={-0.0001}
-                // DISABLING DECAY for site-wide consistency
-                distance={0}
-                decay={0}
-            />
-        </group>
-    );
-};
-
 // Wrapper for transition logic
 const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     const opacityRef = useRef(0);
@@ -401,9 +362,6 @@ const SculptureModel = () => {
     if (safeScale < 0.1 || safeScale > 200) safeScale = 17; // prevent vanishing bounds
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
 
-    // SYNCED LIGHTS: Now they follow the model's Y translation
-    const lights = config.lights || [];
-
     return (
         <Float 
             speed={isEditing ? 0 : 0.4} 
@@ -427,11 +385,6 @@ const SculptureModel = () => {
                         ))
                     ))}
                 </Center>
-
-                {/* LIGHTS IN MODEL SPACE: They stay pinned to the sculpture's height, scale and focus */}
-                {lights.map(light => (
-                    <DynamicLight key={light.id} light={light} modelScale={safeScale} />
-                ))}
             </group>
         </Float>
     );
