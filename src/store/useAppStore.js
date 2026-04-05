@@ -46,7 +46,8 @@ const DEFAULT_SECTIONS = {
   "default": {
     camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
     modelY: 5.1,
-    fx: Array(5).fill(0).map((_, i) => ({ id: `${i+1}`, type: 'None', active: false }))
+    scale: 17.0,
+    fx: [] // Dynamic list of FX: { id, type, active, azimuth, height, radius, scale, intensity, color }
   }
 };
 
@@ -92,23 +93,31 @@ const useAppStore = create(
       setActiveSlug: (slug) => set({ activeSlug: slug }),
       
       setSculptureConfig: (newConfig) => set((state) => {
-        // Migration & Merge Logic
         let merged = { ...state.sculptureConfig, ...newConfig };
         
-        // Ensure cameras array exists
         if (!merged.cameras || !merged.cameras.length) {
             merged.cameras = JSON.parse(JSON.stringify(DEFAULT_CAMERAS));
         }
         
-        if (!merged.sections) merged.sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-        else merged.sections = { ...JSON.parse(JSON.stringify(DEFAULT_SECTIONS)), ...merged.sections };
+        if (!merged.sections) {
+            merged.sections = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
+        } else {
+            // MIGRATION: Convert old array FX to dynamic FX if needed, and ensure section-specific scale/y
+            Object.keys(merged.sections).forEach(key => {
+                const s = merged.sections[key];
+                if (Array.isArray(s.fx) && s.fx.length === 5 && !s.fx[0]?.azimuth) {
+                    // It's the old fixed slots, clear them if they were empty or migrate active ones
+                    s.fx = s.fx.filter(f => f.active && f.type !== 'None').map(f => ({
+                        ...f,
+                        azimuth: 0, height: 4.8, radius: 3.5, scale: 1.0, intensity: 1.0, color: '#ffffff'
+                    }));
+                }
+                if (s.scale === undefined) s.scale = merged.scale || 17.0;
+                if (s.modelY === undefined) s.modelY = merged.y || 5.1;
+                if (!s.fx) s.fx = [];
+            });
+        }
         
-        // Deep merge legacy FX (Keep for backward compatibility)
-        if (newConfig.aiFX) merged.sections['ai-ml'].fx[0] = { ...merged.sections['ai-ml'].fx[0], ...newConfig.aiFX };
-        if (newConfig.arFX) merged.sections['ar-vr'].fx[0] = { ...merged.sections['ar-vr'].fx[0], ...newConfig.arFX };
-        if (newConfig.softwareFX) merged.sections['software-dev'].fx[0] = { ...merged.sections['software-dev'].fx[0], ...newConfig.softwareFX };
-        if (newConfig.gamedevFX) merged.sections['gamedev'].fx[0] = { ...merged.sections['gamedev'].fx[0], ...newConfig.gamedevFX };
-
         return { sculptureConfig: merged };
       }),
 
@@ -203,6 +212,10 @@ const useAppStore = create(
               sections[activeKey].modelY = updates.modelY;
           }
 
+          if (updates.scale !== undefined) {
+              sections[activeKey].scale = updates.scale;
+          }
+          
           if (updates.azimuth !== undefined || updates.polar !== undefined || updates.radius !== undefined || 
               updates.pivotX !== undefined || updates.pivotY !== undefined || updates.pivotZ !== undefined) {
               sections[activeKey].camera = { 
@@ -228,13 +241,46 @@ const useAppStore = create(
           sections[slug].cameraId = cameraId;
           return { sculptureConfig: { ...state.sculptureConfig, sections } };
       }),
-
-      updateSectionFX: (slug, slotIndex, updates) => set((state) => {
-          const sections = { ...state.sculptureConfig.sections };
-          if (!sections[slug]) sections[slug] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
-          const fx = [...sections[slug].fx];
-          fx[slotIndex] = { ...fx[slotIndex], ...updates };
-          sections[slug].fx = fx;
+ 
+      // NEW DYNAMIC FX SYSTEM
+      addSectionFX: (slug, type) => set((state) => {
+          const activeKey = slug || 'default';
+          const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
+          if (!sections[activeKey]) sections[activeKey] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
+          
+          const newFX = {
+              id: `fx-${Date.now()}`,
+              type: type || 'NeuralCore',
+              active: true,
+              azimuth: 0,
+              height: 4.8,
+              radius: 4.5,
+              scale: 1.0,
+              intensity: 1.0,
+              color: '#ffffff'
+          };
+          
+          sections[activeKey].fx = [...(sections[activeKey].fx || []), newFX];
+          return { sculptureConfig: { ...state.sculptureConfig, sections } };
+      }),
+ 
+      removeSectionFX: (slug, fxId) => set((state) => {
+          const activeKey = slug || 'default';
+          const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
+          if (!sections[activeKey]) return state;
+          
+          sections[activeKey].fx = (sections[activeKey].fx || []).filter(f => f.id !== fxId);
+          return { sculptureConfig: { ...state.sculptureConfig, sections } };
+      }),
+ 
+      updateSectionFX: (slug, fxId, updates) => set((state) => {
+          const activeKey = slug || 'default';
+          const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
+          if (!sections[activeKey]) return state;
+          
+          sections[activeKey].fx = (sections[activeKey].fx || []).map(f => 
+              f.id === fxId ? { ...f, ...updates } : f
+          );
           return { sculptureConfig: { ...state.sculptureConfig, sections } };
       })
     }),

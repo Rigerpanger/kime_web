@@ -23,12 +23,15 @@ const StudioEditor = () => {
     }, []);
     
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
+    const addSectionFX = useAppStore(s => s.addSectionFX);
+    const removeSectionFX = useAppStore(s => s.removeSectionFX);
     const updateSectionCamera = useAppStore(s => s.updateSectionCamera);
     const updateLight = useAppStore(s => s.updateLight);
     const addLight = useAppStore(s => s.addLight);
     const removeLight = useAppStore(s => s.removeLight);
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
+    const [activeFXId, setActiveFXId] = useState(null);
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -41,17 +44,10 @@ const StudioEditor = () => {
     const triggerCapture = useAppStore(s => s.triggerCapture);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-    const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 12.5, pivotZ: 0 };
+    const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 };
 
-    const rawFX = currentSection?.fx?.[activeSlot] || {};
-    const currentFX = {
-        type: rawFX.type || 'None',
-        pos: rawFX.pos || [0, 0, 0],
-        scale: rawFX.scale || 1,
-        color: rawFX.color || '#ffffff',
-        intensity: rawFX.intensity || 1,
-        active: rawFX.active || false
-    };
+    const sectionFX = currentSection?.fx || [];
+    const activeFX = sectionFX.find(f => f.id === activeFXId) || sectionFX[0];
 
     const handleSave = async () => {
         setSaving(true);
@@ -133,7 +129,12 @@ const StudioEditor = () => {
                             ].map(tab => (
                                 <button 
                                     key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    onClick={() => {
+                                        setActiveTab(tab.id);
+                                        if (tab.id === 'fx' && !activeFXId && sectionFX.length > 0) {
+                                            setActiveFXId(sectionFX[0].id);
+                                        }
+                                    }}
                                     className={`w-full flex items-center gap-2 px-2 py-1 rounded-md transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/20 hover:bg-white/5'}`}
                                 >
                                     <tab.icon size={10} />
@@ -171,15 +172,32 @@ const StudioEditor = () => {
                                     </button>
                                 </>
                             )}
-                            {activeTab === 'fx' && [0,1,2,3,4].map(i => (
-                                <button 
-                                    key={i}
-                                    onClick={() => setActiveSlot(i)}
-                                    className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeSlot === i ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
-                                >
-                                    Слот #{i+1}
-                                </button>
-                            ))}
+                            {activeTab === 'fx' && (
+                                <>
+                                    {sectionFX.map(f => (
+                                        <button 
+                                            key={f.id}
+                                            onClick={() => setActiveFXId(f.id)}
+                                            className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeFXId === f.id ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
+                                        >
+                                            {f.type}
+                                            {activeFXId === f.id && <div className="w-1 h-1 bg-white rounded-full" />}
+                                        </button>
+                                    ))}
+                                    <select 
+                                        onChange={e => {
+                                            if (e.target.value !== 'None') {
+                                                addSectionFX(activeSlug, e.target.value);
+                                                e.target.value = 'None';
+                                            }
+                                        }}
+                                        className="w-full py-1.5 bg-black border border-dashed border-emerald-500/20 text-emerald-500/40 rounded-lg text-[8px] font-bold hover:bg-emerald-500/10 transition-all outline-none"
+                                    >
+                                        <option value="None">+ Добавить FX</option>
+                                        {FX_TYPES.filter(t => t !== 'None').map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </>
+                            )}
                         </div>
                     )}
 
@@ -207,9 +225,12 @@ const StudioEditor = () => {
                                     </div>
                                     
                                     <div className="space-y-3">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Высота модели</h5>
-                                        {renderSlider('Section Y (Local)', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
-                                        {renderSlider('Master Y (Global)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Настройки Страницы</h5>
+                                        {renderSlider('Section Y (Height)', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
+                                        {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
+                                        <div className="pt-2">
+                                            {renderSlider('Master Y (All)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                        </div>
                                     </div>
 
                                     <div className="space-y-3">
@@ -272,31 +293,43 @@ const StudioEditor = () => {
                             </div>
                         )}
 
-                        {activeTab === 'fx' && (
+                        {activeTab === 'fx' && activeFX && (
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                                        <select value={currentFX.type} onChange={e => updateSectionFX(activeSlug, activeSlot, { type: e.target.value })} className="bg-transparent text-[9px] uppercase font-black text-[#ffcc00] outline-none cursor-pointer">
-                                            {FX_TYPES.map(t => <option key={t} value={t} className="bg-black">{t}</option>)}
-                                        </select>
-                                        <input type="checkbox" checked={currentFX.active} onChange={e => updateSectionFX(activeSlug, activeSlot, { active: e.target.checked })} className="w-3 h-3 accent-emerald-500" />
+                                        <div className="text-[9px] uppercase font-black text-[#ffcc00]">{activeFX.type} <span className="opacity-30">#{activeFX.id.substr(-3)}</span></div>
+                                        <div className="flex items-center gap-3">
+                                            <input type="checkbox" checked={activeFX.active} onChange={e => updateSectionFX(activeSlug, activeFX.id, { active: e.target.checked })} className="w-3 h-3 accent-emerald-500" />
+                                            <button onClick={() => removeSectionFX(activeSlug, activeFX.id)} className="text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={11}/></button>
+                                        </div>
                                     </div>
-                                    {renderSlider('Scale', currentFX.scale, 0.1, 8.0, 0.1, (v) => updateSectionFX(activeSlug, activeSlot, { scale: v }))}
-                                    {renderSlider('Power', currentFX.intensity, 0, 2, 0.05, (v) => updateSectionFX(activeSlug, activeSlot, { intensity: v }))}
+                                    
+                                    {/* SHARED CONTROLS */}
+                                    {renderSlider('Intensity', activeFX.intensity, 0, 5, 0.05, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
+                                    {renderSlider('FX Scale', activeFX.scale, 0.1, 15.0, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
+                                    
+                                    <div className="flex gap-2 items-center">
+                                        <div className="text-[7px] uppercase text-white/20">Color</div>
+                                        <input type="color" value={activeFX.color || '#ffffff'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-6 w-12 bg-transparent cursor-pointer rounded border border-white/10" />
+                                    </div>
                                 </div>
-                                <div className="space-y-4 pt-1">
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {['X','Y','Z'].map((axis, i) => (
-                                            <div key={axis} className="space-y-1">
-                                                <div className="text-[7px] text-white/20 uppercase">{axis}</div>
-                                                <input type="number" value={currentFX.pos[i]} step={0.1} onChange={e => { const newPos = [...currentFX.pos]; newPos[i] = parseFloat(e.target.value); updateSectionFX(activeSlug, activeSlot, { pos: newPos }); }} className="w-full bg-white/5 border border-white/10 rounded-md p-1.5 text-[9px] font-mono text-[#ffcc00] outline-none" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <input type="color" value={currentFX.color} onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })} className="h-7 w-10 bg-transparent cursor-pointer rounded border border-white/10" />
-                                        <input type="text" value={currentFX.color} onChange={e => updateSectionFX(activeSlug, activeSlot, { color: e.target.value })} className="flex-1 bg-white/5 border border-white/10 rounded-md p-1.5 text-[8px] font-mono text-[#ffcc00] uppercase text-center" />
-                                    </div>
+
+                                <div className="space-y-4">
+                                    {/* CONDITIONAL ORBITAL CONTROLS */}
+                                    {['NeuralCore', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) ? (
+                                        <>
+                                            <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Орбитальная позиция</h5>
+                                            {renderSlider('Rotation (Orbit)', activeFX.azimuth, 0, 360, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
+                                            {renderSlider('Height (Offset)', activeFX.height, -10, 20, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                            {renderSlider('Radius (Distance)', activeFX.radius, 0, 40, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-full opacity-30 text-center">
+                                            <Zap size={24} className="mb-2" />
+                                            <div className="text-[8px] font-black uppercase tracking-widest">Global Shader FX</div>
+                                            <div className="text-[7px] lowercase mt-1">Movement disabled for body effects</div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

@@ -15,7 +15,7 @@ const FX_COMPONENTS = {
 };
 
 // A spotlight that stays focused on the model group
-// Wrapper for transition logic
+// Wrapper for positioning and transition logic
 const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     const opacityRef = useRef(0);
     const FXComp = FX_COMPONENTS[type];
@@ -28,9 +28,32 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     if (opacityRef.current < 0.01 && !isActive) return null;
     if (!FXComp) return null;
 
-    // Pass the calculated animated opacity to the component
-    // Note: Each component must respect this 'animatedOpacity'
-    return <FXComp config={config} animatedOpacity={opacityRef.current} onRevealed={onRevealed} />;
+    // --- ORBITAL POSITIONING LOGIC ---
+    // Spatial FX: NeuralCore, ShapeShifter, SoftwareSilhouette
+    // Non-Spatial FX: Iris, TetrisReveal (Shader-only)
+    const isSpatial = ['NeuralCore', 'ShapeShifter', 'SoftwareSilhouette'].includes(type);
+    
+    let position = [0, 4.8, 0];
+    if (isSpatial) {
+        const azimuth = (config.azimuth || 0) * Math.PI / 180;
+        const radius = config.radius !== undefined ? config.radius : 4.5;
+        const height = config.height !== undefined ? config.height : 4.8;
+        
+        position = [
+            radius * Math.sin(azimuth),
+            height,
+            radius * Math.cos(azimuth)
+        ];
+    } else {
+        // Fallback for non-spatial or legacy
+        position = Array.isArray(config.pos) ? config.pos : [0, 0, 0];
+    }
+
+    return (
+        <group position={position}>
+            <FXComp config={config} animatedOpacity={opacityRef.current} onRevealed={onRevealed} />
+        </group>
+    );
 };
 
 // --- EFFECT: AI (NeuralCore) ---
@@ -68,9 +91,8 @@ const NeuralCore = ({ config = {}, animatedOpacity = 1 }) => {
         }
     });
 
-    const safePos = Array.isArray(config.pos) ? config.pos : [0, 4.8, 0];
     return (
-        <group position={safePos}>
+        <group>
             <mesh ref={coreRef}>
                 <icosahedronGeometry args={[0.5, 0]} />
                 <meshBasicMaterial color={config.color || "#ffcc00"} wireframe transparent opacity={animatedOpacity} />
@@ -96,8 +118,6 @@ const ShapeShifter = ({ config = {}, animatedOpacity = 1 }) => {
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (meshRef.current) {
-            const p = Array.isArray(config.pos) ? config.pos : [0, 4.8, 3.5];
-            meshRef.current.position.set(p[0], p[1], p[2]);
             meshRef.current.rotation.y = t * 0.5;
             meshRef.current.scale.setScalar(config.scale || 1.0);
             meshRef.current.material.opacity = (0.5 + Math.sin(t * 2) * 0.3) * (config.intensity || 1.0) * animatedOpacity;
@@ -153,7 +173,7 @@ const TetrisReveal = ({ config = {}, animatedOpacity = 1, onRevealed }) => {
 
     const safePos = Array.isArray(config.pos) ? config.pos : [0, 0, 0];
     return (
-        <group scale={config.scale || 1.0} position={safePos}>
+        <group scale={config.scale || 1.0}>
             {blocks.map((b, i) => (
                 <mesh key={b.id} ref={el => meshes.current[i] = el} position={b.pos}>
                     <boxGeometry args={[2.5, 2.5, 2.5]} />
@@ -251,6 +271,7 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
         if (pointsRef.current) {
             pointsRef.current.material.uniforms.uTime.value = state.clock.elapsedTime;
             pointsRef.current.material.uniforms.uOpacity.value = animatedOpacity * (config.intensity || 1.0);
+            pointsRef.current.material.uniforms.uScale.value = config.scale || 1.0;
         }
     });
 
@@ -353,36 +374,36 @@ const SculptureModel = () => {
 
     // Defensive parsing against destructive DB string/null formats
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-    const sectionY = currentSection?.modelY;
     
-    const safeY = Number.isFinite(Number(sectionY)) ? Number(sectionY) : 
-                (Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1);
-
-    let safeScale = Number.isFinite(Number(config?.scale)) ? Number(config.scale) : 17;
-    if (safeScale < 0.1 || safeScale > 200) safeScale = 17; // prevent vanishing bounds
+    // Use section-specific scale and height, falling back to global if needed
+    let safeScale = currentSection?.scale ?? config?.scale ?? 17;
+    let safeY = currentSection?.modelY ?? config?.y ?? 5.1;
+    
+    if (safeScale < 0.1 || safeScale > 500) safeScale = 17; // prevent vanishing bounds
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
 
     return (
         <Float 
             speed={isEditing ? 0 : 0.4} 
-            rotationIntensity={isEditing ? 0 : 0.05} 
-            floatIntensity={isEditing ? 0 : 0.1}
+            rotationIntensity={isEditing ? 0 : 0.5} 
+            floatIntensity={isEditing ? 0 : 0.5}
         >
             <group position={[0, safeY, 0]}>
                 <Center bottom>
-                    <primitive object={clonedScene} scale={safeScale} rotation={[0, safeRot * (Math.PI / 180), 0]} />
+                    <primitive 
+                        object={clonedScene} 
+                        scale={safeScale} 
+                        rotation={[0, THREE.MathUtils.degToRad(safeRot), 0]}
+                    />
                     
-                    {/* Render ALL section FX for smooth transitions */}
-                    {Object.entries(config.sections || {}).map(([slug, section]) => (
-                        Array.isArray(section.fx) && section.fx.map((fx, idx) => (
-                            <FXWrapper 
-                                key={`${slug}-${idx}`}
-                                type={fx.type}
-                                config={fx}
-                                isActive={isServiceView && activeSlug === slug && fx.active}
-                                onRevealed={setRevealHeight}
-                            />
-                        ))
+                    {/* NEW DYNAMIC FX SYSTEM */}
+                    {(currentSection?.fx || []).map(fx => (
+                        <FXWrapper 
+                            key={fx.id}
+                            type={fx.type}
+                            config={fx}
+                            isActive={fx.active}
+                        />
                     ))}
                 </Center>
             </group>
