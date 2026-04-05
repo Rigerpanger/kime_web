@@ -1,5 +1,4 @@
 import express from 'express';
-// import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
@@ -177,7 +176,16 @@ const initDB = async () => {
 initDB();
 
 app.use(cors({ origin: '*' }));
-// app.use(compression());
+
+// --- SAFE COMPRESSION ---
+try {
+    const { default: compression } = await import('compression');
+    app.use(compression());
+    console.log('✅ Gzip compression enabled');
+} catch (e) {
+    console.warn('⚠️ Compression module not loaded, serving uncompressed stars:', e.message);
+}
+
 app.use(express.json());
 
 const uploadsDir = path.join(__dirname, 'uploads');
