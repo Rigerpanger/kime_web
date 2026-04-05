@@ -425,11 +425,17 @@ const SculptureModel = () => {
     // Defensive parsing against destructive DB string/null formats
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     
-    // Use section-specific scale and height, with config.y as a MASTER ADDITIVE offset
+    // --- SAFETY CHECK FOR CORRUPTED DATA ---
+    // Use section-specific scale and height, with limits to prevent disappearing model
     let safeScale = currentSection?.scale ?? config?.scale ?? 17;
-    let safeY = (currentSection?.modelY ?? 5.1) + (config?.y ?? 0);
+    if (safeScale < 5 || safeScale > 50) safeScale = 17; // prevent vanishing bounds
     
-    if (safeScale < 0.1 || safeScale > 500) safeScale = 17; // prevent vanishing bounds
+    let baseModelY = currentSection?.modelY ?? 5.1;
+    if (typeof baseModelY !== 'number' || baseModelY < -20 || baseModelY > 50) baseModelY = 5.1;
+    
+    // config.y as a MASTER ADDITIVE offset
+    const safeY = baseModelY + (config?.y ?? 0);
+    
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
 
     return (
