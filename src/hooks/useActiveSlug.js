@@ -23,7 +23,12 @@ const useActiveSlug = () => {
         return slug || 'projects';
     }
     
-    if (path === '/about') return 'about';
+    if (path.startsWith('/about')) {
+        if (path === '/about') return 'about-studio';
+        const slug = path.split('/')[2];
+        return slug || 'about-studio';
+    }
+    
     if (path === '/contact') return 'contact';
 
     // Internal about-slides detection if needed for specific logic

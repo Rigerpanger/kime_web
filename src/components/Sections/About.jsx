@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Award, X, ZoomIn } from 'lucide-react';
 import LogoTicker from './LogoTicker';
 import useAppStore from '../../store/useAppStore';
 
+const SLUGS = ['studio', 'approach', 'founder', 'certificates'];
+
 const About = () => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-    const [activeCert, setActiveCert] = useState(0);
+    const { slug } = useParams();
+    const navigate = useNavigate();
+    const currentSlide = Math.max(0, SLUGS.indexOf(slug || 'studio'));
     const totalSlides = 4;
+    
+    const [activeCert, setActiveCert] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [selectedFullCert, setSelectedFullCert] = useState(null);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
@@ -15,7 +21,7 @@ const About = () => {
 
     useEffect(() => {
         if (!isMobile) {
-            setActiveSlug(`about-slide-${currentSlide}`);
+            setActiveSlug(`about-${SLUGS[currentSlide]}`);
         }
     }, [currentSlide, isMobile, setActiveSlug]);
 
@@ -74,8 +80,14 @@ const About = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % totalSlides);
-    const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    const nextSlide = () => {
+        const nextIdx = (currentSlide + 1) % totalSlides;
+        navigate(`/about/${SLUGS[nextIdx]}`);
+    };
+    const prevSlide = () => {
+        const prevIdx = (currentSlide - 1 + totalSlides) % totalSlides;
+        navigate(`/about/${SLUGS[prevIdx]}`);
+    };
 
     const defaultCertificates = [
         {
@@ -412,7 +424,7 @@ const About = () => {
                     <div className="absolute bottom-6 flex flex-col items-center gap-4 text-white pointer-events-auto">
                         <div className="flex gap-3 items-center">
                             {[...Array(totalSlides)].map((_, i) => (
-                                <button key={i} onClick={() => setCurrentSlide(i)} className={`h-[2px] transition-all duration-500 ${i === currentSlide ? 'w-10 bg-white' : 'w-5 bg-white/40'}`} />
+                                <button key={i} onClick={() => navigate(`/about/${SLUGS[i]}`)} className={`h-[2px] transition-all duration-500 ${i === currentSlide ? 'w-10 bg-white' : 'w-5 bg-white/40'}`} />
                             ))}
                         </div>
                         <span className="text-[10px] uppercase tracking-[0.5em] text-gray-400">{currentSlide + 1} / {totalSlides}</span>

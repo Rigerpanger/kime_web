@@ -59,7 +59,16 @@ const CameraRig = () => {
         if (activeCam) {
             const theta = (activeCam.azimuth || 0) * Math.PI / 180;
             const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
-            const r = activeCam.radius || 18;
+            // -- RESPONSIVE FRAMING --
+            // Mathematically push the camera back on narrow screens to preserve horizontal framing.
+            const aspect = state.size.width / Math.max(1, state.size.height);
+            let baseRadius = activeCam.radius || 18;
+            if (aspect < 1.0) {
+                // Multiplier 1/aspect keeps exactly the same horizontal bounds as a square.
+                // We use * 0.85 to make it feel slightly more filled on mobile frames.
+                baseRadius = baseRadius * (1 / aspect) * 0.85;
+            }
+            const r = baseRadius;
             const px = activeCam.pivotX || 0;
             const py = activeCam.pivotY !== undefined 
                 ? activeCam.pivotY 
