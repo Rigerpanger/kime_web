@@ -7,11 +7,27 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import path from 'path';
-import fs from 'fs';
+import * as fs from 'fs';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// --- AUTO-BUILD SYSTEM (Runs once if dist is missing) ---
+const distPath = path.join(__dirname, '../dist/index.html');
+if (!fs.existsSync(distPath)) {
+    console.log('⚠️ [Self-Healing] dist folder missing! Attempting auto-build...');
+    try {
+        execSync('npm install && npm run build', { 
+            cwd: path.join(__dirname, '..'),
+            stdio: 'inherit' 
+        });
+        console.log('✅ [Self-Healing] Build completed successfully.');
+    } catch (err) {
+        console.error('❌ [Self-Healing] Auto-build failed:', err.message);
+    }
+}
 
 // Load env from project root
 dotenv.config({ path: path.join(__dirname, '../.env') });
