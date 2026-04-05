@@ -18,13 +18,13 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 
 console.log('-------------------------------------------');
 console.log('🚀 SERVER STARTUP CHECK:');
-console.log('PORT:', process.env.PORT || '3001 (Default)');
+console.log('PORT:', process.env.PORT || '3204 (Default)');
 console.log('JWT_SECRET:', process.env.JWT_SECRET ? '✅ OK' : '❌ MISSING');
 console.log('-------------------------------------------');
 
 const { Pool } = pg;
 const app = express();
-const PORT = process.env.PORT || 3005;
+const PORT = process.env.PORT || 3204;
 const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
 
 const pool = new Pool({
