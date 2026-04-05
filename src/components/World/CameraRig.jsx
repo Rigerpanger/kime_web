@@ -2,10 +2,11 @@ import React, { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import useAppStore from '../../store/useAppStore';
+import useActiveSlug from '../../hooks/useActiveSlug';
 
 const CameraRig = () => {
     const { camera, controls } = useThree();
-    const activeSlug = useAppStore(s => s.activeSlug) || 'default';
+    const activeSlug = useActiveSlug();
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const isOverPanel = useAppStore(s => s.isOverPanel);

@@ -3,8 +3,8 @@ import { useGLTF, Float, Center, Html, useProgress, ContactShadows } from '@reac
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
+import useActiveSlug from '../../hooks/useActiveSlug';
 
-// FX Components Dictionary
 const FX_COMPONENTS = {
     'NeuralAtom': (props) => <NeuralAtom {...props} />,
     'NeuralSwarm': (props) => <NeuralSwarm {...props} />,
@@ -356,7 +356,8 @@ const UnifiedShaderInjection = (mat) => {
 const SculptureModel = () => {
     // Enable Draco decompression for 10x faster loading and GPU upload
     const { scene } = useGLTF('/models/sculpture.glb', 'https://www.gstatic.com/draco/versioned/decoders/1.5.5/');
-    const { sculptureConfig: config, activeSlug, view, showStudioEditor } = useAppStore();
+    const { sculptureConfig: config, view, showStudioEditor } = useAppStore();
+    const activeSlug = useActiveSlug();
     const [revealHeight, setRevealHeight] = useState(15);
 
     const clonedScene = useMemo(() => {
@@ -455,12 +456,29 @@ const SculptureModel = () => {
 
 const SmoothLoader = ({ progress }) => {
     const [displayProgress, setDisplayProgress] = useState(0);
+    const lastProgress = useRef(0);
     
     useFrame((state, delta) => {
-        // Smoothly interpolate towards the target progress
-        // This makes the transition feel premium even if the network is chunky
-        const target = Math.min(100, Math.max(displayProgress, progress || 0));
-        setDisplayProgress(p => THREE.MathUtils.lerp(p, target, delta * 2.0));
+        // If the real progress jumped, sync my reference
+        if (progress > lastProgress.current) {
+            lastProgress.current = progress;
+        }
+
+        // --- SMART GROWTH LOGIC ---
+        // 1. If we are at 100% real progress, jump there fast
+        // 2. If we are stuck (e.g. at 33%), keep growing very slowly up to 99%
+        let target = Math.max(displayProgress, lastProgress.current);
+        
+        if (target < 100) {
+            // Fake growth: move 0.1% of the remaining distance to 99 each second
+            target += (99.5 - target) * 0.002;
+        }
+
+        // Interpolate for smooth visuals
+        setDisplayProgress(p => {
+            const next = THREE.MathUtils.lerp(p, target, delta * 3.0);
+            return Math.min(100, next);
+        });
     });
 
     return (
@@ -474,17 +492,20 @@ const SmoothLoader = ({ progress }) => {
                 width: '300px',
                 textShadow: '0 0 20px rgba(255,255,255,0.2)'
             }}>
-                <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px' }}>INITIALIZING_ARTIFACT</div>
-                <div style={{ fontWeight: '900', fontSize: '18px' }}>
+                <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px', letterSpacing: '2px' }}>
+                    SYNCHRONIZING_CORE_GEOMETRY
+                </div>
+                <div style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}>
                     {Math.round(displayProgress)}%
                 </div>
                 <div style={{ 
-                    marginTop: '12px', 
+                    marginTop: '15px', 
                     width: '100%', 
-                    height: '1px', 
+                    height: '2px', 
                     background: 'rgba(255,255,255,0.05)',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    borderRadius: '2px'
                 }}>
                     <div style={{ 
                         position: 'absolute',
@@ -493,8 +514,12 @@ const SmoothLoader = ({ progress }) => {
                         height: '100%',
                         width: `${displayProgress}%`,
                         background: '#ffcc00',
-                        boxShadow: '0 0 10px #ffcc00'
+                        boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)',
+                        transition: 'width 0.1s linear'
                     }} />
+                </div>
+                <div style={{ marginTop: '10px', fontSize: '7px', opacity: 0.2, textTransform: 'uppercase' }}>
+                    Decompressing artifacts...
                 </div>
             </div>
         </Html>

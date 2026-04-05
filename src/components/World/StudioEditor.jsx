@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import useActiveSlug from '../../hooks/useActiveSlug';
 
 const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
 
@@ -11,7 +12,7 @@ const StudioEditor = () => {
     
     const config = useAppStore(s => s.sculptureConfig);
     const setConfig = useAppStore(s => s.setSculptureConfig);
-    const activeSlug = useAppStore(s => s.activeSlug) || 'default';
+    const activeSlug = useActiveSlug() || 'default';
     const setView = useAppStore(s => s.setView);
     const setActiveSlug = useAppStore(s => s.setActiveSlug);
     
@@ -226,10 +227,10 @@ const StudioEditor = () => {
                                     
                                     <div className="space-y-3">
                                         <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Настройки Страницы</h5>
-                                        {renderSlider('Section Y (Height)', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
+                                        {renderSlider('Section Y (Height)', currentSection?.modelY ?? 5.1, -80, 100, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
                                         {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
                                         <div className="pt-2">
-                                            {renderSlider('Master Y (All)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                            {renderSlider('Master Y (All)', config.y, -80, 100, 0.1, (v) => setConfig({ y: v }))}
                                         </div>
                                     </div>
 
@@ -250,7 +251,7 @@ const StudioEditor = () => {
                                                 {renderSlider('Horizontal Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
                                                 <div className="grid grid-cols-3 gap-2">
                                                     {renderSlider('PX', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
-                                                    {renderSlider('PY', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                                    {renderSlider('PY', activeCam.pivotY, -60, 100, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
                                                     {renderSlider('PZ', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
                                                 </div>
                                             </div>
@@ -320,7 +321,7 @@ const StudioEditor = () => {
                                         <>
                                             <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Орбитальная позиция</h5>
                                             {renderSlider('Rotation (Orbit)', activeFX.azimuth, 0, 360, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
-                                            {renderSlider('Height (Offset)', activeFX.height, -30, 60, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                            {renderSlider('Height (Offset)', activeFX.height, -60, 80, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                             {renderSlider('Radius (Distance)', activeFX.radius, 0, 40, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
                                         </>
                                     ) : activeFX.type === 'Iris' ? (

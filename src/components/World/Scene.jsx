@@ -118,12 +118,15 @@ const CameraSnooper = () => {
     return null;
 };
 
+import useActiveSlug from '../../hooks/useActiveSlug';
+
 const Scene = () => {
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const setOrbiting = useAppStore(s => s.setOrbiting);
     const triggerCapture = useAppStore(s => s.triggerCapture);
     const isOverPanel = useAppStore(s => s.isOverPanel);
+    const activeSlug = useActiveSlug();
 
     return (
         <ErrorBoundary>
@@ -156,9 +159,9 @@ const Scene = () => {
                     <fog attach="fog" args={['#020202', 20, 100]} />
                 )}
                 
-                {/* --- Dynamic Lighting System (Restored and Synced to Height) --- */}
+                {/* --- Dynamic Lighting System (Fixed reactivity via useActiveSlug) --- */}
                 {config.lights?.map(light => {
-                    const currentSection = config.sections?.[useAppStore.getState().activeSlug] || config.sections?.default;
+                    const currentSection = config.sections?.[activeSlug] || config.sections?.default;
                     const sectionY = currentSection?.modelY;
                     const safeY = Number.isFinite(Number(sectionY)) ? Number(sectionY) : 
                                 (Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1);

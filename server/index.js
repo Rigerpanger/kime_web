@@ -177,13 +177,22 @@ initDB();
 
 app.use(cors({ origin: '*' }));
 
-// --- SAFE COMPRESSION ---
+// --- SAFE & FORCED COMPRESSION ---
 try {
     const { default: compression } = await import('compression');
-    app.use(compression());
-    console.log('✅ Gzip compression enabled');
+    app.use(compression({
+        filter: (req, res) => {
+            if (req.headers['x-no-compression']) return false;
+            // Compress common web types PLUS 3D binary model formats
+            const type = res.getHeader('Content-Type') || '';
+            const isModel = type.includes('model/gltf-binary') || type.includes('application/octet-stream');
+            return isModel || compression.filter(req, res);
+        },
+        level: 6 // Balanced speed/compression
+    }));
+    console.log('✅ Gzip compression enabled with 3D model support');
 } catch (e) {
-    console.warn('⚠️ Compression module not loaded, serving uncompressed stars:', e.message);
+    console.warn('⚠️ Compression module not loaded:', e.message);
 }
 
 app.use(express.json());
