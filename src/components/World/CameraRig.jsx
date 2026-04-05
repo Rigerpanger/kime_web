@@ -14,21 +14,24 @@ const CameraRig = () => {
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
     const lastSlug = useRef(activeSlug);
+    const isTransitioning = useRef(false);
  
     useFrame((state, delta) => {
         // --- EDITOR OVERRIDE ---
         // If the editor is open, we only lerp when the section (slug) changes.
-        // Otherwise, the user has 100% manual freedom with their mouse.
+        // Once the camera settles near the target, we release to manual mode.
         if (showStudioEditor) {
            if (lastSlug.current !== activeSlug) {
-              // We'll allow one transition, then stay manual
               lastSlug.current = activeSlug;
-           } else {
-              // Stay in manual mode to prevent "fighting" the mouse
-              return;
+              isTransitioning.current = true; // Trigger smooth flight
+           }
+           
+           if (!isTransitioning.current) {
+              return; // Stay in manual mode to prevent "fighting" the mouse
            }
         } else {
            lastSlug.current = activeSlug;
+           isTransitioning.current = false;
         }
 
         let targetPos = [0, 0, 16];
@@ -89,7 +92,6 @@ const CameraRig = () => {
                 camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos[2], smoothing, d);
             }
 
-            // Apply Target Smoothing
             if (controls) {
                 if (isNaN(controls.target.x)) {
                     controls.target.set(...targetLook);
@@ -103,6 +105,18 @@ const CameraRig = () => {
                 vecTarget.set(...targetLook);
                 camera.lookAt(vecTarget);
             }
+
+            // --- TRANSITION SETTLING CHECK ---
+            if (showStudioEditor && isTransitioning.current) {
+                // If we are close enough to the target, stop lerping to allow manual control
+                const distPos = camera.position.distanceTo(new THREE.Vector3(...targetPos));
+                const distTarget = controls ? controls.target.distanceTo(new THREE.Vector3(...targetLook)) : 0;
+                
+                if (distPos < 0.1 && distTarget < 0.1) {
+                    isTransitioning.current = false;
+                }
+            }
+
             return;
         }
     });

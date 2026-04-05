@@ -262,7 +262,7 @@ const StudioEditor = () => {
                                         <h5 className="text-[9px] uppercase font-black text-[#ffcc00]">{activeLightId}</h5>
                                         <button onClick={() => removeLight(activeLightId)} className="text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={11}/></button>
                                     </div>
-                                    {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 2000, 10, (v) => updateLight(activeLightId, { intensity: v }))}
+                                    {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 150, 1, (v) => updateLight(activeLightId, { intensity: v }))}
                                     {renderSlider('Radius', (config.lights || []).find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
                                 </div>
                                 <div className="space-y-4 pt-5">
