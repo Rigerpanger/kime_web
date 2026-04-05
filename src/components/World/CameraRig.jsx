@@ -60,7 +60,9 @@ const CameraRig = () => {
             const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
             const r = activeCam.radius || 18;
             const px = activeCam.pivotX || 0;
-            const py = (activeCam.pivotY !== undefined ? activeCam.pivotY : currentSection?.modelY ?? 5.1) + (currentConfig.y || 0);
+            const py = activeCam.pivotY !== undefined 
+                ? activeCam.pivotY 
+                : ((currentSection?.modelY ?? 5.1) + (currentConfig.y || 0));
             const pz = activeCam.pivotZ || 0;
             
             const targetLookArr = [px, py, pz];
