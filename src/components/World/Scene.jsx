@@ -1,4 +1,4 @@
-import React, { Suspense, useRef } from 'react';
+import React, { Suspense, useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
