@@ -165,7 +165,7 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
     const pointsRef = useRef();
     const count = 500;
     
-    const [geometry] = useMemo(() => {
+    const geometry = useMemo(() => {
         const geo = new THREE.BufferGeometry();
         const pos = new Float32Array(count * 3);
         const offsets = new Float32Array(count); 
@@ -368,7 +368,7 @@ const SculptureModel = () => {
                 
                 {/* Render ALL section FX for smooth transitions */}
                 {Object.entries(config.sections || {}).map(([slug, section]) => (
-                    section.fx?.map((fx, idx) => (
+                    Array.isArray(section.fx) && section.fx.map((fx, idx) => (
                         <FXWrapper 
                             key={`${slug}-${idx}`}
                             type={fx.type}
