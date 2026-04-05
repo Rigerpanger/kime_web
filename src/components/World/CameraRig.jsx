@@ -13,11 +13,23 @@ const CameraRig = () => {
  
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
+    const lastSlug = useRef(activeSlug);
  
     useFrame((state, delta) => {
-        // If the user uses OrbitControls mouse interaction in editor, pause smoothing
-        // UNLESS we are currently over the panel (adjusting sliders)
-        if (isOrbiting && showStudioEditor && !isOverPanel) return;
+        // --- EDITOR OVERRIDE ---
+        // If the editor is open, we only lerp when the section (slug) changes.
+        // Otherwise, the user has 100% manual freedom with their mouse.
+        if (showStudioEditor) {
+           if (lastSlug.current !== activeSlug) {
+              // We'll allow one transition, then stay manual
+              lastSlug.current = activeSlug;
+           } else {
+              // Stay in manual mode to prevent "fighting" the mouse
+              return;
+           }
+        } else {
+           lastSlug.current = activeSlug;
+        }
 
         let targetPos = [0, 0, 16];
         let targetLook = [0, 0, 0];

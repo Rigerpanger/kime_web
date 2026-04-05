@@ -361,28 +361,53 @@ const SculptureModel = () => {
     if (safeScale < 0.1 || safeScale > 200) safeScale = 17; // prevent vanishing bounds
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
 
+    // SYNCED LIGHTS: Now they follow the model's Y translation
+    const lights = config.lights || [];
+
     return (
         <Float 
             speed={isEditing ? 0 : 0.4} 
             rotationIntensity={isEditing ? 0 : 0.05} 
             floatIntensity={isEditing ? 0 : 0.1}
         >
-            <Center bottom position={[0, safeY, 0]}>
-                <primitive object={clonedScene} scale={safeScale} rotation={[0, safeRot * (Math.PI / 180), 0]} />
-                
-                {/* Render ALL section FX for smooth transitions */}
-                {Object.entries(config.sections || {}).map(([slug, section]) => (
-                    Array.isArray(section.fx) && section.fx.map((fx, idx) => (
-                        <FXWrapper 
-                            key={`${slug}-${idx}`}
-                            type={fx.type}
-                            config={fx}
-                            isActive={isServiceView && activeSlug === slug && fx.active}
-                            onRevealed={setRevealHeight}
+            <group position={[0, safeY, 0]}>
+                <Center bottom>
+                    <primitive object={clonedScene} scale={safeScale} rotation={[0, safeRot * (Math.PI / 180), 0]} />
+                    
+                    {/* Render ALL section FX for smooth transitions */}
+                    {Object.entries(config.sections || {}).map(([slug, section]) => (
+                        Array.isArray(section.fx) && section.fx.map((fx, idx) => (
+                            <FXWrapper 
+                                key={`${slug}-${idx}`}
+                                type={fx.type}
+                                config={fx}
+                                isActive={isServiceView && activeSlug === slug && fx.active}
+                                onRevealed={setRevealHeight}
+                            />
+                        ))
+                    ))}
+                </Center>
+
+                {/* LIGHTS IN MODEL SPACE: They stay pinned to the sculpture's height */}
+                {lights.map(light => {
+                    const angleInRadians = (light.azimuth * Math.PI) / 180;
+                    const x = light.radius * Math.sin(angleInRadians);
+                    const z = light.radius * Math.cos(angleInRadians);
+                    
+                    return (
+                        <spotLight
+                            key={light.id}
+                            position={[x, light.y, z]}
+                            intensity={light.intensity}
+                            color={light.color}
+                            angle={0.6}
+                            penumbra={1}
+                            castShadow
+                            shadow-bias={-0.0001}
                         />
-                    ))
-                ))}
-            </Center>
+                    );
+                })}
+            </group>
         </Float>
     );
 };

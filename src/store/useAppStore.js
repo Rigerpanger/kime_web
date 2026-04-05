@@ -118,6 +118,19 @@ const useAppStore = create(
       captureTrigger: 0,
       triggerCapture: () => set(state => ({ captureTrigger: state.captureTrigger + 1 })),
       
+      // Bulk update for the automated "Snapshot" mode
+      setSectionView: (slug, viewData) => set((state) => {
+          const activeKey = slug || 'default';
+          const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
+          if (!sections[activeKey]) sections[activeKey] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
+          
+          sections[activeKey].camera = { 
+              ...sections[activeKey].camera,
+              ...viewData 
+          };
+
+          return { sculptureConfig: { ...state.sculptureConfig, sections } };
+      }),
       setActiveLightId: (id) => set({ activeLightId: id }),
       addLight: () => set((state) => {
          const newId = `light-${Date.now()}`;

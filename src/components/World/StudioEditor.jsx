@@ -35,6 +35,10 @@ const StudioEditor = () => {
     const [activeTab, setActiveTab] = useState('camera');
     const [activeSlot, setActiveSlot] = useState(0);
     const [isCollapsed, setIsCollapsed] = useState(false);
+    const [showAdvancedCam, setShowAdvancedCam] = useState(false);
+    const [captured, setCaptured] = useState(false);
+    
+    const triggerCapture = useAppStore(s => s.triggerCapture);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 12.5, pivotZ: 0 };
@@ -186,36 +190,66 @@ const StudioEditor = () => {
                                     <h4 className="text-[9px] font-black uppercase text-[#ffcc00]">Редактор Камеры <span className="opacity-30 ml-2">// {SECTION_NAMES[activeSlug] || activeSlug}</span></h4>
                                     <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-[7px] font-black uppercase">Авто-захват OK</div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-6">
-                                    <div className="space-y-2.5">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Фокус (Пивот)</h5>
-                                        {renderSlider('X Axis', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
-                                        {renderSlider('Y Axis', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                        {renderSlider('Z Axis', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
-                                    </div>
-                                    <div className="space-y-2.5">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Скульптура</h5>
-                                        {renderSlider('Section Y', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
-                                        {renderSlider('Master Y', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
-                                        {renderSlider('Size', config.scale, 1, 200, 1, (v) => setConfig({ scale: v }))}
-                                    </div>
-                                    <div className="space-y-2.5">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">Линза & Сброс</h5>
-                                        {renderSlider('Zoom (FOV)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
-                                        {renderSlider('Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
+                                <div className="grid grid-cols-3 gap-6 items-start">
+                                    <div className="space-y-3">
+                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">1. Настройте камеру</h5>
+                                        <p className="text-[8px] text-white/30 leading-relaxed">Вращайте модель мышкой. Правой кнопкой — двигайте фокус. Колесиком — зум. Когда ракурс идеален — нажмите кнопку ниже:</p>
                                         <button 
                                             onClick={() => {
-                                                updateSectionCamera(activeSlug, { 
-                                                    pivotX: 0, pivotY: 5.1, pivotZ: 0, 
-                                                    radius: 18, polar: 90, azimuth: 0,
-                                                    modelY: 5.1
-                                                });
-                                                setConfig({ y: 5.1, scale: 17 });
+                                                triggerCapture();
+                                                setCaptured(true);
+                                                setTimeout(() => setCaptured(false), 1500);
                                             }}
-                                            className="w-full mt-1 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-[7px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
+                                            className={`w-full py-3 rounded-lg font-black uppercase text-[10px] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,204,0,0.2)] border-2 ${captured ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-[#ffcc00] border-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
                                         >
-                                            <Zap size={10} /> RECOVER
+                                            {captured ? <Check size={14} /> : <><Camera size={14} /> ЗАПОМНИТЬ ЭТОТ ВИД</>}
                                         </button>
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Высота модели</h5>
+                                        {renderSlider('Section Y (Local)', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
+                                        {renderSlider('Master Y (Global)', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">3. Дополнительно</h5>
+                                            <button 
+                                                onClick={() => setShowAdvancedCam(!showAdvancedCam)}
+                                                className="text-[7px] uppercase font-bold text-white/30 hover:text-white"
+                                            >
+                                                {showAdvancedCam ? 'Скрыть' : 'Настройки ↑'}
+                                            </button>
+                                        </div>
+                                        
+                                        {showAdvancedCam ? (
+                                            <div className="space-y-2.5 p-3 bg-white/[0.03] rounded-lg border border-white/5">
+                                                {renderSlider('FOV / Zoom', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                                                {renderSlider('Horizontal Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {renderSlider('PX', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
+                                                    {renderSlider('PY', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                                    {renderSlider('PZ', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                <button 
+                                                    onClick={() => {
+                                                        updateSectionCamera(activeSlug, { 
+                                                            pivotX: 0, pivotY: 5.1, pivotZ: 0, 
+                                                            radius: 18, polar: 90, azimuth: 0,
+                                                            modelY: 5.1
+                                                        });
+                                                        setConfig({ y: 5.1, scale: 17 });
+                                                    }}
+                                                    className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-[7px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Zap size={10} /> СБРОСИТЬ (RECOVER)
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

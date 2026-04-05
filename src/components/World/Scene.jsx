@@ -53,6 +53,37 @@ const MouseLight = () => {
         </group>
     );
 };
+// A component that can "snoop" on the camera's current state and save it
+const CameraSnooper = () => {
+    const { camera, controls } = useThree();
+    const captureTrigger = useAppStore(s => s.captureTrigger);
+    const activeSlug = useAppStore(s => s.activeSlug);
+    const setSectionView = useAppStore(s => s.setSectionView);
+
+    React.useEffect(() => {
+        if (captureTrigger > 0 && controls) {
+            const tgt = controls.target;
+            const cam = camera;
+            
+            const rad = Math.max(0.1, cam.position.distanceTo(tgt));
+            const dVec = new THREE.Vector3().subVectors(cam.position, tgt);
+            
+            let pol = (Math.acos(THREE.MathUtils.clamp(dVec.y / rad, -1, 1)) * 180) / Math.PI;
+            let azi = (Math.atan2(dVec.x, dVec.z) * 180) / Math.PI;
+            
+            setSectionView(activeSlug, {
+                pivotX: isNaN(tgt.x) ? 0 : tgt.x, 
+                pivotY: isNaN(tgt.y) ? 5.1 : tgt.y, 
+                pivotZ: isNaN(tgt.z) ? 0 : tgt.z,
+                radius: isNaN(rad) ? 18 : rad, 
+                polar: isNaN(pol) ? 90 : pol, 
+                azimuth: isNaN(azi) ? 0 : azi
+            });
+        }
+    }, [captureTrigger]);
+
+    return null;
+};
 
 const Scene = () => {
     const config = useAppStore(s => s.sculptureConfig);
@@ -78,63 +109,18 @@ const Scene = () => {
                         enabled={!isOverPanel}
                         enablePan={true}
                         enableDamping={true}
-                        dampingFactor={0.05}
-                        onStart={() => { if (setOrbiting) setOrbiting(true); }}
-                        onEnd={(e) => { 
-                            try {
-                                const cam = e.target.object;
-                                const tgt = e.target.target;
-                                
-                                const rad = Math.max(0.1, cam.position.distanceTo(tgt));
-                                const dVec = new THREE.Vector3().subVectors(cam.position, tgt);
-                                
-                                let pol = (Math.acos(THREE.MathUtils.clamp(dVec.y / rad, -1, 1)) * 180) / Math.PI;
-                                let azi = (Math.atan2(dVec.x, dVec.z) * 180) / Math.PI;
-                                
-                                if (isNaN(pol)) pol = 90;
-                                if (isNaN(azi)) azi = 0;
-
-                                const store = useAppStore.getState();
-                                store.updateSectionCamera(store.activeSlug, {
-                                    pivotX: isNaN(tgt.x) ? 0 : tgt.x, 
-                                    pivotY: isNaN(tgt.y) ? 12.5 : tgt.y, 
-                                    pivotZ: isNaN(tgt.z) ? 0 : tgt.z,
-                                    radius: isNaN(rad) ? 18 : rad, 
-                                    polar: pol, 
-                                    azimuth: azi
-                                });
-                            } catch(err) {
-                                console.error('Orbit End Error:', err);
-                            }
-                            if (setOrbiting) setOrbiting(false); 
-                        }}
+                        dampingFactor={0.06}
+                        onStart={() => setOrbiting(true)}
+                        onEnd={() => setOrbiting(false)}
                     />
                 )}
+                {showStudioEditor && <CameraSnooper />}
                 
                 <CameraRig />
 
                 <color attach="background" args={['#020202']} />
                 <fog attach="fog" args={['#020202', 20, 100]} />
 
-                {/* --- Dynamic Lighting System --- */}
-                {config.lights?.map(light => {
-                    const angleInRadians = (light.azimuth * Math.PI) / 180;
-                    const x = light.radius * Math.sin(angleInRadians);
-                    const z = light.radius * Math.cos(angleInRadians);
-                    
-                    return (
-                        <spotLight
-                            key={light.id}
-                            position={[x, light.y, z]}
-                            intensity={light.intensity}
-                            color={light.color}
-                            angle={0.6}
-                            penumbra={1}
-                            castShadow
-                            shadow-bias={-0.0001}
-                        />
-                    );
-                })}
 
                 {/* Interactive Flashlight */}
                 <MouseLight />
