@@ -76,13 +76,11 @@ const CameraRig = () => {
                 targetLookArr[0] = 0; targetLookArr[1] = 5.1; targetLookArr[2] = 0;
             }
 
-            // --- CINEMATIC SMOOTHING ---
+            // --- CINEMATIC SMOOTHING (HEAVY/EXPENSIVE FEEL) ---
             // We use a high damping value (smaller number in DAMP is actually slower/smoother)
-            // But THREE.MathUtils.damp is (current, target, smoothing, delta)
-            // High smoothing = faster.
-            // For a 'heavy' cinematic feel, we use 4.0 for everything.
-            const transitionSmoothing = 4.0; 
-            const editorSmoothing = 8.0; // Sliders respond faster
+            // For a 'heavy' cinematic feel, we use 1.0.
+            const transitionSmoothing = 1.0; 
+            const editorSmoothing = 4.0; // Sliders respond faster
             const s = isEditing ? editorSmoothing : transitionSmoothing;
             const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
 

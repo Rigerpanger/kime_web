@@ -247,6 +247,8 @@ const StudioEditor = () => {
                                         
                                         {showAdvancedCam ? (
                                             <div className="space-y-2.5 p-3 bg-white/[0.03] rounded-lg border border-white/5">
+                                                {renderSlider('Angle (Azimuth)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
+                                                {renderSlider('Height (Polar)', activeCam.polar, 1, 179, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
                                                 {renderSlider('FOV / Zoom', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                                                 {renderSlider('Horizontal Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
                                                 <div className="grid grid-cols-3 gap-2">

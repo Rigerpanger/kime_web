@@ -159,7 +159,10 @@ const Scene = () => {
                         enableDamping={true}
                         dampingFactor={0.06}
                         onStart={() => setOrbiting(true)}
-                        onEnd={() => setOrbiting(false)}
+                        onEnd={() => {
+                            setOrbiting(false);
+                            triggerCapture(); // Prevents snap-back by saving mouse pos to state
+                        }}
                     />
                 )}
                 {showStudioEditor && <CameraSnooper />}

@@ -11,6 +11,12 @@ const FX_COMPONENTS = {
     'ShapeShifter': (props) => <ShapeShifter {...props} />,
     'SoftwareSilhouette': (props) => <SoftwareSilhouette {...props} />,
     'TetrisReveal': (props) => <TetrisReveal {...props} />,
+    'QuantumDust': (props) => <QuantumDust {...props} />,
+    'CyberWaves': (props) => <CyberWaves {...props} />,
+    'DataStream': (props) => <DataStream {...props} />,
+    'GeoSwarm': (props) => <GeoSwarm {...props} />,
+    'HoloGrid': () => null,
+    'NeonEdges': () => null,
     'Iris': () => null,
     'None': () => null
 };
@@ -293,14 +299,205 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
     return <points ref={pointsRef} geometry={geometry} material={material} />;
 };
 
+// --- EFFECT: Quantum Dust ---
+const QuantumDust = ({ config = {}, animatedOpacity = 1 }) => {
+    const pointsRef = useRef();
+    const count = 400;
+    
+    const particles = useMemo(() => {
+        const pos = new Float32Array(count * 3);
+        const phases = new Float32Array(count);
+        for(let i=0; i<count; i++) {
+            pos[i*3] = (Math.random() - 0.5) * 15;
+            pos[i*3+1] = (Math.random() - 0.5) * 15;
+            pos[i*3+2] = (Math.random() - 0.5) * 15;
+            phases[i] = Math.random() * Math.PI * 2;
+        }
+        return { pos, phases };
+    }, []);
+
+    useFrame((state) => {
+        const t = state.clock.elapsedTime;
+        if(pointsRef.current) {
+            pointsRef.current.rotation.y = t * 0.05;
+            pointsRef.current.rotation.x = t * 0.02;
+            pointsRef.current.material.opacity = (0.5 + Math.sin(t) * 0.3) * animatedOpacity * (config.intensity || 1.0);
+        }
+    });
+
+    return (
+        <points ref={pointsRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={count} array={particles.pos} itemSize={3} />
+            </bufferGeometry>
+            <pointsMaterial size={config.scale ? 0.05 * config.scale : 0.05} color={config.color || "#ffffff"} transparent opacity={animatedOpacity} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </points>
+    );
+};
+
+// --- EFFECT: Cyber Waves ---
+const CyberWaves = ({ config = {}, animatedOpacity = 1 }) => {
+    const wavesRef = useRef([]);
+    const ringCount = 4;
+    
+    useFrame((state) => {
+        const t = state.clock.elapsedTime * (config.intensity || 1.0);
+        wavesRef.current.forEach((mesh, i) => {
+            if (!mesh) return;
+            const cycle = (t * 0.5 + i / ringCount) % 1.0;
+            const waveScale = 1.0 + cycle * 10.0 * (config.scale || 1.0);
+            mesh.scale.setScalar(waveScale);
+            mesh.material.opacity = (1.0 - cycle) * animatedOpacity * 0.8;
+            mesh.position.y = cycle * 8.0 - 4.0;
+        });
+    });
+
+    return (
+        <group rotation={[-Math.PI / 2, 0, 0]}>
+            {[...Array(ringCount)].map((_, i) => (
+                <mesh key={i} ref={el => wavesRef.current[i] = el}>
+                    <ringGeometry args={[0.9, 1.0, 64]} />
+                    <meshBasicMaterial color={config.color || "#00ffff"} transparent depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
+                </mesh>
+            ))}
+        </group>
+    );
+};
+
+// --- EFFECT: Data Stream ---
+const DataStream = ({ config = {}, animatedOpacity = 1 }) => {
+    const count = 150;
+    const lines = useMemo(() => {
+        const pos = new Float32Array(count * 3);
+        for(let i=0; i<count; i++) {
+            pos[i*3] = (Math.random() - 0.5) * 8;
+            pos[i*3+1] = Math.random() * 20 - 10;
+            pos[i*3+2] = (Math.random() - 0.5) * 8;
+        }
+        return { pos };
+    }, []);
+
+    const material = useMemo(() => {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uColor: { value: new THREE.Color(config.color || "#00ff00") },
+                uOpacity: { value: 0 }
+            },
+            vertexShader: `
+                void main() {
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    gl_Position = projectionMatrix * mvPosition;
+                    gl_PointSize = ${config.scale ? 20.0 * config.scale : 20.0} / -mvPosition.z;
+                }`,
+            fragmentShader: `
+                uniform vec3 uColor; uniform float uOpacity;
+                void main() {
+                    vec2 uv = gl_PointCoord.xy - 0.5;
+                    float a = exp(-300.0 * (uv.x * uv.x));
+                    float b = exp(-2.0 * (uv.y * uv.y));
+                    gl_FragColor = vec4(uColor, a * b * uOpacity);
+                }`,
+            transparent: true, blending: THREE.AdditiveBlending, depthWrite: false
+        })
+    }, [config.color, config.scale]);
+
+    const linesRef = useRef();
+    useFrame((state) => {
+        const t = state.clock.elapsedTime * 5.0 * (config.intensity || 1.0);
+        if (linesRef.current) {
+            const positions = linesRef.current.geometry.attributes.position.array;
+            for(let i=0; i<count; i++) {
+                positions[i*3+1] -= 0.1 * (config.intensity || 1.0);
+                if(positions[i*3+1] < -10) positions[i*3+1] = 10 + Math.random() * 5;
+            }
+            linesRef.current.geometry.attributes.position.needsUpdate = true;
+            linesRef.current.material.uniforms.uOpacity.value = animatedOpacity * 0.8;
+        }
+    });
+
+    return (
+        <points ref={linesRef} material={material}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={count} array={lines.pos} itemSize={3} />
+            </bufferGeometry>
+        </points>
+    );
+};
+
+// --- EFFECT: Geo Swarm ---
+const GeoSwarm = ({ config = {}, animatedOpacity = 1 }) => {
+    const pointsRef = useRef();
+    const count = 300;
+    
+    const { randomPos, spherePos, colors } = useMemo(() => {
+        const rnd = new Float32Array(count * 3);
+        const sph = new Float32Array(count * 3);
+        const col = new Float32Array(count * 3);
+        const colorPalette = [new THREE.Color("#ff0044"), new THREE.Color("#00ffcc"), new THREE.Color("#ffcc00")];
+        
+        for(let i=0; i<count; i++) {
+            rnd[i*3] = (Math.random() - 0.5) * 20;
+            rnd[i*3+1] = (Math.random() - 0.5) * 20;
+            rnd[i*3+2] = (Math.random() - 0.5) * 20;
+            
+            const phi = Math.acos(-1 + (2 * i) / count);
+            const theta = Math.sqrt(count * Math.PI) * phi;
+            const r = 3.0;
+            sph[i*3] = r * Math.cos(theta) * Math.sin(phi);
+            sph[i*3+1] = r * Math.sin(theta) * Math.sin(phi);
+            sph[i*3+2] = r * Math.cos(phi);
+            
+            colorPalette[i % 3].toArray(col, i * 3);
+        }
+        return { randomPos: rnd, spherePos: sph, colors: col };
+    }, []);
+
+    useFrame((state) => {
+        const t = state.clock.elapsedTime * (config.intensity || 1.0);
+        if(pointsRef.current) {
+            const cycle = (Math.sin(t * 0.5) + 1.0) / 2.0; 
+            const ease = cycle < 0.5 ? 4 * cycle * cycle * cycle : 1 - Math.pow(-2 * cycle + 2, 3) / 2;
+            
+            const positions = pointsRef.current.geometry.attributes.position.array;
+            for(let i=0; i<count; i++) {
+                positions[i*3] = THREE.MathUtils.lerp(randomPos[i*3], spherePos[i*3], ease);
+                positions[i*3+1] = THREE.MathUtils.lerp(randomPos[i*3+1], spherePos[i*3+1], ease);
+                positions[i*3+2] = THREE.MathUtils.lerp(randomPos[i*3+2], spherePos[i*3+2], ease);
+            }
+            pointsRef.current.geometry.attributes.position.needsUpdate = true;
+            pointsRef.current.rotation.y = t * 0.2;
+            pointsRef.current.rotation.x = t * 0.1;
+        }
+    });
+
+    return (
+        <points ref={pointsRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={count} array={randomPos} itemSize={3} />
+                <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
+            </bufferGeometry>
+            <pointsMaterial size={config.scale ? 0.2 * config.scale : 0.2} vertexColors transparent opacity={animatedOpacity * 0.9} blending={THREE.AdditiveBlending} depthWrite={false} />
+        </points>
+    );
+};
+
 const UnifiedShaderInjection = (mat) => {
     if (mat.userData.unifiedCompiled) return;
     mat.onBeforeCompile = (shader) => {
         shader.uniforms.uTime = { value: 0 };
         shader.uniforms.uIrisMix = { value: 0 };
         shader.uniforms.uIrisIntensity = { value: 1.0 };
-        shader.uniforms.uIrisColor = { value: new THREE.Color("#ffcc00") };
-        shader.uniforms.uIrisType = { value: 0 }; // 0: Liquid, 1: Energy, 2: Glitch
+        shader.uniforms.uIrisColor = { value: new THREE.Color("#ffffff") };
+        shader.uniforms.uIrisType = { value: 0 };
+        
+        shader.uniforms.uGridMix = { value: 0 };
+        shader.uniforms.uGridIntensity = { value: 1.0 };
+        shader.uniforms.uGridColor = { value: new THREE.Color("#00ffcc") };
+        
+        shader.uniforms.uEdgeMix = { value: 0 };
+        shader.uniforms.uEdgeIntensity = { value: 1.0 };
+        shader.uniforms.uEdgeColor = { value: new THREE.Color("#ff00ff") };
+        
         shader.uniforms.uRevealMix = { value: 0 };
         shader.uniforms.uRevealHeight = { value: 15 };
         
@@ -317,37 +514,76 @@ const UnifiedShaderInjection = (mat) => {
 
         shader.fragmentShader = `
             uniform float uTime;
+            
+            // Iris (Pearlescent)
             uniform float uIrisMix;
             uniform float uIrisIntensity;
             uniform vec3 uIrisColor;
             uniform float uIrisType;
+            
+            // Grid
+            uniform float uGridMix;
+            uniform float uGridIntensity;
+            uniform vec3 uGridColor;
+            
+            // Edges
+            uniform float uEdgeMix;
+            uniform float uEdgeIntensity;
+            uniform vec3 uEdgeColor;
+            
             uniform float uRevealMix;
             uniform float uRevealHeight;
+            
             varying vec3 vWorldPos;
             varying vec3 vNormalVec;
             varying vec3 vViewPos;
+            
             ${shader.fragmentShader}
         `.replace(`#include <clipping_planes_fragment>`, `#include <clipping_planes_fragment>
             if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
         `).replace(`#include <color_fragment>`, `#include <color_fragment>
-            float fresnel = pow(1.0 - max(0.0, dot(normalize(vNormalVec), normalize(vViewPos))), 2.0);
+            vec3 viewDir = normalize(vViewPos);
+            vec3 normal = normalize(vNormalVec);
+            float fresnelNode = max(0.0, dot(normal, viewDir));
+            float fresnelEffect = pow(1.0 - fresnelNode, 3.0);
             
-            vec3 irisLiquid = vec3(
-                sin(vWorldPos.x * 2.0 + uTime * 1.5) * 0.5 + 0.5,
-                sin(vWorldPos.y * 2.0 + uTime * 1.2 + 2.0) * 0.5 + 0.5,
-                sin(vWorldPos.z * 2.0 - uTime * 0.8 + 4.0) * 0.5 + 0.5
-            ) * uIrisColor * 1.5;
-
-            vec3 irisEnergy = uIrisColor * 1.2 + vec3(1.0, 0.9, 1.0) * fresnel * 2.5;
-
-            float scanline = sin(vWorldPos.y * 10.0 + uTime * 5.0) * 0.5 + 0.5;
-            vec3 irisGlitch = mix(uIrisColor, vec3(1.0), scanline * 0.5) * (fresnel + 0.4);
-
-            vec3 finalIris = irisLiquid;
-            if (uIrisType > 1.5) finalIris = irisGlitch;
-            else if (uIrisType > 0.5) finalIris = irisEnergy;
-
-            diffuseColor.rgb = mix(diffuseColor.rgb, finalIris, uIrisMix * uIrisIntensity * (0.9 + 0.1 * sin(uTime)));
+            // --- 1. PEARLESCENT IRIS ---
+            // High-end metallic iridescence effect
+            vec3 pearlBase = vec3(
+                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 0.0),
+                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 2.0),
+                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 4.0)
+            );
+            vec3 irisPearlescent = pearlBase * uIrisColor * (0.5 + 1.5 * fresnelEffect);
+            vec3 irisEnergy = uIrisColor * 1.5 + vec3(1.0) * fresnelEffect * 3.0; // Alternate bright mode
+            vec3 finalIris = uIrisType > 0.5 ? irisEnergy : irisPearlescent;
+            
+            if (uIrisMix > 0.0) {
+                diffuseColor.rgb = mix(diffuseColor.rgb, finalIris, uIrisMix * uIrisIntensity * (0.8 + 0.2 * sin(uTime * 2.0)));
+            }
+            
+            // --- 2. HOLO GRID ---
+            float gridScale = 20.0;
+            vec2 gridUV = fract(vWorldPos.xz * gridScale + vWorldPos.y * gridScale * 0.5);
+            float lineH = smoothstep(0.0, 0.08, gridUV.x) - smoothstep(0.92, 1.0, gridUV.x);
+            float lineV = smoothstep(0.0, 0.08, gridUV.y) - smoothstep(0.92, 1.0, gridUV.y);
+            float gridBase = max(1.0 - lineH, 1.0 - lineV);
+            float scanWave = smoothstep(0.0, 1.0, sin(vWorldPos.y * 5.0 - uTime * 6.0));
+            vec3 gridColorOut = uGridColor * gridBase * (0.5 + 2.0 * scanWave);
+            
+            if (uGridMix > 0.0) {
+                diffuseColor.rgb = mix(diffuseColor.rgb, gridColorOut, uGridMix * uGridIntensity * gridBase);
+            }
+            
+            // --- 3. NEON EDGES ---
+            float edgeFresnel = pow(1.0 - fresnelNode, 4.0); // Sharp falloff
+            float edgePulse = 0.7 + 0.3 * sin(uTime * 4.0 - vWorldPos.y * 2.0);
+            vec3 edgeColorOut = uEdgeColor * edgeFresnel * 4.0; 
+            
+            if (uEdgeMix > 0.0) {
+                // Additive glow on top of whatever material is there
+                diffuseColor.rgb += edgeColorOut * uEdgeMix * uEdgeIntensity * edgePulse; 
+            }
         `);
         mat.userData.shader = shader;
     };
@@ -376,6 +612,8 @@ const SculptureModel = () => {
         const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
         
         const irisFX = (currentSection?.fx || []).find(f => f.type === 'Iris' && f.active);
+        const holoGridFX = (currentSection?.fx || []).find(f => f.type === 'HoloGrid' && f.active);
+        const neonEdgesFX = (currentSection?.fx || []).find(f => f.type === 'NeonEdges' && f.active);
         const tetrisFX = (currentSection?.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
 
         clonedScene.traverse(n => {
@@ -389,6 +627,20 @@ const SculptureModel = () => {
                     shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
                     shader.uniforms.uIrisColor.value.set(irisFX.color || "#ffcc00");
                     shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
+                }
+                
+                // --- HoloGrid Uniforms ---
+                shader.uniforms.uGridMix.value = holoGridFX ? 1.0 : 0;
+                if (holoGridFX) {
+                    shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
+                    shader.uniforms.uGridColor.value.set(holoGridFX.color || "#00ffcc");
+                }
+                
+                // --- NeonEdges Uniforms ---
+                shader.uniforms.uEdgeMix.value = neonEdgesFX ? 1.0 : 0;
+                if (neonEdgesFX) {
+                    shader.uniforms.uEdgeIntensity.value = neonEdgesFX.intensity ?? 1.0;
+                    shader.uniforms.uEdgeColor.value.set(neonEdgesFX.color || "#ff00ff");
                 }
 
                 // --- Tetris Uniforms ---
