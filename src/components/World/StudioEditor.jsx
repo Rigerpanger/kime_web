@@ -98,7 +98,7 @@ const StudioEditor = () => {
         <div 
             onMouseEnter={() => setIsOverPanel(true)}
             onMouseLeave={() => setIsOverPanel(false)}
-            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[40px]' : 'h-[180px]'}`}
+            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[32px]' : 'h-[165px]'}`}
         >
             <button 
                 onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
@@ -119,8 +119,8 @@ const StudioEditor = () => {
                 </div>
             ) : (
                 <div className="flex w-full h-full overflow-hidden">
-                    <div className="w-[120px] shrink-0 border-r border-white/5 p-3 flex flex-col justify-between bg-black/20">
-                        <div className="space-y-2">
+                    <div className="w-[100px] shrink-0 border-r border-white/5 p-2 flex flex-col justify-between bg-black/20">
+                        <div className="space-y-1.5">
                             {[
                                 { id: 'camera', icon: Camera, label: 'Cam' },
                                 { id: 'fx', icon: Zap, label: 'FX' },
@@ -130,21 +130,21 @@ const StudioEditor = () => {
                                 <button 
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/20 hover:bg-white/5'}`}
+                                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-md transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/20 hover:bg-white/5'}`}
                                 >
-                                    <tab.icon size={11} />
-                                    <span className="text-[8px] font-bold uppercase">{tab.label}</span>
+                                    <tab.icon size={10} />
+                                    <span className="text-[7.5px] font-bold uppercase">{tab.label}</span>
                                 </button>
                             ))}
                             <button 
                                 onClick={handleSave} 
                                 disabled={saving}
-                                className={`w-full mt-2 py-2 rounded-lg font-black uppercase text-[9px] transition-all flex items-center justify-center gap-2 shadow-lg ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
+                                className={`w-full mt-1.5 py-1.5 rounded-md font-black uppercase text-[8px] transition-all flex items-center justify-center gap-1.5 shadow-lg ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
                             >
-                                {saving ? <Loader2 size={11} className="animate-spin" /> : saved ? <Check size={11} /> : <><Save size={11} /> Deploy</>}
+                                {saving ? <Loader2 size={10} className="animate-spin" /> : saved ? <Check size={10} /> : <><Save size={10} /> Deploy</>}
                             </button>
                         </div>
-                        <div className="text-[6px] text-white/20 uppercase tracking-[0.2em] text-center">ANTIGRAVITY</div>
+                        <div className="text-[5px] text-white/20 uppercase tracking-[0.2em] text-center">ANTIGRAVITY</div>
                     </div>
 
                     {activeTab !== 'camera' && activeTab !== 'mat' && (
@@ -186,33 +186,35 @@ const StudioEditor = () => {
                                     <h4 className="text-[9px] font-black uppercase text-[#ffcc00]">Редактор Камеры <span className="opacity-30 ml-2">// {SECTION_NAMES[activeSlug] || activeSlug}</span></h4>
                                     <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-[7px] font-black uppercase">Авто-захват OK</div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-8">
-                                    <div className="space-y-3">
+                                <div className="grid grid-cols-3 gap-6">
+                                    <div className="space-y-2.5">
                                         <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Фокус (Пивот)</h5>
                                         {renderSlider('X Axis', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
                                         {renderSlider('Y Axis', activeCam.pivotY, -15, 60, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
                                         {renderSlider('Z Axis', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2.5">
                                         <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">Скульптура</h5>
-                                        {renderSlider('Height', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
+                                        {renderSlider('Section Y', currentSection?.modelY ?? 5.1, -30, 40, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
+                                        {renderSlider('Master Y', config.y, -30, 40, 0.1, (v) => setConfig({ y: v }))}
                                         {renderSlider('Size', config.scale, 1, 200, 1, (v) => setConfig({ scale: v }))}
-                                        {renderSlider('Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
                                     </div>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2.5">
                                         <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">Линза & Сброс</h5>
                                         {renderSlider('Zoom (FOV)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                                        {renderSlider('Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }), v => `${v.toFixed(0)}°`)}
                                         <button 
                                             onClick={() => {
                                                 updateSectionCamera(activeSlug, { 
-                                                    pivotX: 0, pivotY: 12.5, pivotZ: 0, 
-                                                    radius: 18, polar: 90, azimuth: 0 
+                                                    pivotX: 0, pivotY: 5.1, pivotZ: 0, 
+                                                    radius: 18, polar: 90, azimuth: 0,
+                                                    modelY: 5.1
                                                 });
                                                 setConfig({ y: 5.1, scale: 17 });
                                             }}
-                                            className="w-full mt-1.5 py-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-[8px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                                            className="w-full mt-1 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-[7px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
                                         >
-                                            <Zap size={11} /> СБРОСИТЬ ВСЁ (RECOVER)
+                                            <Zap size={10} /> RECOVER
                                         </button>
                                     </div>
                                 </div>

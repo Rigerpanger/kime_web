@@ -347,7 +347,12 @@ const SculptureModel = () => {
     }, []);
 
     // Defensive parsing against destructive DB string/null formats
-    const safeY = Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1;
+    const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+    const sectionY = currentSection?.modelY;
+    
+    const safeY = Number.isFinite(Number(sectionY)) ? Number(sectionY) : 
+                (Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1);
+
     let safeScale = Number.isFinite(Number(config?.scale)) ? Number(config.scale) : 17;
     if (safeScale < 0.1 || safeScale > 200) safeScale = 17; // prevent vanishing bounds
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;

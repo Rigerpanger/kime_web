@@ -48,7 +48,7 @@ const CameraRig = () => {
             const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
             const r = activeCam.radius || 18;
             const px = activeCam.pivotX || 0;
-            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 12.5;
+            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : (currentSection?.modelY ?? 5.1);
             const pz = activeCam.pivotZ || 0;
             
             targetLook = [px, py, pz];
@@ -60,8 +60,8 @@ const CameraRig = () => {
 
             // Safety check for NaN
             if (isNaN(targetPos[0]) || isNaN(targetPos[1]) || isNaN(targetPos[2])) {
-                targetPos = [0, 12, 18];
-                targetLook = [0, 12, 0];
+                targetPos = [0, 5.1, 18];
+                targetLook = [0, 5.1, 0];
             }
 
             // Cinematic Smoothing using damp

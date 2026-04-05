@@ -44,7 +44,8 @@ function migrateOldCamera(oldCam) {
 
 const DEFAULT_SECTIONS = {
   "default": {
-    camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 12.5, pivotZ: 0 },
+    camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
+    modelY: 5.1,
     fx: Array(5).fill(0).map((_, i) => ({ id: `${i+1}`, type: 'None', active: false }))
   }
 };
@@ -185,10 +186,19 @@ const useAppStore = create(
           const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
           if (!sections[activeKey]) sections[activeKey] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
           
-          sections[activeKey].camera = { 
-              ...(sections[activeKey].camera || {}), 
-              ...updates 
-          };
+          if (updates.modelY !== undefined) {
+              sections[activeKey].modelY = updates.modelY;
+          }
+
+          if (updates.azimuth !== undefined || updates.polar !== undefined || updates.radius !== undefined || 
+              updates.pivotX !== undefined || updates.pivotY !== undefined || updates.pivotZ !== undefined) {
+              sections[activeKey].camera = { 
+                  ...(sections[activeKey].camera || {}), 
+                  ...updates 
+              };
+              // Filter out modelY from camera object if passed accidentally
+              delete sections[activeKey].camera.modelY;
+          }
           
           if (updates.azimuth !== undefined) {
              delete sections[activeKey].camera.pos;
