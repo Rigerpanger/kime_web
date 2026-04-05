@@ -67,8 +67,9 @@ const NeuralCore = ({ config = {}, animatedOpacity = 1 }) => {
         }
     });
 
+    const safePos = Array.isArray(config.pos) ? config.pos : [0, 4.8, 0];
     return (
-        <group position={config.pos || [0, 4.8, 0]}>
+        <group position={safePos}>
             <mesh ref={coreRef}>
                 <icosahedronGeometry args={[0.5, 0]} />
                 <meshBasicMaterial color={config.color || "#ffcc00"} wireframe transparent opacity={animatedOpacity} />
@@ -94,7 +95,8 @@ const ShapeShifter = ({ config = {}, animatedOpacity = 1 }) => {
     useFrame((state) => {
         const t = state.clock.elapsedTime;
         if (meshRef.current) {
-            meshRef.current.position.set(...(config.pos || [0, 4.8, 3.5]));
+            const p = Array.isArray(config.pos) ? config.pos : [0, 4.8, 3.5];
+            meshRef.current.position.set(p[0], p[1], p[2]);
             meshRef.current.rotation.y = t * 0.5;
             meshRef.current.scale.setScalar(config.scale || 1.0);
             meshRef.current.material.opacity = (0.5 + Math.sin(t * 2) * 0.3) * (config.intensity || 1.0) * animatedOpacity;
@@ -148,8 +150,9 @@ const TetrisReveal = ({ config = {}, animatedOpacity = 1, onRevealed }) => {
         if (onRevealed) onRevealed(h);
     });
 
+    const safePos = Array.isArray(config.pos) ? config.pos : [0, 0, 0];
     return (
-        <group scale={config.scale || 1.0} position={config.pos || [0, 0, 0]}>
+        <group scale={config.scale || 1.0} position={safePos}>
             {blocks.map((b, i) => (
                 <mesh key={b.id} ref={el => meshes.current[i] = el} position={b.pos}>
                     <boxGeometry args={[2.5, 2.5, 2.5]} />
@@ -195,13 +198,14 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
     }, []);
 
     const material = useMemo(() => {
+        const p = Array.isArray(config.pos) ? config.pos : [0, 4.8, 0];
         return new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0 },
                 uOpacity: { value: 0 },
                 uColorStart: { value: new THREE.Color("#00aaff") },
                 uColorEnd: { value: new THREE.Color("#ffdd00") },
-                uCenter: { value: new THREE.Vector3(...(config.pos || [0, 4.8, 0])) },
+                uCenter: { value: new THREE.Vector3(p[0], p[1], p[2]) },
                 uScale: { value: config.scale || 1.0 }
             },
             vertexShader: `
