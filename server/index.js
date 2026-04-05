@@ -162,6 +162,7 @@ app.use(express.json());
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use(['/uploads', '/api/uploads'], express.static(uploadsDir));
+app.use(express.static(path.join(__dirname, '../dist')));
 
 // --- SMART MEDIA PROXY (Works with /api and without) ---
 app.get(['/m/:id', '/api/m/:id'], (req, res) => {
@@ -848,6 +849,11 @@ ${houndInstructions}
         console.error('❌ Webhook Error:', err);
         res.sendStatus(200); // Always 200 to Telegram
     }
+});
+
+// --- SPA FALLBACK (Always serve index.html for unknown routes) ---
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
 app.listen(PORT, async () => {
