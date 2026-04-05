@@ -17,30 +17,31 @@ const CameraRig = () => {
     const lastSlug = useRef(activeSlug);
     const isTransitioning = useRef(false);
  
+    // Use a ref for reactive state within useFrame to avoid stale closure issues
+    const stateRef = useRef({ activeSlug, config, showStudioEditor, isOverPanel });
+    stateRef.current = { activeSlug, config, showStudioEditor, isOverPanel };
+
     useFrame((state, delta) => {
+        const { activeSlug: currentSlug, config: currentConfig, showStudioEditor: isEditing, isOverPanel: overPanel } = stateRef.current;
+
         // --- EDITOR OVERRIDE ---
-        // If the editor is open, we only lerp when the section (slug) changes.
-        // Once the camera settles near the target, we release to manual mode.
-        if (showStudioEditor) {
-           if (lastSlug.current !== activeSlug) {
-              lastSlug.current = activeSlug;
+        if (isEditing) {
+           if (lastSlug.current !== currentSlug) {
+              lastSlug.current = currentSlug;
               isTransitioning.current = true; // Trigger smooth flight
            }
            
-           if (!isTransitioning.current) {
-              return; // Stay in manual mode to prevent "fighting" the mouse
-           }
+           if (!isTransitioning.current) return; // Stay in manual mode
         } else {
-           lastSlug.current = activeSlug;
+           lastSlug.current = currentSlug;
            isTransitioning.current = false;
         }
 
         let targetPos = [0, 0, 16];
         let targetLook = [0, 0, 0];
-        let lerpSpeed = 2.0;
 
         // Determine Section Context
-        const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+        const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
         let activeCam = currentSection?.camera;
             
         // Legacy Migration on the fly
@@ -81,7 +82,7 @@ const CameraRig = () => {
             }
 
             // Cinematic Smoothing using damp
-            const smoothing = isOverPanel ? 12.0 : 3.5; 
+            const smoothing = overPanel ? 12.0 : 3.5; 
             const d = Math.max(0.001, Math.min(0.2, delta || 0.016)); // Clamp delta for stability
             
             // EMERGENCY Recovery if camera is already at NaN
@@ -108,12 +109,11 @@ const CameraRig = () => {
             }
 
             // --- TRANSITION SETTLING CHECK ---
-            if (showStudioEditor && isTransitioning.current) {
+            if (isEditing && isTransitioning.current) {
                 // If we are close enough to the target, stop lerping to allow manual control
                 const distPos = camera.position.distanceTo(new THREE.Vector3(...targetPos));
                 const distTarget = controls ? controls.target.distanceTo(new THREE.Vector3(...targetLook)) : 0;
                 
-                // Increase threshold slightly to prevent "fighting" at sub-pixel levels
                 if (distPos < 0.3 && distTarget < 0.3) {
                     isTransitioning.current = false;
                 }

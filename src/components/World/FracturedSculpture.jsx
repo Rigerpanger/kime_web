@@ -360,6 +360,10 @@ const SculptureModel = () => {
     const activeSlug = useActiveSlug();
     const [revealHeight, setRevealHeight] = useState(15);
 
+    // Use a ref for reactive state within useFrame to avoid stale closure issues
+    const stateRef = useRef({ activeSlug, config });
+    stateRef.current = { activeSlug, config };
+
     const clonedScene = useMemo(() => {
         const clone = scene.clone();
         clone.traverse(n => { if (n.isMesh) UnifiedShaderInjection(n.material); });
@@ -367,6 +371,9 @@ const SculptureModel = () => {
     }, [scene]);
 
     useFrame((state) => {
+        const { activeSlug: currentSlug, config: currentConfig } = stateRef.current;
+        const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
+        
         const irisFX = (currentSection?.fx || []).find(f => f.type === 'Iris' && f.active);
         const tetrisFX = (currentSection?.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
 
@@ -388,8 +395,7 @@ const SculptureModel = () => {
                 shader.uniforms.uRevealHeight.value = revealHeight;
             }
             if (n.isMesh) {
-                n.material.envMapIntensity = config.envMapIntensity ?? 0.02;
-                // Transitioning gamedev opacity based on Tetris active state
+                n.material.envMapIntensity = currentConfig.envMapIntensity ?? 0.02;
                 n.material.opacity = tetrisFX ? 0.4 : 1.0;
                 n.material.transparent = !!tetrisFX;
             }
