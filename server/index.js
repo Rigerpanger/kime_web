@@ -14,6 +14,8 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+let buildError = null;
+
 // --- AUTO-BUILD SYSTEM (Runs once if dist is missing) ---
 const distPath = path.join(__dirname, '../dist/index.html');
 if (!fs.existsSync(distPath)) {
@@ -21,11 +23,12 @@ if (!fs.existsSync(distPath)) {
     try {
         execSync('npm install && npm run build', { 
             cwd: path.join(__dirname, '..'),
-            stdio: 'inherit' 
+            stdio: 'pipe' 
         });
         console.log('✅ [Self-Healing] Build completed successfully.');
     } catch (err) {
-        console.error('❌ [Self-Healing] Auto-build failed:', err.message);
+        buildError = err.stderr ? err.stderr.toString() : err.message;
+        console.error('❌ [Self-Healing] Auto-build failed:', buildError);
     }
 }
 
@@ -869,7 +872,21 @@ ${houndInstructions}
 
 // --- SPA FALLBACK (Always serve index.html for unknown routes) ---
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
+    const fullDistPath = path.join(__dirname, '../dist/index.html');
+    if (fs.existsSync(fullDistPath)) {
+        res.sendFile(fullDistPath);
+    } else {
+        res.status(500).send(`
+            <div style="background:#1a1a1a; color:#ff4444; padding:30px; font-family:monospace; border-radius:8px; margin:20px; line-height:1.5;">
+                <h1 style="color:white; margin-top:0;">⚠️ Kime Auto-Build Report</h1>
+                <p>The site build (dist folder) is missing and self-healing failed.</p>
+                <hr style="border-color:#333; margin:20px 0;"/>
+                <strong>LAST BUILD ERROR:</strong>
+                <pre style="background:#000; padding:15px; overflow:auto; margin-top:10px;">${buildError || 'No build error recorded, yet dist/index.html is missing.'}</pre>
+                <p style="color:#888;">Try running <b>npm install && npm run build</b> manually in the root folder via terminal.</p>
+            </div>
+        `);
+    }
 });
 
 app.listen(PORT, async () => {
