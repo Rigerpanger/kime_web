@@ -14,8 +14,6 @@ const ICON_MAP = {
     Code: Code
 };
 
-import useActiveSlug from '../../hooks/useActiveSlug';
-
 const ServiceListItem = ({ service, isActive, index }) => {
     const IconComponent = ICON_MAP[service.icon] || Box;
     const number = (index + 1).toString().padStart(2, '0');
