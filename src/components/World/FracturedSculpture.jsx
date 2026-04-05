@@ -24,7 +24,7 @@ const FX_COMPONENTS = {
 // A spotlight that stays focused on the model group
 // Wrapper for positioning and transition logic
 const FXWrapper = ({ type, config, isActive, onRevealed }) => {
-    const opacityRef = useRef(0);
+    const opacityRef = useRef(isActive ? 1.0 : 0.0);
     const FXComp = FX_COMPONENTS[type];
     
     useFrame((state, delta) => {
@@ -542,9 +542,9 @@ const UnifiedShaderInjection = (mat) => {
         `.replace(`#include <clipping_planes_fragment>`, `#include <clipping_planes_fragment>
             if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
         `).replace(`#include <color_fragment>`, `#include <color_fragment>
-            vec3 viewDir = normalize(vViewPos);
-            vec3 normal = normalize(vNormalVec);
-            float fresnelNode = max(0.0, dot(normal, viewDir));
+            vec3 customViewDir = normalize(vViewPos);
+            vec3 customNormal = normalize(vNormalVec);
+            float fresnelNode = max(0.0, dot(customNormal, customViewDir));
             float fresnelEffect = pow(1.0 - fresnelNode, 3.0);
             
             // --- 1. PEARLESCENT IRIS ---
