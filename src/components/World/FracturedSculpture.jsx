@@ -14,6 +14,38 @@ const FX_COMPONENTS = {
     'None': () => null
 };
 
+// A spotlight that stays focused on the model group
+const DynamicLight = ({ light }) => {
+    const targetRef = useRef();
+    const lightRef = useRef();
+    const angleInRadians = (light.azimuth * Math.PI) / 180;
+    const x = light.radius * Math.sin(angleInRadians);
+    const z = light.radius * Math.cos(angleInRadians);
+
+    useEffect(() => {
+        if (lightRef.current && targetRef.current) {
+            lightRef.current.target = targetRef.current;
+        }
+    }, [light]);
+
+    return (
+        <group>
+            {/* The target is at y=4.5 relative to the model group's origin */}
+            <group ref={targetRef} position={[0, 4.5, 0]} />
+            <spotLight
+                ref={lightRef}
+                position={[x, light.y, z]}
+                intensity={light.intensity}
+                color={light.color}
+                angle={0.6}
+                penumbra={1}
+                castShadow
+                shadow-bias={-0.0001}
+            />
+        </group>
+    );
+};
+
 // Wrapper for transition logic
 const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     const opacityRef = useRef(0);
@@ -388,25 +420,10 @@ const SculptureModel = () => {
                     ))}
                 </Center>
 
-                {/* LIGHTS IN MODEL SPACE: They stay pinned to the sculpture's height */}
-                {lights.map(light => {
-                    const angleInRadians = (light.azimuth * Math.PI) / 180;
-                    const x = light.radius * Math.sin(angleInRadians);
-                    const z = light.radius * Math.cos(angleInRadians);
-                    
-                    return (
-                        <spotLight
-                            key={light.id}
-                            position={[x, light.y, z]}
-                            intensity={light.intensity}
-                            color={light.color}
-                            angle={0.6}
-                            penumbra={1}
-                            castShadow
-                            shadow-bias={-0.0001}
-                        />
-                    );
-                })}
+                {/* LIGHTS IN MODEL SPACE: They stay pinned to the sculpture's height and focus */}
+                {lights.map(light => (
+                    <DynamicLight key={light.id} light={light} />
+                ))}
             </group>
         </Float>
     );
