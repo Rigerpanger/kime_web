@@ -112,7 +112,8 @@ const CameraRig = () => {
                 const distPos = camera.position.distanceTo(new THREE.Vector3(...targetPos));
                 const distTarget = controls ? controls.target.distanceTo(new THREE.Vector3(...targetLook)) : 0;
                 
-                if (distPos < 0.1 && distTarget < 0.1) {
+                // Increase threshold slightly to prevent "fighting" at sub-pixel levels
+                if (distPos < 0.3 && distTarget < 0.3) {
                     isTransitioning.current = false;
                 }
             }

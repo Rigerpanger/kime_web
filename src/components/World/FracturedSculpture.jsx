@@ -6,7 +6,8 @@ import useAppStore, { VIEWS } from '../../store/useAppStore';
 
 // FX Components Dictionary
 const FX_COMPONENTS = {
-    'NeuralCore': (props) => <NeuralCore {...props} />,
+    'NeuralAtom': (props) => <NeuralAtom {...props} />,
+    'NeuralSwarm': (props) => <NeuralSwarm {...props} />,
     'ShapeShifter': (props) => <ShapeShifter {...props} />,
     'SoftwareSilhouette': (props) => <SoftwareSilhouette {...props} />,
     'TetrisReveal': (props) => <TetrisReveal {...props} />,
@@ -29,9 +30,9 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     if (!FXComp) return null;
 
     // --- ORBITAL POSITIONING LOGIC ---
-    // Spatial FX: NeuralCore, ShapeShifter, SoftwareSilhouette
-    // Non-Spatial FX: Iris, TetrisReveal (Shader-only)
-    const isSpatial = ['NeuralCore', 'ShapeShifter', 'SoftwareSilhouette'].includes(type);
+    // Spatial FX: NeuralAtom, NeuralSwarm, ShapeShifter, SoftwareSilhouette, TetrisReveal
+    // Non-Spatial FX: Iris (Shader-only)
+    const isSpatial = ['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal'].includes(type);
     
     let position = [0, 4.8, 0];
     if (isSpatial) {
@@ -44,7 +45,8 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
             height,
             radius * Math.cos(azimuth)
         ];
-    } else {
+    }
+ else {
         // Fallback for non-spatial or legacy
         position = Array.isArray(config.pos) ? config.pos : [0, 0, 0];
     }
@@ -56,9 +58,31 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     );
 };
 
-// --- EFFECT: AI (NeuralCore) ---
-const NeuralCore = ({ config = {}, animatedOpacity = 1 }) => {
+// --- EFFECT: AI (NeuralAtom) Only Core ---
+const NeuralAtom = ({ config = {}, animatedOpacity = 1 }) => {
     const coreRef = useRef();
+
+    useFrame((state) => {
+        const t = state.clock.elapsedTime;
+        if (coreRef.current) {
+            coreRef.current.rotation.y = t * 0.5;
+            coreRef.current.rotation.z = t * 0.3;
+            coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * (config.scale || 1.0));
+        }
+    });
+
+    return (
+        <group>
+            <mesh ref={coreRef}>
+                <icosahedronGeometry args={[0.5, 0]} />
+                <meshBasicMaterial color={config.color || "#ffcc00"} wireframe transparent opacity={animatedOpacity * (config.intensity ?? 1.0)} />
+            </mesh>
+        </group>
+    );
+};
+
+// --- EFFECT: AI (NeuralSwarm) Only Particles ---
+const NeuralSwarm = ({ config = {}, animatedOpacity = 1 }) => {
     const groupRef = useRef();
 
     const particles = useMemo(() => {
@@ -81,31 +105,21 @@ const NeuralCore = ({ config = {}, animatedOpacity = 1 }) => {
 
     useFrame((state) => {
         const t = state.clock.elapsedTime;
-        if (coreRef.current) {
-            coreRef.current.rotation.y = t * 0.5;
-            coreRef.current.rotation.z = t * 0.3;
-            coreRef.current.scale.setScalar((1 + Math.sin(t * 3) * 0.1) * (config.scale || 1.0));
-        }
         if (groupRef.current) {
             groupRef.current.rotation.y = t * -0.2;
+            groupRef.current.scale.setScalar(config.scale || 1.0);
         }
     });
 
     return (
-        <group>
-            <mesh ref={coreRef}>
-                <icosahedronGeometry args={[0.5, 0]} />
-                <meshBasicMaterial color={config.color || "#ffcc00"} wireframe transparent opacity={animatedOpacity} />
-            </mesh>
-            <group ref={groupRef}>
-                <points>
-                    <bufferGeometry>
-                        <bufferAttribute attach="attributes-position" count={300} array={particles.pos} itemSize={3} />
-                        <bufferAttribute attach="attributes-color" count={300} array={particles.colors} itemSize={3} />
-                    </bufferGeometry>
-                    <pointsMaterial size={0.08} vertexColors transparent opacity={animatedOpacity * 0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
-                </points>
-            </group>
+        <group ref={groupRef}>
+            <points>
+                <bufferGeometry>
+                    <bufferAttribute attach="attributes-position" count={300} array={particles.pos} itemSize={3} />
+                    <bufferAttribute attach="attributes-color" count={300} array={particles.colors} itemSize={3} />
+                </bufferGeometry>
+                <pointsMaterial size={0.08} vertexColors transparent opacity={animatedOpacity * (config.intensity ?? 1.0) * 0.7} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </points>
         </group>
     );
 };
@@ -283,6 +297,9 @@ const UnifiedShaderInjection = (mat) => {
     mat.onBeforeCompile = (shader) => {
         shader.uniforms.uTime = { value: 0 };
         shader.uniforms.uIrisMix = { value: 0 };
+        shader.uniforms.uIrisIntensity = { value: 1.0 };
+        shader.uniforms.uIrisColor = { value: new THREE.Color("#ffcc00") };
+        shader.uniforms.uIrisType = { value: 0 }; // 0: Liquid, 1: Energy, 2: Glitch
         shader.uniforms.uRevealMix = { value: 0 };
         shader.uniforms.uRevealHeight = { value: 15 };
         
@@ -300,6 +317,9 @@ const UnifiedShaderInjection = (mat) => {
         shader.fragmentShader = `
             uniform float uTime;
             uniform float uIrisMix;
+            uniform float uIrisIntensity;
+            uniform vec3 uIrisColor;
+            uniform float uIrisType;
             uniform float uRevealMix;
             uniform float uRevealHeight;
             varying vec3 vWorldPos;
@@ -310,14 +330,23 @@ const UnifiedShaderInjection = (mat) => {
             if (uRevealMix > 0.5 && vWorldPos.y > uRevealHeight) discard;
         `).replace(`#include <color_fragment>`, `#include <color_fragment>
             float fresnel = pow(1.0 - max(0.0, dot(normalize(vNormalVec), normalize(vViewPos))), 2.0);
-            vec3 baseIris = vec3(
+            
+            vec3 irisLiquid = vec3(
                 sin(vWorldPos.x * 2.0 + uTime * 1.5) * 0.5 + 0.5,
                 sin(vWorldPos.y * 2.0 + uTime * 1.2 + 2.0) * 0.5 + 0.5,
                 sin(vWorldPos.z * 2.0 - uTime * 0.8 + 4.0) * 0.5 + 0.5
-            );
-            baseIris = pow(baseIris, vec3(0.6)) * 1.5; 
-            vec3 fatGlow = baseIris * 1.2 + vec3(1.0, 0.85, 0.95) * fresnel * 1.5;
-            diffuseColor.rgb = mix(diffuseColor.rgb, fatGlow, uIrisMix * 0.95);
+            ) * uIrisColor * 1.5;
+
+            vec3 irisEnergy = uIrisColor * 1.2 + vec3(1.0, 0.9, 1.0) * fresnel * 2.5;
+
+            float scanline = sin(vWorldPos.y * 10.0 + uTime * 5.0) * 0.5 + 0.5;
+            vec3 irisGlitch = mix(uIrisColor, vec3(1.0), scanline * 0.5) * (fresnel + 0.4);
+
+            vec3 finalIris = irisLiquid;
+            if (uIrisType > 1.5) finalIris = irisGlitch;
+            else if (uIrisType > 0.5) finalIris = irisEnergy;
+
+            diffuseColor.rgb = mix(diffuseColor.rgb, finalIris, uIrisMix * uIrisIntensity * (0.9 + 0.1 * sin(uTime)));
         `);
         mat.userData.shader = shader;
     };
@@ -337,18 +366,31 @@ const SculptureModel = () => {
     }, [scene]);
 
     useFrame((state) => {
+        const irisFX = (currentSection?.fx || []).find(f => f.type === 'Iris' && f.active);
+        const tetrisFX = (currentSection?.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
+
         clonedScene.traverse(n => {
             const shader = n.material?.userData?.shader;
             if (shader) {
                 shader.uniforms.uTime.value = state.clock.elapsedTime;
-                shader.uniforms.uIrisMix.value = activeSlug === 'digital-graphics' ? 1.0 : 0;
-                shader.uniforms.uRevealMix.value = activeSlug === 'gamedev' ? 1.0 : 0;
+                
+                // --- Iris Uniforms ---
+                shader.uniforms.uIrisMix.value = irisFX ? 1.0 : 0;
+                if (irisFX) {
+                    shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
+                    shader.uniforms.uIrisColor.value.set(irisFX.color || "#ffcc00");
+                    shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
+                }
+
+                // --- Tetris Uniforms ---
+                shader.uniforms.uRevealMix.value = tetrisFX ? 1.0 : 0;
                 shader.uniforms.uRevealHeight.value = revealHeight;
             }
             if (n.isMesh) {
                 n.material.envMapIntensity = config.envMapIntensity ?? 0.02;
-                n.material.opacity = activeSlug === 'gamedev' ? 0.4 : 1.0;
-                n.material.transparent = activeSlug === 'gamedev';
+                // Transitioning gamedev opacity based on Tetris active state
+                n.material.opacity = tetrisFX ? 0.4 : 1.0;
+                n.material.transparent = !!tetrisFX;
             }
         });
     });

@@ -3,7 +3,7 @@ import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 
-const FX_TYPES = ['None', 'NeuralCore', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
+const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
 
 const StudioEditor = () => {
     const { session } = useAuthStore();
@@ -316,13 +316,31 @@ const StudioEditor = () => {
 
                                 <div className="space-y-4">
                                     {/* CONDITIONAL ORBITAL CONTROLS */}
-                                    {['NeuralCore', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) ? (
+                                    {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal'].includes(activeFX.type) ? (
                                         <>
                                             <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Орбитальная позиция</h5>
                                             {renderSlider('Rotation (Orbit)', activeFX.azimuth, 0, 360, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
-                                            {renderSlider('Height (Offset)', activeFX.height, -10, 20, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                            {renderSlider('Height (Offset)', activeFX.height, -30, 60, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                             {renderSlider('Radius (Distance)', activeFX.radius, 0, 40, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
                                         </>
+                                    ) : activeFX.type === 'Iris' ? (
+                                        <div className="space-y-4">
+                                            <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Iris Presets</h5>
+                                            <div className="grid grid-cols-3 gap-1.5">
+                                                {['Liquid', 'Energy', 'Glitch'].map((p, i) => (
+                                                    <button 
+                                                        key={p} 
+                                                        onClick={() => updateSectionFX(activeSlug, activeFX.id, { presetIndex: i })}
+                                                        className={`py-1 rounded text-[7px] font-bold uppercase border ${activeFX.presetIndex === i ? 'bg-[#ffcc00] text-black border-[#ffcc00]' : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10'}`}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="pt-2">
+                                                <p className="text-[7px] text-white/30 italic">Предустановленные стили для всей поверхности статуи.</p>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div className="flex flex-col items-center justify-center h-full opacity-30 text-center">
                                             <Zap size={24} className="mb-2" />
