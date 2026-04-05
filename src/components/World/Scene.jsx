@@ -90,8 +90,16 @@ const MouseLight = () => {
 const CameraSnooper = () => {
     const { camera, controls } = useThree();
     const captureTrigger = useAppStore(s => s.captureTrigger);
-    const activeSlug = useAppStore(s => s.activeSlug);
+    const { sculptureConfig: config, showStudioEditor } = useAppStore();
+    const activeSlug = useActiveSlug();
     const setSectionView = useAppStore(s => s.setSectionView);
+    
+    // Fallback detection for manual view changes if needed
+    useEffect(() => {
+        if (activeSlug) {
+            console.log("Scene transition observed:", activeSlug);
+        }
+    }, [activeSlug]);
 
     React.useEffect(() => {
         if (captureTrigger > 0 && controls) {
@@ -131,13 +139,17 @@ const Scene = () => {
     return (
         <ErrorBoundary>
             <Canvas 
-                shadows="soft"
-                dpr={[1, 2]} 
-                gl={{ antialias: true, toneMappingExposure: 0.8 }}
+                shadows 
+                camera={{ position: [0, 5, 18], fov: 35 }}
+                gl={{ 
+                    antialias: true, 
+                    powerPreference: "high-performance",
+                    toneMapping: THREE.ACESFilmicToneMapping,
+                    toneMappingExposure: 0.7
+                }}
                 eventSource={document.getElementById('root')}
                 eventPrefix="client"
             >
-                <PerspectiveCamera makeDefault position={[0, 0, 16]} fov={35} />
                 
                 {showStudioEditor && (
                     <OrbitControls 

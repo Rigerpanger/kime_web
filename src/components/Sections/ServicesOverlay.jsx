@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Box, Gamepad2, Glasses, Cpu, Code } from 'lucide-react';
 import useAppStore from '../../store/useAppStore';
 import servicesData from '../../data/services.json';
+import useActiveSlug from '../../hooks/useActiveSlug';
 
 const ICON_MAP = {
     Box: Box,
@@ -12,6 +13,8 @@ const ICON_MAP = {
     Cpu: Cpu,
     Code: Code
 };
+
+import useActiveSlug from '../../hooks/useActiveSlug';
 
 const ServiceListItem = ({ service, isActive, index }) => {
     const IconComponent = ICON_MAP[service.icon] || Box;
@@ -40,7 +43,7 @@ const ServiceListItem = ({ service, isActive, index }) => {
 };
 
 const ServicesOverlay = () => {
-    const activeSlug = useAppStore(s => s.activeSlug);
+    const activeSlug = useActiveSlug();
     
     const activeService = useMemo(() => {
         const found = servicesData.find(s => s.slug === activeSlug);

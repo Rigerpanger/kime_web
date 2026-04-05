@@ -24,23 +24,18 @@ const CameraRig = () => {
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig, showStudioEditor: isEditing, isOverPanel: overPanel } = stateRef.current;
 
-        // --- EDITOR OVERRIDE ---
-        if (isEditing) {
-           if (lastSlug.current !== currentSlug) {
-              lastSlug.current = currentSlug;
-              isTransitioning.current = true; // Trigger smooth flight
-           }
-           
-           if (!isTransitioning.current) return; // Stay in manual mode
-        } else {
-           lastSlug.current = currentSlug;
-           isTransitioning.current = false;
+        // --- SECTION TRACKING ---
+        if (lastSlug.current !== currentSlug) {
+            lastSlug.current = currentSlug;
+            isTransitioning.current = true;
         }
 
-        let targetPos = [0, 0, 16];
-        let targetLook = [0, 0, 0];
+        // --- ORBIT OVERRIDE ---
+        if (isEditing && isOrbiting) {
+            isTransitioning.current = false;
+            return; 
+        }
 
-        // Determine Section Context
         const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
         let activeCam = currentSection?.camera;
             
@@ -65,58 +60,46 @@ const CameraRig = () => {
             const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
             const r = activeCam.radius || 18;
             const px = activeCam.pivotX || 0;
-            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : (currentSection?.modelY ?? 5.1);
+            const py = (activeCam.pivotY !== undefined ? activeCam.pivotY : currentSection?.modelY ?? 5.1) + (currentConfig.y || 0);
             const pz = activeCam.pivotZ || 0;
             
-            targetLook = [px, py, pz];
-            targetPos = [
+            const targetLookArr = [px, py, pz];
+            const targetPosArr = [
                 px + r * Math.sin(phi) * Math.sin(theta),
                 py + r * Math.cos(phi),
                 pz + r * Math.sin(phi) * Math.cos(theta)
             ];
 
             // Safety check for NaN
-            if (isNaN(targetPos[0]) || isNaN(targetPos[1]) || isNaN(targetPos[2])) {
-                targetPos = [0, 5.1, 18];
-                targetLook = [0, 5.1, 0];
+            if (isNaN(targetPosArr[0]) || isNaN(targetPosArr[1]) || isNaN(targetPosArr[2])) {
+                targetPosArr[0] = 0; targetPosArr[1] = 5.1; targetPosArr[2] = 18;
+                targetLookArr[0] = 0; targetLookArr[1] = 5.1; targetLookArr[2] = 0;
             }
 
-            // Cinematic Smoothing using damp
-            const smoothing = overPanel ? 12.0 : 3.5; 
-            const d = Math.max(0.001, Math.min(0.2, delta || 0.016)); // Clamp delta for stability
-            
-            // EMERGENCY Recovery if camera is already at NaN
-            if (isNaN(camera.position.x)) {
-                camera.position.set(...targetPos);
-            } else {
-                camera.position.x = THREE.MathUtils.damp(camera.position.x, targetPos[0], smoothing, d);
-                camera.position.y = THREE.MathUtils.damp(camera.position.y, targetPos[1], smoothing, d);
-                camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPos[2], smoothing, d);
-            }
+            // --- CINEMATIC SMOOTHING ---
+            // We use a high damping value (smaller number in DAMP is actually slower/smoother)
+            // But THREE.MathUtils.damp is (current, target, smoothing, delta)
+            // High smoothing = faster.
+            // For a 'heavy' cinematic feel, we use 4.0 for everything.
+            const transitionSmoothing = 4.0; 
+            const editorSmoothing = 8.0; // Sliders respond faster
+            const s = isEditing ? editorSmoothing : transitionSmoothing;
+            const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
+
+            // Apply movement (Independent axes for buttery glide)
+            camera.position.x = THREE.MathUtils.damp(camera.position.x, targetPosArr[0], s, d);
+            camera.position.y = THREE.MathUtils.damp(camera.position.y, targetPosArr[1], s, d);
+            camera.position.z = THREE.MathUtils.damp(camera.position.z, targetPosArr[2], s, d);
 
             if (controls) {
-                if (isNaN(controls.target.x)) {
-                    controls.target.set(...targetLook);
-                } else {
-                    controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLook[0], smoothing, d);
-                    controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLook[1], smoothing, d);
-                    controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLook[2], smoothing, d);
-                }
+                controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLookArr[0], s, d);
+                controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLookArr[1], s, d);
+                controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLookArr[2], s, d);
+                // We keep controls.update() to sync camera matrix
                 controls.update();
             } else {
-                vecTarget.set(...targetLook);
+                vecTarget.set(...targetLookArr);
                 camera.lookAt(vecTarget);
-            }
-
-            // --- TRANSITION SETTLING CHECK ---
-            if (isEditing && isTransitioning.current) {
-                // If we are close enough to the target, stop lerping to allow manual control
-                const distPos = camera.position.distanceTo(new THREE.Vector3(...targetPos));
-                const distTarget = controls ? controls.target.distanceTo(new THREE.Vector3(...targetLook)) : 0;
-                
-                if (distPos < 0.3 && distTarget < 0.3) {
-                    isTransitioning.current = false;
-                }
             }
 
             return;

@@ -23,7 +23,8 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     
     useFrame((state, delta) => {
         const target = isActive ? 1.0 : 0.0;
-        opacityRef.current = THREE.MathUtils.lerp(opacityRef.current, target, delta * 2.0);
+        // SNAPPY FADE: 8.0 instead of 2.0 (4x faster)
+        opacityRef.current = THREE.MathUtils.lerp(opacityRef.current, target, delta * 8.0);
     });
 
     if (opacityRef.current < 0.01 && !isActive) return null;
@@ -424,9 +425,9 @@ const SculptureModel = () => {
     // Defensive parsing against destructive DB string/null formats
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     
-    // Use section-specific scale and height, falling back to global if needed
+    // Use section-specific scale and height, with config.y as a MASTER ADDITIVE offset
     let safeScale = currentSection?.scale ?? config?.scale ?? 17;
-    let safeY = currentSection?.modelY ?? config?.y ?? 5.1;
+    let safeY = (currentSection?.modelY ?? 5.1) + (config?.y ?? 0);
     
     if (safeScale < 0.1 || safeScale > 500) safeScale = 17; // prevent vanishing bounds
     const safeRot = Number.isFinite(Number(config?.rotationY)) ? Number(config.rotationY) : 248;
