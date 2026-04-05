@@ -1,4 +1,5 @@
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
@@ -176,6 +177,7 @@ const initDB = async () => {
 initDB();
 
 app.use(cors({ origin: '*' }));
+app.use(compression());
 app.use(express.json());
 
 const uploadsDir = path.join(__dirname, 'uploads');

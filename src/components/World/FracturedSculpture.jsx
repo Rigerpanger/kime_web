@@ -454,15 +454,48 @@ const SculptureModel = () => {
 };
 
 const SmoothLoader = ({ progress }) => {
-    const [pseudo, setPseudo] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => setPseudo(p => p < 98 ? p + (100-p)*0.01 : p), 200);
-        return () => clearInterval(interval);
-    }, []);
+    const [displayProgress, setDisplayProgress] = useState(0);
+    
+    useFrame((state, delta) => {
+        // Smoothly interpolate towards the target progress
+        // This makes the transition feel premium even if the network is chunky
+        const target = Math.min(100, Math.max(displayProgress, progress || 0));
+        setDisplayProgress(p => THREE.MathUtils.lerp(p, target, delta * 2.0));
+    });
+
     return (
         <Html center>
-            <div style={{ color: 'white', fontFamily: 'monospace', fontSize: '13px', textAlign: 'center', letterSpacing: '4px' }}>
-                LOADING_ARTIFACT<br/>{Math.round(Math.max(progress, pseudo))}%
+            <div style={{ 
+                color: 'white', 
+                fontFamily: 'monospace', 
+                fontSize: '11px', 
+                textAlign: 'center', 
+                letterSpacing: '6px',
+                width: '300px',
+                textShadow: '0 0 20px rgba(255,255,255,0.2)'
+            }}>
+                <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px' }}>INITIALIZING_ARTIFACT</div>
+                <div style={{ fontWeight: '900', fontSize: '18px' }}>
+                    {Math.round(displayProgress)}%
+                </div>
+                <div style={{ 
+                    marginTop: '12px', 
+                    width: '100%', 
+                    height: '1px', 
+                    background: 'rgba(255,255,255,0.05)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ 
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        height: '100%',
+                        width: `${displayProgress}%`,
+                        background: '#ffcc00',
+                        boxShadow: '0 0 10px #ffcc00'
+                    }} />
+                </div>
             </div>
         </Html>
     );

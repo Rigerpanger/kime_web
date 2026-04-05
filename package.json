@@ -12,6 +12,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "compression": "^1.7.4",
         "@react-three/drei": "^9.99.0",
         "@react-three/fiber": "^8.15.16",
         "@react-three/postprocessing": "^2.19.1",
