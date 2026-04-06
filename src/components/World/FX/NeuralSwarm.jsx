@@ -31,6 +31,11 @@ const NeuralSwarm = ({ config, modelY }) => {
         const t = state.clock.elapsedTime * speed;
         const centerPos = config.height ?? modelY ?? 5.1;
         pointsRef.current.position.y = centerPos;
+        
+        // NEW: Real-time rotation and size reaction
+        pointsRef.current.rotation.y = (config.azimuth || 0) * (Math.PI / 180);
+        pointsRef.current.material.size = size * (config.intensity || 1.0);
+        pointsRef.current.material.opacity = 0.6 * (config.intensity || 1.0);
 
         const posAttr = pointsRef.current.geometry.attributes.position;
         
@@ -58,9 +63,16 @@ const NeuralSwarm = ({ config, modelY }) => {
                 posAttr.array[ix] += Math.sin(t + y) * 0.005;
                 posAttr.array[iz] += Math.cos(t + y) * 0.005;
             }
+            
+            // NEW: Real-time Radius response (clamping pos to radius)
+            const dist = Math.sqrt(posAttr.array[ix]**2 + posAttr.array[iy]**2 + posAttr.array[iz]**2);
+            if (dist > radius) {
+                posAttr.array[ix] *= (radius / dist);
+                posAttr.array[iy] *= (radius / dist);
+                posAttr.array[iz] *= (radius / dist);
+            }
         }
         posAttr.needsUpdate = true;
-        pointsRef.current.rotation.y += 0.001 * speed;
     });
 
     return (

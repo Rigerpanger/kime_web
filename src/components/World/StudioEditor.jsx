@@ -184,8 +184,8 @@ const StudioEditor = () => {
                                     {sectionFX.map(f => (
                                         <button key={f.id} onClick={() => setActiveFXId(f.id)} className={`w-full text-left px-2 py-1.5 rounded text-[8px] font-bold ${activeFXId === f.id ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/40'}`}>{f.type}</button>
                                     ))}
-                                    <select onChange={e => { if (e.target.value !== 'None') { addSectionFX(activeSlug, e.target.value); e.target.value = 'None'; } }} className="w-full py-1 bg-black text-[7px] border border-dashed border-white/10 text-white/20 rounded">
-                                        <option value="None">+ Add FX</option>
+                                    <select onChange={e => { if (e.target.value !== 'None') { addSectionFX(activeSlug, e.target.value); e.target.value = 'None'; } }} className="w-full py-1.5 bg-white/5 text-[7px] border border-dashed border-white/20 text-white/40 rounded transition-all hover:bg-white/10">
+                                        <option value="None" className="bg-black">+ Add Effect Component</option>
                                         {FX_TYPES.filter(t => t !== 'None').map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </>
@@ -310,6 +310,9 @@ const StudioEditor = () => {
                                     <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Global Transform</h5>
                                     {renderSlider('Model Y', config.y, -15, 20, 0.1, (v) => setConfig({ y: v }))}
                                     {renderSlider('Global Scale', config.scale, 1, 300, 1, (v) => setConfig({ scale: v }))}
+                                    <div className="pt-2">
+                                        {renderSlider('Ambient Dust', config.bgParticlesIntensity ?? 0.5, 0, 2, 0.1, (v) => setConfig({ bgParticlesIntensity: v }))}
+                                    </div>
                                 </div>
                                 <div className="space-y-4">
                                     <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Material</h5>

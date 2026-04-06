@@ -12,6 +12,12 @@ import NeuralSwarm from './FX/NeuralSwarm';
 import NeonEdges from './FX/NeonEdges';
 import HoloGrid from './FX/HoloGrid';
 import Iris from './FX/Iris';
+import NeuralAtom from './FX/NeuralAtom';
+import ShapeShifter from './FX/ShapeShifter';
+import SoftwareSilhouette from './FX/SoftwareSilhouette';
+import QuantumDust from './FX/QuantumDust';
+import CyberWaves from './FX/CyberWaves';
+import DataStream from './FX/DataStream';
 
 const safeNum = (val, fallback) => {
     const n = Number(val);
@@ -106,6 +112,12 @@ const SculptureModel = () => {
                     case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                     case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                     case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                    case 'NeuralAtom': return <NeuralAtom key={key} config={fx} modelY={modelY} />;
+                    case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                    case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                    case 'QuantumDust': return <QuantumDust key={key} config={fx} modelY={modelY} />;
+                    case 'CyberWaves': return <CyberWaves key={key} config={fx} modelY={modelY} />;
+                    case 'DataStream': return <DataStream key={key} config={fx} modelY={modelY} />;
                     default: return null;
                 }
             })}

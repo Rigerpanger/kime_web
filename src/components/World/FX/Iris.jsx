@@ -20,6 +20,9 @@ const Iris = ({ scene, config, modelY }) => {
             transparent: true,
             blending: THREE.AdditiveBlending,
             depthWrite: false,
+            depthTest: true,
+            polygonOffset: true,
+            polygonOffsetFactor: -4,
             vertexShader: `
                 varying vec3 vNormal;
                 varying vec3 vViewVec;
@@ -67,7 +70,8 @@ const Iris = ({ scene, config, modelY }) => {
                 const irisMesh = new THREE.Mesh(node.geometry, shaderMaterial);
                 irisMesh.position.copy(node.position);
                 irisMesh.rotation.copy(node.rotation);
-                irisMesh.scale.copy(node.scale).multiplyScalar(1.01);
+                irisMesh.scale.copy(node.scale).multiplyScalar(1.02);
+                irisMesh.renderOrder = 10;
                 group.add(irisMesh);
             }
         });

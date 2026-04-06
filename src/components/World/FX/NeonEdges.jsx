@@ -20,11 +20,15 @@ const NeonEdges = ({ scene, config, modelY }) => {
                     transparent: true,
                     opacity: 0.5,
                     blending: THREE.AdditiveBlending,
-                    depthWrite: false
+                    depthWrite: false,
+                    depthTest: true,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -1,
+                    renderOrder: 5
                 }));
                 wireframe.position.copy(node.position);
                 wireframe.rotation.copy(node.rotation);
-                wireframe.scale.copy(node.scale);
+                wireframe.scale.copy(node.scale).multiplyScalar(1.002);
                 group.add(wireframe);
             }
         });

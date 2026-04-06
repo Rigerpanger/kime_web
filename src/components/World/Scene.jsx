@@ -87,6 +87,40 @@ const MouseLight = () => {
         </group>
     );
 };
+
+// --- Global Ambient Particles ---
+const GlobalParticles = () => {
+    const { sculptureConfig: config } = useAppStore();
+    const pointsRef = useRef();
+    const count = 2000;
+    const opacity = config.bgParticlesIntensity ?? 0.5;
+
+    const pos = useMemo(() => {
+        const positions = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            positions[i * 3] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
+            positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+        }
+        return positions;
+    }, [count]);
+
+    useFrame((state) => {
+        if (!pointsRef.current) return;
+        pointsRef.current.rotation.y += 0.0005;
+        pointsRef.current.rotation.x += 0.0002;
+    });
+
+    return (
+        <points ref={pointsRef}>
+            <bufferGeometry>
+                <bufferAttribute attach="attributes-position" count={count} array={pos} itemSize={3} />
+            </bufferGeometry>
+            <pointsMaterial size={0.03} color="#ffffff" transparent opacity={opacity * 0.4} sizeAttenuation={true} depthWrite={false} blending={THREE.AdditiveBlending} />
+        </points>
+    );
+};
+
 // A component that can "snoop" on the camera's current state and save it
 const CameraSnooper = () => {
     const { camera, controls } = useThree();
@@ -214,13 +248,16 @@ const Scene = () => {
 
                 {/* Interactive Flashlight */}
                 <MouseLight />
+                
+                {/* Global Ambient Dust */}
+                <GlobalParticles />
 
                 {/* Environment - Wrapped in Suspense so HDRI internet download doesn't freeze the canvas */}
                 <Suspense fallback={null}>
                     {config.hdriUrl ? (
-                        <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={config.envMapIntensity ?? 1.0} />
+                        <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={0} />
                     ) : (
-                        <Environment preset="studio" background={false} blur={0.1} environmentIntensity={config.envMapIntensity ?? 1.0} />
+                        <Environment preset="studio" background={false} blur={0.1} environmentIntensity={0} />
                     )}
                 </Suspense>
 
