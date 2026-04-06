@@ -101,8 +101,17 @@ const CameraSnooper = () => {
         }
     }, [activeSlug]);
 
+    const isFirstRun = useRef(true);
+    const lastCaptureTime = useRef(0);
+
     React.useEffect(() => {
-        if (captureTrigger > 0 && controls) {
+        if (captureTrigger > 0 && controls && showStudioEditor) {
+            // DEBOUNCE / SETTLE CHECK: 
+            // Don't capture if we just transition slugs (avoid intermediate lerp frames)
+            const now = Date.now();
+            if (now - lastCaptureTime.current < 200) return;
+            lastCaptureTime.current = now;
+
             const tgt = controls.target;
             const cam = camera;
             
@@ -121,7 +130,7 @@ const CameraSnooper = () => {
                 azimuth: isNaN(azi) ? 0 : azi
             });
         }
-    }, [captureTrigger]);
+    }, [captureTrigger, showStudioEditor]);
 
     return null;
 };
@@ -174,12 +183,9 @@ const Scene = () => {
                     <fog attach="fog" args={['#020202', 20, 100]} />
                 )}
                 
-                {/* --- Dynamic Lighting System (Fixed reactivity via useActiveSlug) --- */}
+                {/* --- Dynamic Lighting System: Fixed at 5.1 for model stability --- */}
                 {config.lights?.map(light => {
-                    const currentSection = config.sections?.[activeSlug] || config.sections?.default;
-                    const sectionY = currentSection?.modelY;
-                    const safeY = Number.isFinite(Number(sectionY)) ? Number(sectionY) : 
-                                (Number.isFinite(Number(config?.y)) ? Number(config.y) : 5.1);
+                    const safeY = 5.1 + (config.y || 0);
                     return <StudioLight key={light.id} light={light} safeY={safeY} />;
                 })}
 

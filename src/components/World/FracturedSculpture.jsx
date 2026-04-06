@@ -659,9 +659,9 @@ const SculptureModel = () => {
         let tgtScale = currentSection?.scale ?? currentConfig?.scale ?? 17;
         if (tgtScale < 5 || tgtScale > 50) tgtScale = 17;
         
-        let baseY = currentSection?.modelY ?? 5.1;
-        if (typeof baseY !== 'number' || baseY < -20 || baseY > 50) baseY = 5.1;
-        const tgtY = baseY + (currentConfig?.y ?? 0);
+        // FIX: Model is now vertically STABLE at 5.1 to keep lighting consistent.
+        // We use only the GLOBAL config.y for rare site-wide adjustments.
+        const tgtY = 5.1 + (currentConfig?.y ?? 0);
         
         const tgtRot = Number.isFinite(Number(currentConfig?.rotationY)) ? Number(currentConfig.rotationY) : 248;
 

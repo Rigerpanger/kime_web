@@ -232,6 +232,7 @@ const useAppStore = create(
           const sections = JSON.parse(JSON.stringify(state.sculptureConfig.sections || DEFAULT_SECTIONS));
           if (!sections[activeKey]) sections[activeKey] = JSON.parse(JSON.stringify(DEFAULT_SECTIONS.default));
           
+          // CRITICAL: Stable Model Y for lighting 
           if (updates.modelY !== undefined) {
               sections[activeKey].modelY = updates.modelY;
           }
@@ -242,10 +243,17 @@ const useAppStore = create(
           
           if (updates.azimuth !== undefined || updates.polar !== undefined || updates.radius !== undefined || 
               updates.pivotX !== undefined || updates.pivotY !== undefined || updates.pivotZ !== undefined) {
+              
               sections[activeKey].camera = { 
                   ...(sections[activeKey].camera || {}), 
-                  ...updates 
+                  ...updates
               };
+
+              // Fix: If pivotY wasn't set, initialize it from modelY to ensure smooth transition
+              if (sections[activeKey].camera.pivotY === undefined) {
+                  sections[activeKey].camera.pivotY = sections[activeKey].modelY || 5.1;
+              }
+              
               // Filter out modelY from camera object if passed accidentally
               delete sections[activeKey].camera.modelY;
           }

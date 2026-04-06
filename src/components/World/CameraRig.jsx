@@ -70,9 +70,7 @@ const CameraRig = () => {
             }
             const r = baseRadius;
             const px = activeCam.pivotX || 0;
-            const py = activeCam.pivotY !== undefined 
-                ? activeCam.pivotY 
-                : ((currentSection?.modelY ?? 5.1) + (currentConfig.y || 0));
+            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 5.1;
             const pz = activeCam.pivotZ || 0;
             
             const targetLookArr = [px, py, pz];

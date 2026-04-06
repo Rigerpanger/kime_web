@@ -332,11 +332,9 @@ const StudioEditor = () => {
                                     
                                     <div className="space-y-3">
                                         <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Настройки Страницы</h5>
-                                        {renderSlider('Section Y (Height)', currentSection?.modelY ?? 5.1, -80, 100, 0.1, (v) => updateSectionCamera(activeSlug, { modelY: v }))}
-                                        {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
-                                        <div className="pt-2">
-                                            {renderSlider('Master Y (All)', config.y, -80, 100, 0.1, (v) => setConfig({ y: v }))}
-                                        </div>
+                                        {/* Now using pivotY as the primary vertical control */}
+                                        {renderSlider('Vertical Framing', activeCam.pivotY ?? 5.1, -20, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                        {renderSlider('Camera FOV (Zoom)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                                     </div>
 
                                     <div className="space-y-3">
@@ -352,15 +350,11 @@ const StudioEditor = () => {
                                         
                                         {showAdvancedCam ? (
                                             <div className="space-y-2.5 p-3 bg-white/[0.03] rounded-lg border border-white/5">
+                                                {renderSlider('Global Height', config.y, -30, 30, 0.1, (v) => setConfig({ y: v }))}
+                                                {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
                                                 {renderSlider('Angle (Azimuth)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
                                                 {renderSlider('Height (Polar)', activeCam.polar, 1, 179, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
-                                                {renderSlider('FOV / Zoom', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
-                                                {renderSlider('Horizontal Spin', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {renderSlider('PX', activeCam.pivotX, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotX: v }))}
-                                                    {renderSlider('PY', activeCam.pivotY, -60, 100, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                                    {renderSlider('PZ', activeCam.pivotZ, -40, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotZ: v }))}
-                                                </div>
+                                                {renderSlider('Model Rotation', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
                                             </div>
                                         ) : (
                                             <div className="space-y-2">
@@ -369,13 +363,13 @@ const StudioEditor = () => {
                                                         updateSectionCamera(activeSlug, { 
                                                             pivotX: 0, pivotY: 5.1, pivotZ: 0, 
                                                             radius: 18, polar: 90, azimuth: 0,
-                                                            modelY: 5.1
+                                                            scale: 17
                                                         });
-                                                        setConfig({ y: 5.1, scale: 17 });
+                                                        setConfig({ y: 0, rotationY: 248 });
                                                     }}
                                                     className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-[7px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
                                                 >
-                                                    <Zap size={10} /> СБРОСИТЬ (RECOVER)
+                                                    <Zap size={10} /> СБРОСИТЬ В ЦЕНТР
                                                 </button>
                                             </div>
                                         )}
