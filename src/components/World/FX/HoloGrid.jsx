@@ -62,7 +62,10 @@ const HoloGrid = ({ scene, config, modelY }) => {
         if (!scene) return null;
         const group = new THREE.Group();
         scene.traverse(node => {
-            if (node.isMesh) {
+            if (node.isMesh && node.geometry && node.geometry.attributes.position) {
+                // Ignore small helper/null objects from the GLTF
+                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
+
                 const gridMesh = new THREE.Mesh(node.geometry, shaderMaterial);
                 gridMesh.position.copy(node.position);
                 gridMesh.rotation.copy(node.rotation);

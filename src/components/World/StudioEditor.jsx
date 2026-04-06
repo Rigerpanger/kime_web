@@ -249,9 +249,9 @@ const StudioEditor = () => {
                                 </div>
                                 
                                 <div className="col-span-2 mt-4 pt-4 border-t border-white/5 space-y-4">
-                                    <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">Global Scene Lighting</h5>
                                     <div className="grid grid-cols-2 gap-8">
                                         {renderSlider('Mouse Light', config.mouseLightIntensity ?? 150, 0, 1000, 10, (v) => setConfig({ mouseLightIntensity: v }))}
+                                        {renderSlider('Ambient Light', config.ambientIntensity ?? 0.2, 0, 2, 0.05, (v) => setConfig({ ambientIntensity: v }))}
                                     </div>
                                 </div>
                             </div>
@@ -299,6 +299,13 @@ const StudioEditor = () => {
                                     )}
                                     {activeFX.type === 'NeonEdges' && <div className="grid grid-cols-2 gap-1"><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { metalness: !activeFX.metalness })} className={`py-1 rounded text-[6px] font-bold ${activeFX.metalness ? 'bg-[#ffcc00] text-black' : 'bg-white/5'}`}>Metal</button><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { rainbow: !activeFX.rainbow })} className={`py-1 rounded text-[6px] font-bold ${activeFX.rainbow ? 'bg-indigo-500 text-white' : 'bg-white/5'}`}>Rainbow</button></div>}
                                     {activeFX.type === 'Iris' && <div className="grid grid-cols-2 gap-1">{['Liquid', 'Pulse', 'Metal', 'Glitch'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { presetIndex: i })} className={`py-1 rounded text-[6px] font-bold ${activeFX.presetIndex === i ? 'bg-purple-500' : 'bg-white/5'}`}>{p}</button>))}</div>}
+                                    {activeFX.type === 'CyberWaves' && (
+                                        <div className="space-y-2">
+                                            {renderSlider('Rotation X', activeFX.rotationX ?? -90, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { rotationX: v }))}
+                                            {renderSlider('Rotation Y', activeFX.rotationY ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { rotationY: v }))}
+                                            {renderSlider('Rotation Z', activeFX.rotationZ ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { rotationZ: v }))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -310,8 +317,8 @@ const StudioEditor = () => {
                                     {renderSlider('Model Y', config.y, -15, 20, 0.1, (v) => setConfig({ y: v }))}
                                     {renderSlider('Global Scale', config.scale, 1, 300, 1, (v) => setConfig({ scale: v }))}
                                     <div className="pt-2 border-t border-white/5 space-y-2">
-                                        {renderSlider('Orbit Dist', config.orbitRadius || 0, 0, 30, 0.1, (v) => setConfig({ orbitRadius: v }))}
-                                        {renderSlider('Orbit Rot', config.orbitAzimuth || 0, 0, 360, 1, (v) => setConfig({ orbitAzimuth: v }))}
+                                        {renderSlider('FX Orbit Dist', config.orbitRadius || 0, 0, 30, 0.1, (v) => setConfig({ orbitRadius: v }))}
+                                        {renderSlider('FX Orbit Rot', config.orbitAzimuth || 0, 0, 360, 1, (v) => setConfig({ orbitAzimuth: v }))}
                                         {renderSlider('Ambient Dust', config.bgParticlesIntensity ?? 0.5, 0, 2, 0.1, (v) => setConfig({ bgParticlesIntensity: v }))}
                                     </div>
                                 </div>

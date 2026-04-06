@@ -11,10 +11,15 @@ const CameraRig = () => {
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const isOverPanel = useAppStore(s => s.isOverPanel);
     const isOrbiting = useAppStore(s => s.isOrbiting);
+    const setSectionView = useAppStore(s => s.setSectionView);
+    const activeCameraId = useAppStore(s => s.activeCameraId);
  
     const vecPos = new THREE.Vector3();
     const vecTarget = new THREE.Vector3();
     const lastSlug = useRef(activeSlug);
+    const lastCamState = useRef({ azimuth: 0, polar: 0, radius: 0 });
+    const settleTimer = useRef(0);
+    const lastMoveTime = useRef(0);
     const isTransitioning = useRef(false);
     const isFirstRun = useRef(true);
  
@@ -58,11 +63,14 @@ const CameraRig = () => {
             const rawTheta = safeNum(activeCam.azimuth, 0) * (Math.PI / 180);
             const rawPhi = safeNum(activeCam.polar !== undefined ? activeCam.polar : 90, 90) * (Math.PI / 180);
 
-            // -- RESPONSIVE FRAMING --
+            // -- RESPONSIVE FRAMING (FORCED PC/MOBILE CONSISTENCY) --
             const aspect = safeNum(state.size.width / Math.max(1, state.size.height), 1);
             let baseRadius = safeNum(activeCam.radius, 18);
+            
+            // Adjust radius for vertical aspect to keep the model 'centered' and 'identically sized'
             if (aspect < 1.0) {
-                baseRadius = baseRadius * (1 / aspect) * 0.85;
+                // On mobile, we zoom out proportional to the crop
+                baseRadius = baseRadius * (1.1 / aspect); 
             }
             
             const r = safeNum(baseRadius, 18);
@@ -116,6 +124,37 @@ const CameraRig = () => {
                     vecTarget.y = THREE.MathUtils.damp(vecTarget.y, targetLookArr[1], s, d);
                     vecTarget.z = THREE.MathUtils.damp(vecTarget.z, targetLookArr[2], s, d);
                     camera.lookAt(vecTarget);
+                }
+            }
+
+            // --- AUTO-CAPTURE LOGIC (AUTO-RESCUE) ---
+            // Detect if the user is ORBITING and then STOPS.
+            if (isEditing && isOrbiting) {
+                const currentCamState = {
+                    azimuth: controls.getAzimuthalAngle() * (180 / Math.PI),
+                    polar: controls.getPolarAngle() * (180 / Math.PI),
+                    radius: camera.position.distanceTo(controls.target)
+                };
+
+                const diff = Math.abs(currentCamState.azimuth - lastCamState.current.azimuth) +
+                             Math.abs(currentCamState.polar - lastCamState.current.polar) +
+                             Math.abs(currentCamState.radius - lastCamState.current.radius);
+
+                if (diff > 0.05) {
+                    lastCamState.current = currentCamState;
+                    lastMoveTime.current = state.clock.elapsedTime;
+                } else if (state.clock.elapsedTime - lastMoveTime.current > 1.0 && lastMoveTime.current !== 0) {
+                    // Camera settled for 1 second - perform AUTO RESCUE
+                    setSectionView(currentSlug, {
+                        azimuth: currentCamState.azimuth,
+                        polar: currentCamState.polar,
+                        radius: currentCamState.radius,
+                        pivotX: controls.target.x,
+                        pivotY: controls.target.y,
+                        pivotZ: controls.target.z
+                    });
+                    lastMoveTime.current = 0; // Reset timer until next move
+                    console.log('AUTO-RESCUE COMPLETE for', currentSlug);
                 }
             }
 

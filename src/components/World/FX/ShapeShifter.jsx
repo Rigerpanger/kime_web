@@ -65,7 +65,10 @@ const ShapeShifter = ({ scene, config, modelY }) => {
         if (!scene) return null;
         const group = new THREE.Group();
         scene.traverse(node => {
-            if (node.isMesh) {
+            if (node.isMesh && node.geometry && node.geometry.attributes.position) {
+                // Ignore small helper/null objects from the GLTF
+                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
+                
                 const mesh = new THREE.Mesh(node.geometry, shaderMaterial);
                 mesh.position.copy(node.position);
                 mesh.rotation.copy(node.rotation);

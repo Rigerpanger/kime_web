@@ -22,14 +22,17 @@ const CyberWaves = ({ config, modelY }) => {
     useFrame((state) => {
         if (!active) return;
         const t = state.clock.elapsedTime * speed;
-        const centerPos = config.height ?? modelY ?? 5.1;
+        const rotX = (config.rotationX || -90) * (Math.PI / 180);
+        const rotY = (config.rotationY || 0) * (Math.PI / 180);
+        const rotZ = (config.rotationZ || 0) * (Math.PI / 180);
 
         wavesRef.current.forEach((mesh, i) => {
             if (!mesh) return;
             const p = (waves[i].phase + t * 0.2) % 1;
             mesh.scale.setScalar(p * radius);
             mesh.material.opacity = (1 - p) * 0.5 * intensity;
-            mesh.position.y = centerPos - 4; // Floor level
+            mesh.position.y = centerPos;
+            mesh.rotation.set(rotX, rotY, rotZ);
         });
     });
 
@@ -38,7 +41,7 @@ const CyberWaves = ({ config, modelY }) => {
     return (
         <group>
             {waves.map((_, i) => (
-                <mesh key={i} ref={el => wavesRef.current[i] = el} rotation={[-Math.PI / 2, 0, 0]}>
+                <mesh key={i} ref={el => wavesRef.current[i] = el}>
                     <ringGeometry args={[0.98, 1, 64]} />
                     <meshBasicMaterial color={color} transparent opacity={0} side={THREE.DoubleSide} />
                 </mesh>

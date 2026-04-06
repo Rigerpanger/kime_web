@@ -8,6 +8,7 @@ import ErrorBoundary from './ErrorBoundary';
 import CameraRig from './CameraRig';
 import FracturedSculpture from './FracturedSculpture';
 import MuseumRoom from './MuseumRoom';
+import MouseSparks from './FX/MouseSparks';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
  
 // A lighting component for the Studio mode with auto-focus
@@ -56,23 +57,23 @@ const MouseLight = () => {
         // --- 1. Breathing Logic (Fixed 0 during normal interaction) ---
         const glowFactor = 0; 
 
-        // --- 2. World-Space 1:1 Mouse Mapping via Raycast ---
-        const targetZ = 4; // Close to sculpture surface
+        // --- 2. World-Space Mapping via Raycast (Improved) ---
+        const targetZ = 4.5;
         const vec = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
         vec.unproject(state.camera);
         vec.sub(state.camera.position).normalize();
         
-        if (vec.z !== 0) {
-            const t = (targetZ - state.camera.position.z) / vec.z;
-            target.copy(state.camera.position).add(vec.multiplyScalar(t));
-        }
+        // Project to a sphere or plane around the model
+        const t = (targetZ - state.camera.position.z) / vec.z;
+        target.copy(state.camera.position).add(vec.multiplyScalar(t));
         
-        lightRef.current.position.lerp(target, 0.4);
-        coreRef.current.position.lerp(target, 0.4);
+        lightRef.current.position.lerp(target, 0.3);
 
-        // --- 3. Intensity ---
-        lightRef.current.intensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 150;
-        coreRef.current.intensity = 0;  // No breathing for now
+        // --- 3. Intensity & Fallback (Bright and responsive) ---
+        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 400;
+        // If not moving on mobile, stay in center
+        const activeFactor = (state.pointer.x === 0 && state.pointer.y === 0) ? 0.3 : 1.0;
+        lightRef.current.intensity = baseIntensity * activeFactor;
     });
 
     return (
@@ -246,11 +247,14 @@ const Scene = () => {
                 })}
 
 
-                {/* Interactive Flashlight */}
-                <MouseLight />
-                
                 {/* Global Ambient Dust */}
                 <GlobalParticles />
+
+                {/* New: Mouse Sparks FX */}
+                <MouseSparks />
+
+                {/* New: Adjustable Ambient Light (Fills the shadows) */}
+                <ambientLight intensity={config.ambientIntensity ?? 0.2} color="#ffffff" />
 
 
 

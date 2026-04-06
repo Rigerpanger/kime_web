@@ -68,22 +68,25 @@ const SculptureModel = () => {
         const { config: currentConfig, showStudioEditor: isEditing } = stateRef.current;
         if (!currentConfig) return;
 
-        const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0;
+        const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0.0;
         const orbitAzi = ((currentSection.orbitAzimuth ?? currentConfig.orbitAzimuth ?? 0) * (Math.PI / 180));
         const tgtY = 5.1 + (currentSection.modelY ?? currentConfig.y ?? 0);
-        const tgtScale = ((currentSection.scale ?? currentConfig.scale ?? 50) / 10);
+        const tgtScale = ((currentSection.scale ?? currentConfig.scale ?? 170) / 10);
 
         const d = Math.max(0.001, Math.min(0.2, delta));
         const s = isEditing ? 12 : 1.5;
 
-        // Create helper targets
-        const tx = orbitRad * Math.sin(orbitAzi);
-        const tz = orbitRad * Math.cos(orbitAzi);
-
-        groupRef.current.position.x = THREE.MathUtils.damp(groupRef.current.position.x, tx, s, d);
-        groupRef.current.position.z = THREE.MathUtils.damp(groupRef.current.position.z, tz, s, d);
+        // Anchor the sculpture at the center
+        groupRef.current.position.x = 0;
+        groupRef.current.position.z = 0;
         groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, tgtY, s, d);
         groupRef.current.scale.setScalar(THREE.MathUtils.damp(groupRef.current.scale.x, tgtScale, s, d));
+
+        // The FX group will respond to orbit parameters (rotation)
+        if (groupRef.current.children[1]) {
+            const fxGroup = groupRef.current.children[1];
+            fxGroup.rotation.y = THREE.MathUtils.damp(fxGroup.rotation.y, orbitAzi, s, d);
+        }
 
         clonedScene.traverse(n => {
             if (n.isMesh && n.material.userData.shader) {
@@ -105,28 +108,32 @@ const SculptureModel = () => {
                 <Center bottom>
                     <primitive object={clonedScene} />
                 </Center>
+
+                {/* 2. FX Sub-group that can rotate independently around the anchored model */}
+                <group>
+                    {activeFXs.map(fx => {
+                        if (!fx.active) return null;
+                        const key = fx.id || fx.type;
+                        const modelY = 5.1 + (currentConfig.y || 0);
+                        const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0;
+
+                        switch(fx.type) {
+                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 3) + orbitRad}} modelY={modelY} />;
+                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius || 4) + orbitRad}} modelY={modelY} />;
+                            case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius || 1.5) + orbitRad}} modelY={modelY} />;
+                            case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 8.0) + orbitRad * 2}} modelY={modelY} />;
+                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 5.0) + orbitRad}} modelY={modelY} />;
+                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 3.0) + orbitRad}} modelY={modelY} />;
+                            default: return null;
+                        }
+                    })}
+                </group>
             </group>
-
-            {activeFXs.map(fx => {
-                if (!fx.active) return null;
-                const key = fx.id || fx.type;
-                const modelY = groupRef.current?.position.y || 5.1;
-
-                switch(fx.type) {
-                    case 'GeoSwarm': return <GeoSwarm key={key} config={fx} modelY={modelY} />;
-                    case 'NeuralSwarm': return <NeuralSwarm key={key} config={fx} modelY={modelY} />;
-                    case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                    case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                    case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                    case 'NeuralAtom': return <NeuralAtom key={key} config={fx} modelY={modelY} />;
-                    case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                    case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                    case 'QuantumDust': return <QuantumDust key={key} config={fx} modelY={modelY} />;
-                    case 'CyberWaves': return <CyberWaves key={key} config={fx} modelY={modelY} />;
-                    case 'DataStream': return <DataStream key={key} config={fx} modelY={modelY} />;
-                    default: return null;
-                }
-            })}
         </group>
     );
 };
