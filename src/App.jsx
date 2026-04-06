@@ -47,7 +47,12 @@ const AppLayout = () => {
                 if (response.ok) {
                     const data = await response.json();
                     if (data && Object.keys(data).length > 0) {
-                        setSculptureConfig(data);
+                        // SANITIZATION: Clean up any NaN/null that might have leaked into the DB or memory
+                        const clean = { ...data };
+                        if (!Number.isFinite(Number(clean.scale))) clean.scale = 17.0;
+                        if (!Number.isFinite(Number(clean.y))) clean.y = 5.1;
+                        if (!Number.isFinite(Number(clean.rotationY))) clean.rotationY = 248;
+                        setSculptureConfig(clean);
                     }
                 } else {
                     console.log("DB config not found, using AppStore persistent default.");

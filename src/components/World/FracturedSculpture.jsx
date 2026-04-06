@@ -740,7 +740,14 @@ const SculptureModel = () => {
 
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig } = stateRef.current;
+// [ignoring loop detection]
         if (!currentConfig) return;
+
+        // Helper to ensure mathematical stability
+        const safeNum = (val, fallback) => {
+            const n = Number(val);
+            return Number.isFinite(n) ? n : fallback;
+        };
         
         const currentSection = (currentConfig.sections || {})[currentSlug] || (currentConfig.sections || {}).default || {};
         
@@ -749,28 +756,31 @@ const SculptureModel = () => {
         const neonEdgesFX = (currentSection.fx || []).find(f => f.type === 'NeonEdges' && f.active);
         const tetrisFX = (currentSection.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
 
-        // Target calculations with strict fallback
-        let tgtScale = Number(currentSection.scale ?? currentConfig.scale ?? 17);
-        if (!Number.isFinite(tgtScale) || tgtScale < 1) tgtScale = 17;
+        // Target calculations with strict fallback and clamping
+        let tgtScale = safeNum(currentSection.scale ?? currentConfig.scale, 17.0);
+        if (tgtScale < 0.1) tgtScale = 17.0;
         
-        let tgtY = 5.1 + Number(currentConfig.y ?? 0);
-        if (!Number.isFinite(tgtY)) tgtY = 5.1;
+        // Align model height with camera center (default 5.1)
+        let tgtY = safeNum(currentSection.modelY ?? currentConfig.y, 5.1);
+        if (tgtY < -50 || tgtY > 100) tgtY = 5.1;
 
-        let rawRot = Number(currentConfig.rotationY);
-        let tgtRot = Number.isFinite(rawRot) ? rawRot : 248;
+        let rawRot = safeNum(currentConfig.rotationY, 248);
+        let tgtRot = rawRot;
 
         const s = isEditing ? 8.0 : 1.5;
         const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
 
-        if (isFirstRun.current && groupRef.current && primRef.current) {
-            groupRef.current.position.y = tgtY;
-            primRef.current.scale.setScalar(tgtScale);
-            primRef.current.rotation.y = THREE.MathUtils.degToRad(tgtRot);
-            isFirstRun.current = false;
-        } else if (groupRef.current && primRef.current) {
-            groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, tgtY, s, d);
-            primRef.current.scale.setScalar(THREE.MathUtils.damp(primRef.current.scale.x, tgtScale, s, d));
-            primRef.current.rotation.y = THREE.MathUtils.damp(primRef.current.rotation.y, THREE.MathUtils.degToRad(tgtRot), s, d);
+        if (groupRef.current && primRef.current) {
+            if (isFirstRun.current) {
+                groupRef.current.position.y = tgtY;
+                primRef.current.scale.setScalar(tgtScale);
+                primRef.current.rotation.y = THREE.MathUtils.degToRad(tgtRot);
+                isFirstRun.current = false;
+            } else {
+                groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, tgtY, s, d);
+                primRef.current.scale.setScalar(THREE.MathUtils.damp(primRef.current.scale.x, tgtScale, s, d));
+                primRef.current.rotation.y = THREE.MathUtils.damp(primRef.current.rotation.y, THREE.MathUtils.degToRad(tgtRot), s, d);
+            }
         }
 
         clonedScene.traverse(n => {
@@ -784,23 +794,23 @@ const SculptureModel = () => {
                         
                         shader.uniforms.uIrisMix.value = irisFX ? 1.0 : 0;
                         if (irisFX) {
-                            shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
+                            shader.uniforms.uIrisIntensity.value = safeNum(irisFX.intensity, 1.0);
                             shader.uniforms.uIrisColor.value.set(irisFX.color || "#ffcc00");
-                            shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
+                            shader.uniforms.uIrisType.value = safeNum(irisFX.presetIndex, 0);
                         }
                         
                         shader.uniforms.uGridMix.value = holoGridFX ? 1.0 : 0;
                         if (holoGridFX) {
-                            shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
+                            shader.uniforms.uGridIntensity.value = safeNum(holoGridFX.intensity, 1.0);
                             shader.uniforms.uGridColor.value.set(holoGridFX.color || "#00ffcc");
-                            shader.uniforms.uGridPattern.value = holoGridFX.patternIndex ?? 0; 
-                            shader.uniforms.uGridScale.value = holoGridFX.density ?? 20.0;
-                            shader.uniforms.uGridWidth.value = holoGridFX.thickness ?? 0.08;
+                            shader.uniforms.uGridPattern.value = safeNum(holoGridFX.patternIndex, 0); 
+                            shader.uniforms.uGridScale.value = safeNum(holoGridFX.density, 20.0);
+                            shader.uniforms.uGridWidth.value = safeNum(holoGridFX.thickness, 0.08);
                         }
                         
                         shader.uniforms.uEdgeMix.value = neonEdgesFX ? 1.0 : 0;
                         if (neonEdgesFX) {
-                            shader.uniforms.uEdgeIntensity.value = neonEdgesFX.intensity ?? 1.0;
+                            shader.uniforms.uEdgeIntensity.value = safeNum(neonEdgesFX.intensity, 1.0);
                             shader.uniforms.uEdgeColor.value.set(neonEdgesFX.color || "#ff00ff");
                             shader.uniforms.uEdgeMetal.value = neonEdgesFX.metalness ? 1.0 : 0;
                             shader.uniforms.uEdgeRainbow.value = neonEdgesFX.rainbow ? 1.0 : 0;
@@ -808,14 +818,14 @@ const SculptureModel = () => {
 
                         shader.uniforms.uRevealMix.value = tetrisFX ? 1.0 : 0;
                         if (tetrisFX) {
-                            const scanSpeed = tetrisFX.speed ?? 1.0;
+                            const scanSpeed = safeNum(tetrisFX.speed, 1.0);
                             const scanY = -5 + ((state.clock.elapsedTime * scanSpeed * 2.0) % 20);
                             shader.uniforms.uRevealY.value = scanY;
-                            shader.uniforms.uRevealEdge.value = tetrisFX.scale ? tetrisFX.scale * 1.5 : 1.5;
+                            shader.uniforms.uRevealEdge.value = safeNum(tetrisFX.scale, 1.0) * 1.5;
                         }
                     }
                     
-                    m.envMapIntensity = currentConfig?.envMapIntensity ?? 0.02;
+                    m.envMapIntensity = safeNum(currentConfig?.envMapIntensity, 0.02);
                     if (tetrisFX) {
                         m.transparent = true;
                         m.opacity = tetrisFX.mode === 'Solid' ? 1.0 : 0.05;

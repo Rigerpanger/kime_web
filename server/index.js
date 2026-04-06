@@ -129,8 +129,14 @@ const initDB = async () => {
                 last_ping_at TIMESTAMP,
                 start_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 status VARCHAR(20) DEFAULT 'active',
+                tag_colleagues BOOLEAN DEFAULT false,
+                needs_admin_ack BOOLEAN DEFAULT false,
+                last_admin_ping_at TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            ALTER TABLE telegram_hounds ADD COLUMN IF NOT EXISTS tag_colleagues BOOLEAN DEFAULT false;
+            ALTER TABLE telegram_hounds ADD COLUMN IF NOT EXISTS needs_admin_ack BOOLEAN DEFAULT false;
+            ALTER TABLE telegram_hounds ADD COLUMN IF NOT EXISTS last_admin_ping_at TIMESTAMP;
             CREATE TABLE IF NOT EXISTS telegram_tasks (
                 id SERIAL PRIMARY KEY,
                 assigner_chat_id BIGINT,
@@ -152,6 +158,14 @@ const initDB = async () => {
                 content TEXT NOT NULL,
                 is_sent BOOLEAN DEFAULT false,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS telegram_chats (
+                id SERIAL PRIMARY KEY,
+                chat_id BIGINT UNIQUE NOT NULL,
+                title VARCHAR(255),
+                username VARCHAR(255),
+                type VARCHAR(50),
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
         
@@ -568,26 +582,39 @@ setInterval(async () => {
         }
 
         // 2. Проверка активных "Докапываний" (Hound Mode)
+        const { rows: colleagues } = await pool.query("SELECT username FROM telegram_users WHERE role = 'colleague'");
+        const colleagueTags = colleagues.map(c => `@${c.username}`).join(' ');
+
         const { rows: hounds } = await pool.query("SELECT * FROM telegram_hounds WHERE status = 'active' AND next_ping_at <= NOW()");
         for (const h of hounds) {
-            // Получаем chat_id сотрудника
+            let targetChatId = null;
             const { rows: u } = await pool.query("SELECT chat_id FROM telegram_users WHERE LOWER(username) = LOWER($1)", [h.target_username]);
-            
             if (u.length > 0 && u[0].chat_id) {
-                await sendTelegramMessage(u[0].chat_id, `🤖 *Тумба на связи.*\nРичард ждет ответ по: "${h.objective}"\n\nПожалуйста, ответь мне прямо сейчас. Я не замолчу, пока не получу результат.`);
-                
-                // Обновляем время следующего пинга
-                await pool.query("UPDATE telegram_hounds SET next_ping_at = NOW() + (interval_minutes || ' minutes')::interval, last_ping_at = NOW() WHERE id = $1", [h.id]);
+                targetChatId = u[0].chat_id;
+            } else {
+                const { rows: g } = await pool.query("SELECT chat_id FROM telegram_chats WHERE LOWER(title) = LOWER($1) OR LOWER(username) = LOWER($1)", [h.target_username]);
+                if (g.length > 0) targetChatId = g[0].chat_id;
+            }
 
-                // Проверка на жесткий игнор (дольше 4 часов)
-                const start = new Date(h.start_at);
-                const diffHours = (new Date() - start) / (1000 * 60 * 60);
-                if (diffHours >= 4) {
-                    const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
-                    for (const admin of admins) {
-                        await sendTelegramMessage(admin.chat_id, `‼️ *Внимание:* Сотрудник @${h.target_username} игнорирует меня уже больше 4 часов по задаче: "${h.objective}".`);
-                    }
+            if (targetChatId) {
+                let msg = `🤖 *Тумба на связи.*\nЦель: "${h.objective}"\n\nЯ жду ответ. Пока не получу результат — буду напоминать каждые ${h.interval_minutes} мин.`;
+                if (h.tag_colleagues && colleagueTags) {
+                    msg += `\n\nЭй, вы там, просыпайтесь: ${colleagueTags}`;
                 }
+                await sendTelegramMessage(targetChatId, msg);
+                await pool.query("UPDATE telegram_hounds SET next_ping_at = NOW() + (interval_minutes || ' minutes')::interval, last_ping_at = NOW() WHERE id = $1", [h.id]);
+            }
+        }
+
+        // 3. Пинг Ричарда (Admin Nagging)
+        const { rows: naggings } = await pool.query("SELECT * FROM telegram_hounds WHERE needs_admin_ack = true AND (last_admin_ping_at IS NULL OR last_admin_ping_at <= NOW() - INTERVAL '30 minutes')");
+        if (naggings.length > 0) {
+            const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
+            for (const h of naggings) {
+                for (const admin of admins) {
+                    await sendTelegramMessage(admin.chat_id, `🚨 *Richard, attention!* Я доложила по задаче "${h.objective}", но ты еще не подтвердил получение. Жду твоего 'Ок' или 'Принято' в личку.`);
+                }
+                await pool.query("UPDATE telegram_hounds SET last_admin_ping_at = NOW() WHERE id = $1", [h.id]);
             }
         }
     } catch (e) {
@@ -602,21 +629,24 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         if (!update || !update.message || !update.message.text) return res.sendStatus(200);
 
         const chatId = update.message.chat.id;
+        const chatTitle = update.message.chat.title;
+        const chatUsername = update.message.chat.username;
+        const chatType = update.message.chat.type;
         const text = update.message.text;
         const MessageId = update.message.message_id;
+
+        await pool.query("INSERT INTO telegram_chats (chat_id, title, username, type, updated_at) VALUES ($1, $2, $3, $4, NOW()) ON CONFLICT (chat_id) DO UPDATE SET title = $2, username = $3, type = $4, updated_at = NOW()", 
+            [chatId, chatTitle, chatUsername, chatType]);
         let user = update.message.from.username;
-        // Если у пользователя нет @username в настройках Telegram, берем его Имя
         if (!user) {
             user = update.message.from.first_name || update.message.from.id.toString();
         }
 
         const isPrivate = update.message.chat.type === 'private';
         
-        // --- 1. ПРОВЕРКА БЕЛОГО СПИСКА (ЛС и Админы) ---
         const userCheck = await pool.query('SELECT * FROM telegram_users WHERE LOWER(username) = LOWER($1)', [user]);
         let dbUser = userCheck.rows.length > 0 ? userCheck.rows[0] : null;
 
-        // КРИТИЧЕСКИЙ ФИКС: Если это Админ (по списку), но он еще не "привязал" свой chat_id (первый старт)
         const hardcodedAdmins = ['Richardsan', 'richardsn'];
         if (!dbUser && hardcodedAdmins.some(a => a.toLowerCase() === user.toLowerCase())) {
             const resAdmin = await pool.query("INSERT INTO telegram_users (username, role, chat_id) VALUES ($1, 'admin', $2) ON CONFLICT (username) DO UPDATE SET chat_id = $2, role = 'admin' RETURNING *", [user, chatId]);
@@ -624,13 +654,11 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         }
 
         if (isPrivate && !dbUser) {
-            // ФИКС: Запоминаем chat_id даже для неавторизованных
             const resPend = await pool.query("INSERT INTO telegram_users (username, role, chat_id) VALUES ($1, 'unauthorized', $2) ON CONFLICT (username) DO UPDATE SET chat_id = $2 RETURNING *", [user, chatId]);
             dbUser = resPend.rows[0];
 
             await sendTelegramMessage(chatId, `⏳ У вас пока нет доступа к личному общению с ассистентом KIME. Ваш ник: @${user}\nЗапрос отправлен руководителю.`);
             
-            // Отправка запроса админам
             const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
             for (const admin of admins) {
                 await sendTelegramMessage(admin.chat_id, `⚠️ *Новый запрос на доступ*\nПользователь @${user} хочет общаться с ботом в личных сообщениях.\n\nЧтобы разрешить доступ, отправьте сюда команду:\n\`добавь в общение @${user}\``);
@@ -638,20 +666,16 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             return res.sendStatus(200);
         }
 
-        // Если пользователь не в бане и не unauthorized, но почему-то не dbUser (редкий кейс)
         if (!dbUser) return res.sendStatus(200);
 
-        // Если статус всё еще 'unauthorized' - не пускать дальше (но мы уже доложили админу)
         if (isPrivate && dbUser.role === 'unauthorized') {
             return res.sendStatus(200);
         }
 
-        // Запоминаем chat_id для будущих ЛС, если его еще нет
         if (isPrivate && dbUser && !dbUser.chat_id) {
             await pool.query('UPDATE telegram_users SET chat_id = $1 WHERE LOWER(username) = LOWER($2)', [chatId, user]);
         }
 
-        // --- 1.2 СБРОС СМАРТ-ЛИМИТОВ (каждый новый день) ---
         if (dbUser) {
             const todayStr = new Date().toISOString().split('T')[0];
             const dbDateStr = dbUser.last_reset_date ? new Date(dbUser.last_reset_date).toISOString().split('T')[0] : '';
@@ -661,17 +685,24 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             }
         }
 
-        // --- 2. АДМИН-КОМАНДЫ (минуя AI) ---
         const lowerText = text.toLowerCase();
+        
+        // --- 7. СБРОС ADMIN ACK (ПОДТВЕРЖДЕНИЕ ОТЧЕТА) ---
+        const ackPhrases = ['ок', 'принято', 'понятно', 'понял', 'спасибо', 'хорошо', 'да'];
+        if (dbUser.role === 'admin' && ackPhrases.some(p => lowerText === p || lowerText.startsWith(p + ' '))) {
+            const { rowCount } = await pool.query("UPDATE telegram_hounds SET needs_admin_ack = false WHERE needs_admin_ack = true");
+            if (rowCount > 0) {
+                await sendTelegramMessage(chatId, `🫡 Принято. Снимаю напоминания по отчетам.`);
+            }
+        }
+
         if (lowerText.startsWith('добавь в общение @')) {
             if (dbUser && dbUser.role === 'admin') {
                 const newUser = text.split('@')[1].trim();
-                // Обновляем или вставляем
                 const { rows: updated } = await pool.query("INSERT INTO telegram_users (username, role) VALUES ($1, 'colleague') ON CONFLICT (username) DO UPDATE SET role = 'colleague' RETURNING chat_id", [newUser]);
                 
                 await sendTelegramMessage(chatId, `✅ Пользователь @${newUser} добавлен в систему. Теперь он может писать боту лично.`);
                 
-                // ПРОАКТИВНОЕ УВЕДОМЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
                 if (updated.length > 0 && updated[0].chat_id) {
                     await sendTelegramMessage(updated[0].chat_id, `🎯 *Эй, @${newUser}!* Ричард открыл тебе доступ. Показывай, что там по задачам. Я тебя вижу.`);
                 }
@@ -680,33 +711,25 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             }
             return res.sendStatus(200);
         }
-        // Сохраняем в историю
         await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
             [chatId, 'user', `${user}: ${text}`]);
-        // Храним последние 15 сообщений
         await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 15)', [chatId]);
 
-        // --- 3. ПОНИМАНИЕ КОНТЕКСТА И УМНОЕ ПРОДОЛЖЕНИЕ ---
-        let shouldProcess = isPrivate; // В ЛС общаемся всегда
+        let shouldProcess = isPrivate; 
         
         if (!isPrivate) {
             const isReplyToBot = update.message.reply_to_message && update.message.reply_to_message.from.username === TG_BOT_USERNAME;
             const hasTrigger = text.includes(`@${TG_BOT_USERNAME}`) || lowerText.includes('тумб') || lowerText.includes('ты что думаешь');
             
-            // Пропуск: наличие чужих тегов (пользователь общается с кем-то другим в группе)
-            const hasOtherMentions = text.includes('@') && !text.includes(`@${TG_BOT_USERNAME}`);
-            
-            // Если попросили замолчать
             const stopPhrases = ['не тебе', 'молчи', 'хватит', 'стоп'];
             const isStopPhrase = stopPhrases.some(p => lowerText.includes(p));
 
-            // Если последнее сообщение от ассистента было менее 5 минут назад - держим контекст
+            const hasOtherMentions = text.includes('@') && !text.includes(`@${TG_BOT_USERNAME}`);
+            
             const { rows: historyCheck } = await pool.query("SELECT role, created_at FROM telegram_history WHERE chat_id = $1 AND role IN ('assistant', 'system') ORDER BY created_at DESC LIMIT 1", [chatId]);
             let isContextActive = historyCheck.length > 0 && 
                                     historyCheck[0].role === 'assistant' && 
                                     (new Date() - new Date(historyCheck[0].created_at)) < 5 * 60 * 1000;
-            
-            if (hasOtherMentions) isContextActive = false;
 
             if (isStopPhrase && isContextActive) {
                 await sendTelegramMessage(chatId, `Ок, умолкаю. Жду, когда позовете.`);
@@ -714,24 +737,19 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
                 return res.sendStatus(200);
             }
             
-            if (hasTrigger || isReplyToBot || isContextActive) {
+            if (hasTrigger || isReplyToBot || (isContextActive && !hasOtherMentions)) {
                 shouldProcess = true;
             }
         }
 
         if (!shouldProcess) return res.sendStatus(200);
 
-        // --- 4. ПОДГОТОВКА ИИ-ПРОМПТА ---
         const { rows: historyRows } = await pool.query("SELECT role, content FROM telegram_history WHERE chat_id = $1 AND role != 'system' ORDER BY created_at ASC", [chatId]);
         const { rows: memoryRows } = await pool.query('SELECT fact_content FROM telegram_memory ORDER BY created_at DESC LIMIT 10');
         const { rows: tasksRows } = await pool.query('SELECT * FROM telegram_tasks WHERE status != \'completed\'');
         
-        // Поиск активного "Докапывателя" (Hound)
         const { rows: activeHounds } = await pool.query("SELECT * FROM telegram_hounds WHERE LOWER(target_username) = LOWER($1) AND status = 'active' LIMIT 1", [user]);
         const activeHound = activeHounds[0];
-
-        let memoryString = memoryRows.map(r => `- ${r.fact_content}`).join('\n');
-        let tasksString = tasksRows.map(r => `[ID:${r.id}] @${r.assignee_username}: ${r.task_description} (Статус: ${r.status})`).join('\n');
 
         let houndInstructions = "";
         if (activeHound) {
@@ -756,12 +774,14 @@ ${houndInstructions}
 1. Создать задачу: $$TASK_CREATE: @username | описание$$
 2. Запомнить факт: $$MEMORY_SAVE: факт$$
 3. Напоминание: $$REMINDER_CREATE: YYYY-MM-DD HH:mm | текст$$
-4. Отправить ЛС: $$MESSAGE_SEND: @username | текст$$
-5. Hound Mode (Докапывание): $$HOUND_CREATE: @username | интервал | цель$$
+4. Отправить сообщение: $$MESSAGE_SEND: имя_или_название_группы | текст$$
+5. Hound Mode (Докапывание): $$HOUND_CREATE: имя_или_название_группы | интервал | цель$$
+   - Если нужно тегнуть всех коллег в группе, добавь в цель пометку [TAG_ALL].
+   - Ты ОБЯЗАНА возвращаться к Ричарду с отчетом, пока он не подтвердит.
 6. Если реплика не по теме: $$IGNORE$$
 
-ТЕКУЩИЙ КОНТЕКСТ:
-Лимиты сотрудника: ${(dbUser && dbUser.role !== 'admin') ? `Осталось ${Math.max(0, 5 - dbUser.smart_answers_today)} умных ответов.` : 'Безлимит (Админ)'}
+ВАЖНО: Теперь ты можешь писать в ГРУППЫ (используй название группы). Если ты хочешь 'разбудить' всех коллег в группе, используй $$HOUND_CREATE: НазваниеГруппы | интервал | [TAG_ALL] Цель$$.
+Когда ты докладываешь Ричарду о результате, система будет пинать его каждые 30 минут, пока он не напишет 'Ок' или 'Принято'.
 `;
 
         const aiMessages = [
@@ -772,8 +792,7 @@ ${houndInstructions}
         const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
         const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
 
-        // --- 5. ВЫБОР МОДЕЛИ (Token Guard) ---
-        let selectedModel = 'gpt-5.4-mini'; // Исправлено на 5.4-mini для скорости
+        let selectedModel = 'gpt-5.4-mini'; 
         let isSmartUsed = false;
 
         if (isPrivate && dbUser && dbUser.role !== 'admin') {
@@ -781,7 +800,7 @@ ${houndInstructions}
                 selectedModel = 'gpt-5.4-mini';
                 isSmartUsed = true;
             } else {
-                selectedModel = 'gpt-5.4-mini'; // Используем 5.4-mini везде для максимальной скорости
+                selectedModel = 'gpt-5.4-mini'; 
             }
         }
 
@@ -799,14 +818,12 @@ ${houndInstructions}
                 await pool.query('UPDATE telegram_users SET smart_answers_today = smart_answers_today + 1 WHERE id = $1', [dbUser.id]);
             }
 
-            // --- 6. ОБРАБОТКА СИСТЕМНЫХ КОМАНД (ПАРСИНГ) ---
             const taskMatch = reply.match(/\$\$TASK_CREATE:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
             if (taskMatch) {
                 const targetUser = taskMatch[1].replace('@','').trim();
                 const desc = taskMatch[2].trim();
                 await pool.query('INSERT INTO telegram_tasks (assigner_chat_id, assignee_username, task_description) VALUES ($1, $2, $3)', [chatId, targetUser, desc]);
                 
-                // Пробуем оповестить в ЛС
                 const { rows: tUser } = await pool.query('SELECT chat_id FROM telegram_users WHERE username = $1', [targetUser]);
                 if (tUser.length > 0 && tUser[0].chat_id) {
                     await sendTelegramMessage(tUser[0].chat_id, `⚡️ *Новая задача:*\n${desc}`);
@@ -830,26 +847,36 @@ ${houndInstructions}
                 reply = reply.replace(reminderMatch[0], `\n⏰ Установлено напоминание на ${datetime}.`);
             }
 
-            const msgMatch = reply.match(/\$\$MESSAGE_SEND:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
+            const msgMatch = reply.match(/\$\$MESSAGE_SEND:\s*@?([^\s|]+)\s*\|\s*([^$]+)\$\$/);
             if (msgMatch) {
-                const targetUser = msgMatch[1].replace('@','').trim();
+                const target = msgMatch[1].trim();
                 const textMsg = msgMatch[2].trim();
-                const { rows: tUser } = await pool.query('SELECT chat_id FROM telegram_users WHERE username = $1', [targetUser]);
-                if (tUser.length > 0 && tUser[0].chat_id) {
-                    await sendTelegramMessage(tUser[0].chat_id, `✉️ *Сообщение от Тумбы:*\n${textMsg}`);
-                    reply = reply.replace(msgMatch[0], `\n✅ Передала сообщение @${targetUser} в личку!`);
+                
+                // Ищем в пользователях
+                const { rows: tUser } = await pool.query('SELECT chat_id FROM telegram_users WHERE LOWER(username) = LOWER($1)', [target]);
+                let targetId = (tUser.length > 0) ? tUser[0].chat_id : null;
+
+                if (!targetId) {
+                    // Ищем в чатах/группах
+                    const { rows: tChat } = await pool.query('SELECT chat_id FROM telegram_chats WHERE LOWER(title) = LOWER($1) OR LOWER(username) = LOWER($1)', [target]);
+                    if (tChat.length > 0) targetId = tChat[0].chat_id;
+                }
+
+                if (targetId) {
+                    await sendTelegramMessage(targetId, textMsg);
+                    reply = reply.replace(msgMatch[0], `\n✅ Сообщение для "${target}" отправлено.`);
                 } else {
-                    reply = reply.replace(msgMatch[0], `\n❌ Жопа! Я не смогла отправить сообщение @${targetUser}, потому что он(а) еще ни разу не писал(а) мне в личку (у меня нет его chat_id). Пните его, чтоб нажал /start.`);
+                    reply = reply.replace(msgMatch[0], `\n❌ Жопа! Я не нашла "${target}" в своих контактах или группах. Попроси их написать мне в личку или добавь меня в группу.`);
                 }
             }
 
-            const houndCreateMatch = reply.match(/\$\$HOUND_CREATE:\s*@([^\s|]+)\s*\|\s*(\d+)\s*\|\s*([^$]+)\$\$/);
+            const houndCreateMatch = reply.match(/\$\$HOUND_CREATE:\s*@?([^\s|]+)\s*\|\s*(\d+)\s*\|\s*([^$]+)\$\$/);
             if (houndCreateMatch) {
-                const target = houndCreateMatch[1].replace('@','').trim();
+                const target = houndCreateMatch[1].trim();
                 const interval = parseInt(houndCreateMatch[2]);
                 const obj = houndCreateMatch[3].trim();
                 await pool.query('INSERT INTO telegram_hounds (target_username, objective, interval_minutes, next_ping_at) VALUES ($1, $2, $3, NOW())', [target, obj, interval]);
-                reply = reply.replace(houndCreateMatch[0], `\n⛓ *Режим докапывания включен:* Буду пинать @${target} каждые ${interval} мин, пока не ответит.`);
+                reply = reply.replace(houndCreateMatch[0], `\n⛓ *Режим докапывания включен для "${target}":* Буду пинать каждые ${interval} мин.`);
             }
 
             const houndSuccessMatch = reply.match(/\$\$HOUND_SUCCESS:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);

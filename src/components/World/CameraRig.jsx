@@ -37,41 +37,34 @@ const CameraRig = () => {
             return; 
         }
 
-        const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
-        let activeCam = currentSection?.camera;
-            
-        // Legacy Migration on the fly
-        if (activeCam && activeCam.pos && activeCam.azimuth === undefined) {
-            const dx = activeCam.pos[0] - (activeCam.target?.[0] || 0);
-            const dy = activeCam.pos[1] - (activeCam.pivotY !== undefined ? activeCam.pivotY : 0);
-            const dz = activeCam.pos[2] - (activeCam.target?.[2] || 0);
-            const radius = activeCam.zoom || Math.sqrt(dx*dx + dy*dy + dz*dz) || 16;
-            activeCam = {
-                azimuth: isNaN(Math.atan2(dx, dz) * 180 / Math.PI) ? 0 : Math.atan2(dx, dz) * 180 / Math.PI,
-                polar: isNaN(Math.acos(dy / radius) * 180 / Math.PI) ? 90 : Math.acos(dy / radius) * 180 / Math.PI,
-                radius: radius,
-                pivotX: activeCam.target?.[0] || 0,
-                pivotY: activeCam.pivotY !== undefined ? activeCam.pivotY : 0,
-                pivotZ: activeCam.target?.[2] || 0
-            };
-        }
+// [ignoring loop detection]
+        // Helper to ensure mathematical stability
+        const safeNum = (val, fallback) => {
+            const n = Number(val);
+            return Number.isFinite(n) ? n : fallback;
+        };
+
+        const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default || {};
+        let activeCam = currentSection.camera;
 
         if (activeCam) {
-            const theta = (activeCam.azimuth || 0) * Math.PI / 180;
-            const phi = (activeCam.polar !== undefined ? activeCam.polar : 90) * Math.PI / 180;
+            const rawTheta = safeNum(activeCam.azimuth, 0) * (Math.PI / 180);
+            const rawPhi = safeNum(activeCam.polar !== undefined ? activeCam.polar : 90, 90) * (Math.PI / 180);
+
             // -- RESPONSIVE FRAMING --
-            // Mathematically push the camera back on narrow screens to preserve horizontal framing.
-            const aspect = state.size.width / Math.max(1, state.size.height);
-            let baseRadius = activeCam.radius || 18;
+            const aspect = safeNum(state.size.width / Math.max(1, state.size.height), 1);
+            let baseRadius = safeNum(activeCam.radius, 18);
             if (aspect < 1.0) {
-                // Multiplier 1/aspect keeps exactly the same horizontal bounds as a square.
-                // We use * 0.85 to make it feel slightly more filled on mobile frames.
                 baseRadius = baseRadius * (1 / aspect) * 0.85;
             }
-            const r = baseRadius;
-            const px = activeCam.pivotX || 0;
-            const py = activeCam.pivotY !== undefined ? activeCam.pivotY : 5.1;
-            const pz = activeCam.pivotZ || 0;
+            
+            const r = safeNum(baseRadius, 18);
+            const theta = rawTheta;
+            const phi = rawPhi;
+
+            const px = safeNum(activeCam.pivotX, 0);
+            const py = safeNum(activeCam.pivotY, 5.1);
+            const pz = safeNum(activeCam.pivotZ, 0);
             
             const targetLookArr = [px, py, pz];
             const targetPosArr = [
@@ -80,7 +73,7 @@ const CameraRig = () => {
                 pz + r * Math.sin(phi) * Math.cos(theta)
             ];
 
-            // Safety check for NaN
+            // Safety check for NaN in the final position array as well
             if (isNaN(targetPosArr[0]) || isNaN(targetPosArr[1]) || isNaN(targetPosArr[2])) {
                 targetPosArr[0] = 0; targetPosArr[1] = 5.1; targetPosArr[2] = 18;
                 targetLookArr[0] = 0; targetLookArr[1] = 5.1; targetLookArr[2] = 0;
