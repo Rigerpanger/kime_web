@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import useAppStore from '../../store/useAppStore';
 import useAuthStore from '../../store/useAuthStore';
-import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Save, Loader2, Check, Camera, Lightbulb, Trash2, Zap, ChevronDown, ChevronUp, Palette } from 'lucide-react';
 import useActiveSlug from '../../hooks/useActiveSlug';
 
 const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm'];
 
+const SECTION_NAMES = {
+    "default": "Главная (Home)",
+    "about": "О компании (About)",
+    "services": "Услуги (Services)",
+    "projects": "Проекты (Projects)",
+    "contact": "Контакты (Contact)",
+    "about-studio": "О нас: Студия",
+    "about-approach": "О нас: Подход",
+    "about-founder": "О нас: Видение",
+    "about-certificates": "О нас: Достижения",
+    "digital-graphics": "Служба: Digital Graphics",
+    "ar-vr": "Служба: AR/VR",
+    "software-dev": "Служба: Software Dev",
+    "gamedev": "Служба: GameDev",
+    "ai-ml": "Служба: AI / ML"
+};
+
 const StudioEditor = () => {
-    const { session } = useAuthStore();
+    const { session, signIn } = useAuthStore();
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
     
     const config = useAppStore(s => s.sculptureConfig);
     const setConfig = useAppStore(s => s.setSculptureConfig);
     const activeSlug = useActiveSlug() || 'default';
-    const setView = useAppStore(s => s.setView);
-    const setActiveSlug = useAppStore(s => s.setActiveSlug);
-    
     const setIsOverPanel = useAppStore(s => s.setIsOverPanel);
-    
-    // Clean up redundant manual listeners - we'll use isOverPanel + disabled OrbitControls instead
-    useEffect(() => {
-        return () => setIsOverPanel(false);
-    }, []);
     
     const updateSectionFX = useAppStore(s => s.updateSectionFX);
     const addSectionFX = useAppStore(s => s.addSectionFX);
@@ -32,30 +41,29 @@ const StudioEditor = () => {
     const removeLight = useAppStore(s => s.removeLight);
     const activeLightId = useAppStore(s => s.activeLightId);
     const setActiveLightId = useAppStore(s => s.setActiveLightId);
+    
     const [activeFXId, setActiveFXId] = useState(null);
-
-    const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [showLogin, setShowLogin] = useState(false); // For inline re-auth
-    const [loginEmail, setLoginEmail] = useState('');
-    const [loginPass, setLoginPass] = useState('');
-    const signIn = useAuthStore(s => s.signIn);
-
     const [activeTab, setActiveTab] = useState('camera');
-    const [activeSlot, setActiveSlot] = useState(0);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [showAdvancedCam, setShowAdvancedCam] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
     const [captured, setCaptured] = useState(false);
+    const [showLogin, setShowLogin] = useState(false);
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPass, setLoginPass] = useState('');
+    const [loginError, setLoginError] = useState(null);
     
     const triggerCapture = useAppStore(s => s.triggerCapture);
 
+    useEffect(() => {
+        return () => setIsOverPanel(false);
+    }, []);
+
     const currentSection = config.sections?.[activeSlug] || config.sections?.default;
     const activeCam = currentSection?.camera || { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 };
-
     const sectionFX = currentSection?.fx || [];
     const activeFX = sectionFX.find(f => f.id === activeFXId) || sectionFX[0];
-
-    const [loginError, setLoginError] = useState(null);
 
     const handleSave = async () => {
         setSaving(true);
@@ -63,86 +71,50 @@ const StudioEditor = () => {
         try {
             if (!session?.token) {
                 setShowLogin(true);
-                throw new Error("Session expired. Please login below.");
+                throw new Error("Login required");
             }
-            
-            // Absolute latest state from store (bypassing react closure)
             const latestConfig = useAppStore.getState().sculptureConfig;
-
             const response = await fetch(`${apiUrl}/content/sculpture_config`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${session.token}` 
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
                 body: JSON.stringify(latestConfig)
             });
-
-            if (response.ok) { 
-                setSaved(true); 
-                setTimeout(() => setSaved(false), 2000); 
-            } else {
-                if (response.status === 401 || response.status === 403) {
-                    setShowLogin(true);
-                    setLoginError("Session expired or invalid. Please re-authenticate.");
-                }
-                const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.error || `Server error: ${response.status}`);
+            if (response.ok) {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            } else if (response.status === 401) {
+                setShowLogin(true);
             }
-        } catch (error) { 
-            // Avoid browser alert, show in UI or log
-            if (!showLogin) {
-                console.error("Save failure:", error);
-                // Fail silently if we are showing login, otherwise we could add a temporary toast here
-            }
-        } finally { 
-            setSaving(false); 
+        } catch (error) {
+            console.error("Save error:", error);
+        } finally {
+            setSaving(false);
         }
     };
 
     const handleInlineLogin = async (e) => {
         e.preventDefault();
-        setLoginError(null);
         try {
             await signIn(loginEmail, loginPass);
             setShowLogin(false);
-            // Auto-trigger save after successful login? 
-            // Better to let user click again to be sure.
         } catch (err) {
             setLoginError(err.message);
         }
     };
 
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
-        <div className="space-y-1.5">
-            <div className="flex justify-between text-[8px] uppercase tracking-widest text-[#ffcc00]/50">
+        <div className="space-y-1">
+            <div className="flex justify-between text-[7px] uppercase tracking-widest text-[#ffcc00]/50 font-bold">
                 <span>{label}</span>
                 <span className="font-mono text-[#ffcc00]">{format(value)}</span>
             </div>
             <input 
                 type="range" min={min} max={max} step={step} value={value ?? 0} 
                 onChange={e => onChange(parseFloat(e.target.value))}
-                className="w-full accent-[#ffcc00] h-1 bg-white/5 rounded-full appearance-none cursor-pointer"
+                className="w-full accent-[#ffcc00] h-0.5 bg-white/5 rounded-full appearance-none cursor-pointer"
             />
         </div>
     );
-
-    const SECTION_NAMES = {
-        "default": "Главная (Home)",
-        "about": "О компании (About)",
-        "services": "Услуги (Services)",
-        "projects": "Проекты (Projects)",
-        "contact": "Контакты (Contact)",
-        "about-studio": "О нас: Студия",
-        "about-approach": "О нас: Подход",
-        "about-founder": "О нас: Видение",
-        "about-certificates": "О нас: Достижения",
-        "digital-graphics": "Служба: Digital Graphics",
-        "ar-vr": "Служба: AR/VR",
-        "software-dev": "Служба: Software Dev",
-        "gamedev": "Служба: GameDev",
-        "ai-ml": "Служба: AI / ML"
-    };
 
     return (
         <div 
@@ -150,156 +122,68 @@ const StudioEditor = () => {
             onMouseLeave={() => setIsOverPanel(false)}
             className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[32px]' : 'h-[165px]'}`}
         >
-            {/* FORCE LOGIN IF NO SESSION */}
+            {/* LOGIN OVERLAY */}
             {(showLogin || !session) && (
-                <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[10002] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
-                    <div className="w-full max-w-[340px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-6 sm:p-8 rounded-2xl shadow-[0_0_100px_rgba(255,204,0,0.15)] space-y-4 sm:space-y-6 my-auto">
+                <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[10002] flex items-center justify-center p-4">
+                    <div className="w-full max-w-[320px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-8 rounded-2xl space-y-6">
                         <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                            <div className="w-10 h-10 bg-[#ffcc00]/10 rounded-full flex items-center justify-center shrink-0 border border-[#ffcc00]/10">
-                                <Zap className="text-[#ffcc00]" size={20} fill="currentColor" />
-                            </div>
-                            <div className="text-left">
-                                <h2 className="text-[#ffcc00] font-black uppercase tracking-[0.2em] text-[11px]">ВХОД В СТУДИЮ</h2>
-                                <p className="text-white/20 text-[7px] uppercase font-bold tracking-widest">
-                                    Админ-доступ обязателен
-                                </p>
+                            <Zap className="text-[#ffcc00]" size={20} fill="currentColor" />
+                            <div>
+                                <h2 className="text-[#ffcc00] font-black uppercase tracking-[0.2em] text-[11px]">STUDIO AUTH</h2>
+                                <p className="text-white/20 text-[7px] uppercase font-bold tracking-widest">Admin protection</p>
                             </div>
                         </div>
-
-                        {loginError && (
-                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-2 rounded-lg text-[8px] font-black uppercase text-center animate-pulse tracking-widest">
-                                {loginError}
-                            </div>
-                        )}
-
                         <form onSubmit={handleInlineLogin} className="space-y-4">
-                            <div className="space-y-1">
-                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest block">Email</label>
-                                <input 
-                                    type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-[11px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white placeholder:text-white/5"
-                                    placeholder="admin@kimeproduction.ru"
-                                />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest block">Пароль</label>
-                                <input 
-                                    type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-[11px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white placeholder:text-white/5"
-                                    placeholder="••••••••"
-                                />
-                            </div>
-                            <button 
-                                type="submit"
-                                className="w-full bg-[#ffcc00] text-black py-3 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg"
-                            >
-                                <Zap size={14} fill="#000" /> ВОЙТИ И СОХРАНИТЬ
-                            </button>
-                            <button 
-                                type="button" onClick={() => { setIsCollapsed(true); useAppStore.getState().toggleStudioEditor(); }}
-                                className="w-full text-white/10 py-1 text-[7px] font-black uppercase tracking-widest hover:text-white/40 transition-all"
-                            >
-                                Закрыть редактор
-                            </button>
+                            <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-[10px]" placeholder="Email" />
+                            <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-[10px]" placeholder="Password" />
+                            <button type="submit" className="w-full bg-[#ffcc00] text-black py-3 rounded text-[10px] font-black uppercase tracking-widest">Login to Edit</button>
                         </form>
                     </div>
                 </div>
             )}
 
-            <button 
-                onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
-                className="absolute top-[-26px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-t-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10001] shadow-lg"
-            >
-                {isCollapsed ? <><ChevronUp size={12} /> Развернуть</> : <><ChevronDown size={12} /> Свернуть</>}
+            <button onClick={() => setIsCollapsed(!isCollapsed)} className="absolute top-[-26px] right-8 px-4 py-1 bg-[#ffcc00] text-black rounded-t-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest z-[10001]">
+                {isCollapsed ? <ChevronUp size={12} /> : <ChevronDown size={12} />} {isCollapsed ? 'Open' : 'Close'}
             </button>
 
             {isCollapsed ? (
-                <div className="w-full h-full flex items-center px-6 gap-6">
-                    <div className="flex items-center gap-2 opacity-50">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#ffcc00] animate-pulse" />
-                        <h3 className="text-[8px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
-                    </div>
-                    <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
-                        Раздел: {SECTION_NAMES[activeSlug] || activeSlug}
-                    </div>
+                <div className="w-full h-full flex items-center px-6 gap-6 opacity-50">
+                    <h3 className="text-[8px] font-black uppercase tracking-[0.2em] text-[#ffcc00]">Antigravity Studio</h3>
+                    <div className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{SECTION_NAMES[activeSlug] || activeSlug}</div>
                 </div>
             ) : (
                 <div className="flex w-full h-full overflow-hidden">
-                    <div className="w-[100px] shrink-0 border-r border-white/5 p-2 flex flex-col justify-between bg-black/20">
-                        <div className="space-y-1.5">
-                            {[
-                                { id: 'camera', icon: Camera, label: 'Cam' },
-                                { id: 'fx', icon: Zap, label: 'FX' },
-                                { id: 'light', icon: Lightbulb, label: 'Light' },
-                                { id: 'mat', icon: Palette, label: 'Mat' }
-                            ].map(tab => (
-                                <button 
-                                    key={tab.id}
-                                    onClick={() => {
-                                        setActiveTab(tab.id);
-                                        if (tab.id === 'fx' && !activeFXId && sectionFX.length > 0) {
-                                            setActiveFXId(sectionFX[0].id);
-                                        }
-                                    }}
-                                    className={`w-full flex items-center gap-2 px-2 py-1 rounded-md transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00] border border-[#ffcc00]/20' : 'text-white/20 hover:bg-white/5'}`}
-                                >
-                                    <tab.icon size={10} />
-                                    <span className="text-[7.5px] font-bold uppercase">{tab.label}</span>
-                                </button>
-                            ))}
-                            <button 
-                                onClick={handleSave} 
-                                disabled={saving}
-                                className={`w-full mt-1.5 py-1.5 rounded-md font-black uppercase text-[8px] transition-all flex items-center justify-center gap-1.5 shadow-lg ${saved ? 'bg-green-500 text-white' : 'bg-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
-                            >
-                                {saving ? <Loader2 size={10} className="animate-spin" /> : saved ? <Check size={10} /> : <><Save size={10} /> Deploy</>}
+                    {/* SIDEBAR */}
+                    <div className="w-[80px] border-r border-white/5 p-2 flex flex-col gap-1.5 bg-black/20">
+                        {[{ id: 'camera', icon: Camera, label: 'Cam' }, { id: 'fx', icon: Zap, label: 'FX' }, { id: 'light', icon: Lightbulb, label: 'Light' }, { id: 'mat', icon: Palette, label: 'Mat' }].map(tab => (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex flex-col items-center py-1 rounded transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00]' : 'text-white/20'}`}>
+                                <tab.icon size={12} />
+                                <span className="text-[6px] font-black uppercase mt-0.5">{tab.label}</span>
                             </button>
-                        </div>
-                        <div className="text-[5px] text-white/20 uppercase tracking-[0.2em] text-center">ANTIGRAVITY</div>
+                        ))}
+                        <button onClick={handleSave} disabled={saving} className={`w-full mt-auto py-2 rounded font-black uppercase text-[7px] ${saved ? 'bg-green-500' : 'bg-[#ffcc00] text-black'}`}>
+                            {saving ? '...' : saved ? 'OK' : 'Save'}
+                        </button>
                     </div>
 
-                    {activeTab !== 'camera' && activeTab !== 'mat' && (
-                        <div className="w-[160px] shrink-0 border-r border-white/5 p-3 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar bg-white/[0.01]">
-                            <h4 className="text-[7px] uppercase font-bold tracking-widest text-white/30 mb-1">Список</h4>
-                            {activeTab === 'light' && (
+                    {/* LIST (FX/LIGHT) */}
+                    {(activeTab === 'fx' || activeTab === 'light') && (
+                        <div className="w-[140px] border-r border-white/5 p-3 flex flex-col gap-1.5 overflow-y-auto">
+                            <h4 className="text-[7px] uppercase font-bold tracking-widest text-white/20">List</h4>
+                            {activeTab === 'light' ? (
                                 <>
-                                    {(config.lights || []).map(l => (
-                                        <button 
-                                            key={l.id} 
-                                            onClick={() => setActiveLightId(l.id)}
-                                            className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeLightId === l.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
-                                        >
-                                            {l.name}
-                                            {activeLightId === l.id && <div className="w-1 h-1 bg-black rounded-full" />}
-                                        </button>
+                                    {config.lights?.map(l => (
+                                        <button key={l.id} onClick={() => setActiveLightId(l.id)} className={`w-full text-left px-2 py-1.5 rounded text-[8px] font-bold ${activeLightId === l.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/40'}`}>{l.name}</button>
                                     ))}
-                                    <button onClick={addLight} className="w-full py-1.5 border border-dashed border-[#ffcc00]/20 text-[#ffcc00]/40 rounded-lg text-[8px] font-bold hover:bg-[#ffcc00]/10 transition-all">
-                                        + Добавить
-                                    </button>
+                                    <button onClick={addLight} className="w-full py-1.5 border border-dashed border-white/10 text-white/20 text-[7px] rounded">+ Add Light</button>
                                 </>
-                            )}
-                            {activeTab === 'fx' && (
+                            ) : (
                                 <>
                                     {sectionFX.map(f => (
-                                        <button 
-                                            key={f.id}
-                                            onClick={() => setActiveFXId(f.id)}
-                                            className={`w-full text-left px-3 py-1.5 rounded-lg text-[9px] font-bold transition-all flex justify-between items-center ${activeFXId === f.id ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}
-                                        >
-                                            {f.type}
-                                            {activeFXId === f.id && <div className="w-1 h-1 bg-white rounded-full" />}
-                                        </button>
+                                        <button key={f.id} onClick={() => setActiveFXId(f.id)} className={`w-full text-left px-2 py-1.5 rounded text-[8px] font-bold ${activeFXId === f.id ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/40'}`}>{f.type}</button>
                                     ))}
-                                    <select 
-                                        onChange={e => {
-                                            if (e.target.value !== 'None') {
-                                                addSectionFX(activeSlug, e.target.value);
-                                                e.target.value = 'None';
-                                            }
-                                        }}
-                                        className="w-full py-1.5 bg-black border border-dashed border-emerald-500/20 text-emerald-500/40 rounded-lg text-[8px] font-bold hover:bg-emerald-500/10 transition-all outline-none"
-                                    >
-                                        <option value="None">+ Добавить FX</option>
+                                    <select onChange={e => { if (e.target.value !== 'None') { addSectionFX(activeSlug, e.target.value); e.target.value = 'None'; } }} className="w-full py-1 bg-black text-[7px] border border-dashed border-white/10 text-white/20 rounded">
+                                        <option value="None">+ Add FX</option>
                                         {FX_TYPES.filter(t => t !== 'None').map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </>
@@ -307,162 +191,88 @@ const StudioEditor = () => {
                         </div>
                     )}
 
-                    <div className="flex-1 p-4 overflow-y-auto custom-scrollbar">
+                    {/* CONTENT */}
+                    <div className="flex-1 p-3 overflow-y-auto">
                         {activeTab === 'camera' && (
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                                    <h4 className="text-[9px] font-black uppercase text-[#ffcc00]">Редактор Камеры <span className="opacity-30 ml-2">// {SECTION_NAMES[activeSlug] || activeSlug}</span></h4>
-                                    <div className="px-3 py-1 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md text-[7px] font-black uppercase">Авто-захват OK</div>
+                            <div className="grid grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">1. Capture</h5>
+                                    <button onClick={() => { triggerCapture(); setCaptured(true); setTimeout(() => setCaptured(false), 1500); }} className={`w-full py-3 rounded font-black text-[9px] uppercase border ${captured ? 'bg-green-500 border-green-400' : 'bg-[#ffcc00] text-black'}`}>
+                                        {captured ? 'Captured' : 'Freeze View'}
+                                    </button>
                                 </div>
-                                <div className="grid grid-cols-3 gap-6 items-start">
-                                    <div className="space-y-3">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">1. Настройте камеру</h5>
-                                        <p className="text-[8px] text-white/30 leading-relaxed">Вращайте модель мышкой. Правой кнопкой — двигайте фокус. Колесиком — зум. Когда ракурс идеален — нажмите кнопку ниже:</p>
-                                        <button 
-                                            onClick={() => {
-                                                triggerCapture();
-                                                setCaptured(true);
-                                                setTimeout(() => setCaptured(false), 1500);
-                                            }}
-                                            className={`w-full py-3 rounded-lg font-black uppercase text-[10px] transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,204,0,0.2)] border-2 ${captured ? 'bg-emerald-500 border-emerald-400 text-white' : 'bg-[#ffcc00] border-[#ffcc00] text-black hover:scale-[1.02] active:scale-95'}`}
-                                        >
-                                            {captured ? <Check size={14} /> : <><Camera size={14} /> ЗАПОМНИТЬ ЭТОТ ВИД</>}
-                                        </button>
-                                    </div>
-                                    
-                                    <div className="space-y-3">
-                                        <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/40 font-bold">2. Настройки Страницы</h5>
-                                        {/* Now using pivotY as the primary vertical control */}
-                                        {renderSlider('Vertical Framing', activeCam.pivotY ?? 5.1, -20, 40, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                        {renderSlider('Camera FOV (Zoom)', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center">
-                                            <h5 className="text-[7px] uppercase tracking-widest text-indigo-400/40 font-bold">3. Дополнительно</h5>
-                                            <button 
-                                                onClick={() => setShowAdvancedCam(!showAdvancedCam)}
-                                                className="text-[7px] uppercase font-bold text-white/30 hover:text-white"
-                                            >
-                                                {showAdvancedCam ? 'Скрыть' : 'Настройки ↑'}
-                                            </button>
-                                        </div>
-                                        
-                                        {showAdvancedCam ? (
-                                            <div className="space-y-2.5 p-3 bg-white/[0.03] rounded-lg border border-white/5">
-                                                {renderSlider('Global Height', config.y, -30, 30, 0.1, (v) => setConfig({ y: v }))}
-                                                {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
-                                                {renderSlider('Angle (Azimuth)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
-                                                {renderSlider('Height (Polar)', activeCam.polar, 1, 179, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
-                                                {renderSlider('Model Rotation', config.rotationY, 0, 360, 1, (v) => setConfig({ rotationY: v }))}
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                <button 
-                                                    onClick={() => {
-                                                        updateSectionCamera(activeSlug, { 
-                                                            pivotX: 0, pivotY: 5.1, pivotZ: 0, 
-                                                            radius: 18, polar: 90, azimuth: 0,
-                                                            scale: 17
-                                                        });
-                                                        setConfig({ y: 0, rotationY: 248 });
-                                                    }}
-                                                    className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-md text-[7px] font-black uppercase hover:bg-red-500/20 transition-all flex items-center justify-center gap-1.5"
-                                                >
-                                                    <Zap size={10} /> СБРОСИТЬ В ЦЕНТР
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
+                                <div className="space-y-4 pt-4">
+                                    {renderSlider('Vertical Framing', activeCam.pivotY ?? 5.1, -20, 30, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                    {renderSlider('FOV Zoom', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                                 </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'light' && (config.lights || []).find(l => l.id === activeLightId) && (
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                                        <h5 className="text-[9px] uppercase font-black text-[#ffcc00]">{activeLightId}</h5>
-                                        <button onClick={() => removeLight(activeLightId)} className="text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={11}/></button>
-                                    </div>
-                                    {renderSlider('Intensity', (config.lights || []).find(l => l.id === activeLightId).intensity, 0, 150, 1, (v) => updateLight(activeLightId, { intensity: v }))}
-                                    {renderSlider('Radius', (config.lights || []).find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
-                                </div>
-                                <div className="space-y-4 pt-5">
-                                    {renderSlider('Azimuth', (config.lights || []).find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }), v => `${v}°`)}
-                                    {renderSlider('Y Height', (config.lights || []).find(l => l.id === activeLightId).y, -20, 50, 0.1, (v) => updateLight(activeLightId, { y: v }))}
-                                </div>
-                            </div>
-                        )}
-
-                        {activeTab === 'fx' && activeFX && (
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between border-b border-white/5 pb-1">
-                                        <div className="text-[9px] uppercase font-black text-[#ffcc00]">{activeFX.type} <span className="opacity-30">#{activeFX.id.substr(-3)}</span></div>
-                                        <div className="flex items-center gap-3">
-                                            <input type="checkbox" checked={activeFX.active} onChange={e => updateSectionFX(activeSlug, activeFX.id, { active: e.target.checked })} className="w-3 h-3 accent-emerald-500" />
-                                            <button onClick={() => removeSectionFX(activeSlug, activeFX.id)} className="text-red-500/40 hover:text-red-500 transition-colors"><Trash2 size={11}/></button>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* SHARED CONTROLS */}
-                                    {renderSlider('Intensity', activeFX.intensity, 0, 5, 0.05, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
-                                    {renderSlider('FX Scale', activeFX.scale, 0.1, 15.0, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
-                                    
-                                    <div className="flex gap-2 items-center">
-                                        <div className="text-[7px] uppercase text-white/20">Color</div>
-                                        <input type="color" value={activeFX.color || '#ffffff'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-6 w-12 bg-transparent cursor-pointer rounded border border-white/10" />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {/* CONDITIONAL ORBITAL CONTROLS */}
-                                    {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal'].includes(activeFX.type) ? (
-                                        <>
-                                            <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Орбитальная позиция</h5>
-                                            {renderSlider('Rotation (Orbit)', activeFX.azimuth, 0, 360, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
-                                            {renderSlider('Height (Offset)', activeFX.height, -60, 80, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
-                                            {renderSlider('Radius (Distance)', activeFX.radius, 0, 40, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
-                                        </>
-                                    ) : activeFX.type === 'Iris' ? (
-                                        <div className="space-y-4">
-                                            <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Iris Presets</h5>
-                                            <div className="grid grid-cols-3 gap-1.5">
-                                                {['Liquid', 'Energy', 'Glitch'].map((p, i) => (
-                                                    <button 
-                                                        key={p} 
-                                                        onClick={() => updateSectionFX(activeSlug, activeFX.id, { presetIndex: i })}
-                                                        className={`py-1 rounded text-[7px] font-bold uppercase border ${activeFX.presetIndex === i ? 'bg-[#ffcc00] text-black border-[#ffcc00]' : 'bg-white/5 text-white/40 border-white/10 hover:bg-white/10'}`}
-                                                    >
-                                                        {p}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="pt-2">
-                                                <p className="text-[7px] text-white/30 italic">Предустановленные стили для всей поверхности статуи.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center justify-center h-full opacity-30 text-center">
-                                            <Zap size={24} className="mb-2" />
-                                            <div className="text-[8px] font-black uppercase tracking-widest">Global Shader FX</div>
-                                            <div className="text-[7px] lowercase mt-1">Movement disabled for body effects</div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center"><h5 className="text-[7px] uppercase text-indigo-400/40 font-bold">3. Advanced</h5><button onClick={() => setShowAdvancedCam(!showAdvancedCam)} className="text-[6px] text-white/20 uppercase">{showAdvancedCam ? 'Hide' : 'Show'}</button></div>
+                                    {showAdvancedCam && (
+                                        <div className="space-y-2 p-2 bg-white/5 rounded">
+                                            {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
+                                            {renderSlider('Angle (Azim)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
+                                            {renderSlider('Height (Polar)', activeCam.polar, 1, 179, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}
                                         </div>
                                     )}
                                 </div>
                             </div>
                         )}
 
-                        {activeTab === 'mat' && (
+                        {activeTab === 'light' && config.lights?.find(l => l.id === activeLightId) && (
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
-                                    <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Глобальное положение</h5>
-                                    {renderSlider('Global Y', config.y, -18, 25, 0.1, (v) => setConfig({ y: v }))}
-                                    {renderSlider('Global Scale', config.scale, 1, 250, 1, (v) => setConfig({ scale: v }))}
+                                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[8px] font-black uppercase text-[#ffcc00]">{activeLightId}</span><button onClick={() => removeLight(activeLightId)} className="text-red-500/30"><Trash2 size={10}/></button></div>
+                                    {renderSlider('Intensity', config.lights.find(l => l.id === activeLightId).intensity, 0, 150, 1, (v) => updateLight(activeLightId, { intensity: v }))}
+                                    {renderSlider('Radius', config.lights.find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
+                                </div>
+                                <div className="space-y-4 pt-5">
+                                    {renderSlider('Azimuth', config.lights.find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }))}
+                                    {renderSlider('Height Y', config.lights.find(l => l.id === activeLightId).y, -10, 40, 0.1, (v) => updateLight(activeLightId, { y: v }))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'fx' && activeFX && (
+                            <div className="grid grid-cols-2 gap-8 h-full">
+                                <div className="space-y-4 overflow-y-auto pr-2">
+                                    <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[8px] font-black text-[#ffcc00] uppercase">{activeFX.type}</span><div className="flex gap-2"><input type="checkbox" checked={activeFX.active} onChange={e => updateSectionFX(activeSlug, activeFX.id, { active: e.target.checked })} /><button onClick={() => removeSectionFX(activeSlug, activeFX.id)} className="text-red-500/30"><Trash2 size={10}/></button></div></div>
+                                    <div className="space-y-3">
+                                        {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
+                                        {renderSlider('Scale', activeFX.scale ?? 1.0, 0.1, 15, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
+                                        {renderSlider('Speed', activeFX.speed ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { speed: v }))}
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">C1</span><input type="color" value={activeFX.color || '#ffcc00'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-4 w-6 bg-transparent" /></div>
+                                            {activeFX.type === 'SoftwareSilhouette' && <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">C2</span><input type="color" value={activeFX.color2 || '#00aaff'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color2: e.target.value })} className="h-4 w-6 bg-transparent" /></div>}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-3 overflow-y-auto pr-2">
+                                    <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Behaviors</h5>
+                                    {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (
+                                        <div className="grid grid-cols-3 gap-1">
+                                            {(activeFX.type === 'NeuralAtom' ? ['Orbit', 'Pulse', 'Glitch'] : activeFX.type === 'NeuralSwarm' ? ['Orbit', 'Flow', 'Chaos'] : activeFX.type === 'ShapeShifter' ? ['Pulse', 'Glitch', 'Float'] : ['Rain', 'Orbit', 'Static']).map(b => (
+                                                <button key={b} onClick={() => updateSectionFX(activeSlug, activeFX.id, { behavior: b })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.behavior === b ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/40'}`}>{b}</button>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {activeFX.type === 'ShapeShifter' && <div className="grid grid-cols-3 gap-1">{['Solid', 'Wire', 'Points'].map(m => (<button key={m} onClick={() => updateSectionFX(activeSlug, activeFX.id, { mode: m })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.mode === m ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/40'}`}>{m}</button>))}</div>}
+                                    {activeFX.type === 'HoloGrid' && <div className="grid grid-cols-3 gap-1">{['Square', 'Hex', 'Dots'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { patternIndex: i })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.patternIndex === i ? 'bg-indigo-500 text-white' : 'bg-white/5 text-white/40'}`}>{p}</button>))}</div>}
+                                    {activeFX.type === 'NeonEdges' && <div className="grid grid-cols-2 gap-1"><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { metalness: !activeFX.metalness })} className={`py-1 rounded text-[6px] font-bold ${activeFX.metalness ? 'bg-[#ffcc00] text-black' : 'bg-white/5'}`}>Metal</button><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { rainbow: !activeFX.rainbow })} className={`py-1 rounded text-[6px] font-bold ${activeFX.rainbow ? 'bg-indigo-500 text-white' : 'bg-white/5'}`}>Rainbow</button></div>}
+                                    {activeFX.type === 'Iris' && <div className="grid grid-cols-2 gap-1">{['Liquid', 'Pulse', 'Metal', 'Glitch'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { presetIndex: i })} className={`py-1 rounded text-[6px] font-bold ${activeFX.presetIndex === i ? 'bg-purple-500' : 'bg-white/5'}`}>{p}</button>))}</div>}
+                                    {renderSlider('Y Offset', activeFX.height ?? 4.8, -10, 30, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'mat' && (
+                            <div className="grid grid-cols-2 gap-8 pt-4">
+                                <div className="space-y-4">
+                                    <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Global Transform</h5>
+                                    {renderSlider('Model Y', config.y, -15, 20, 0.1, (v) => setConfig({ y: v }))}
+                                    {renderSlider('Global Scale', config.scale, 1, 300, 1, (v) => setConfig({ scale: v }))}
                                 </div>
                                 <div className="space-y-4">
-                                    <h5 className="text-[7px] uppercase tracking-widest text-[#ffcc00]/30 border-b border-white/5 pb-1 font-bold">Материал</h5>
+                                    <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Material</h5>
                                     {renderSlider('Roughness', config.roughness, 0, 1, 0.01, (v) => setConfig({ roughness: v }))}
                                     {renderSlider('Metalness', config.metalness, 0, 1, 0.01, (v) => setConfig({ metalness: v }))}
                                 </div>
