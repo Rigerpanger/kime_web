@@ -36,6 +36,11 @@ const StudioEditor = () => {
 
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [showLogin, setShowLogin] = useState(false); // For inline re-auth
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPass, setLoginPass] = useState('');
+    const signIn = useAuthStore(s => s.signIn);
+
     const [activeTab, setActiveTab] = useState('camera');
     const [activeSlot, setActiveSlot] = useState(0);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -50,10 +55,16 @@ const StudioEditor = () => {
     const sectionFX = currentSection?.fx || [];
     const activeFX = sectionFX.find(f => f.id === activeFXId) || sectionFX[0];
 
+    const [loginError, setLoginError] = useState(null);
+
     const handleSave = async () => {
         setSaving(true);
+        setLoginError(null);
         try {
-            if (!session?.token) throw new Error("Unauthorized: Please login again.");
+            if (!session?.token) {
+                setShowLogin(true);
+                throw new Error("Session expired. Please login below.");
+            }
             
             // Absolute latest state from store (bypassing react closure)
             const latestConfig = useAppStore.getState().sculptureConfig;
@@ -71,14 +82,34 @@ const StudioEditor = () => {
                 setSaved(true); 
                 setTimeout(() => setSaved(false), 2000); 
             } else {
+                if (response.status === 401 || response.status === 403) {
+                    setShowLogin(true);
+                    setLoginError("Session expired or invalid. Please re-authenticate.");
+                }
                 const errData = await response.json().catch(() => ({}));
                 throw new Error(errData.error || `Server error: ${response.status}`);
             }
         } catch (error) { 
-            alert('🚨 SAVE ERROR: ' + error.message); 
-            console.error("Save failure:", error);
+            // Avoid browser alert, show in UI or log
+            if (!showLogin) {
+                console.error("Save failure:", error);
+                // Fail silently if we are showing login, otherwise we could add a temporary toast here
+            }
         } finally { 
             setSaving(false); 
+        }
+    };
+
+    const handleInlineLogin = async (e) => {
+        e.preventDefault();
+        setLoginError(null);
+        try {
+            await signIn(loginEmail, loginPass);
+            setShowLogin(false);
+            // Auto-trigger save after successful login? 
+            // Better to let user click again to be sure.
+        } catch (err) {
+            setLoginError(err.message);
         }
     };
 
@@ -119,6 +150,60 @@ const StudioEditor = () => {
             onMouseLeave={() => setIsOverPanel(false)}
             className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[32px]' : 'h-[165px]'}`}
         >
+            {/* FORCE LOGIN IF NO SESSION */}
+            {(showLogin || !session) && (
+                <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10002] flex items-center justify-center p-4">
+                    <div className="w-full max-w-[340px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-10 rounded-2xl shadow-[0_0_80px_rgba(255,204,0,0.1)] space-y-8">
+                        <div className="text-center space-y-3">
+                            <div className="w-14 h-14 bg-[#ffcc00]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#ffcc00]/10">
+                                <Zap className="text-[#ffcc00]" size={28} fill="currentColor" />
+                            </div>
+                            <h2 className="text-[#ffcc00] font-black uppercase tracking-[0.4em] text-[12px]">ВХОД В СТУДИЮ</h2>
+                            <p className="text-white/30 text-[9px] uppercase tracking-widest font-bold leading-relaxed px-4">
+                                Для сохранения позиций камеры и масок нужно авторизоваться под учетной записью администратора.
+                            </p>
+                        </div>
+
+                        {loginError && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg text-[9px] font-black uppercase text-center animate-pulse tracking-widest">
+                                {loginError}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleInlineLogin} className="space-y-5">
+                            <div className="space-y-1.5">
+                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest mb-1 block">Email Администратора</label>
+                                <input 
+                                    type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-[12px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white"
+                                    placeholder="admin@kimeproduction.ru"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest mb-1 block">Пароль</label>
+                                <input 
+                                    type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-[12px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+                            <button 
+                                type="submit"
+                                className="w-full bg-[#ffcc00] text-black py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-3"
+                            >
+                                <Zap size={14} fill="#000" /> АВТОРИЗОВАТЬСЯ
+                            </button>
+                            <button 
+                                type="button" onClick={() => { setIsCollapsed(true); useAppStore.getState().toggleStudioEditor(); }}
+                                className="w-full text-white/20 py-2 text-[8px] font-black uppercase tracking-widest hover:text-white transition-all"
+                            >
+                                Отмена и закрыть редактор
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <button 
                 onClick={(e) => { e.stopPropagation(); setIsCollapsed(!isCollapsed); }}
                 className="absolute top-[-26px] right-8 px-4 py-1.5 bg-[#ffcc00] text-black rounded-t-lg flex items-center gap-2 text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all z-[10001] shadow-lg"
