@@ -1,6 +1,7 @@
 import React, { Suspense, useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Environment, PerspectiveCamera, ContactShadows } from '@react-three/drei';
+import useActiveSlug from '../../hooks/useActiveSlug';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import ErrorBoundary from './ErrorBoundary';
@@ -135,7 +136,7 @@ const CameraSnooper = () => {
     return null;
 };
 
-import useActiveSlug from '../../hooks/useActiveSlug';
+
 
 const Scene = () => {
     const config = useAppStore(s => s.sculptureConfig);
