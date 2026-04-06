@@ -595,8 +595,6 @@ const UnifiedShaderInjection = (mat) => {
                 // Add metallic shine logic
                 float luster = pow(fresnelNode, 10.0) * 0.5; // Central highlights
                 diffuseColor.rgb = mix(diffuseColor.rgb, finalIris + luster, uIrisMix * uIrisIntensity);
-                // Boost specular feel
-                specularStrength += uIrisMix * uIrisIntensity * fresnelEffect * 2.0;
             }
             
             // --- 2. HOLO GRID ---
