@@ -68,14 +68,20 @@ const SculptureModel = () => {
         const { config: currentConfig, showStudioEditor: isEditing } = stateRef.current;
         if (!currentConfig) return;
 
-        const rawY = currentSection.modelY ?? currentConfig.y ?? 5.1;
-        let tgtY = Math.max(-5, Math.min(15, safeNum(rawY, 5.1)));
-        let tgtScale = safeNum(currentSection.scale ?? currentConfig.scale, 17.0);
-        if (tgtScale < 0.1) tgtScale = 17.0;
+        const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0;
+        const orbitAzi = ((currentSection.orbitAzimuth ?? currentConfig.orbitAzimuth ?? 0) * (Math.PI / 180));
+        const tgtY = 5.1 + (currentSection.modelY ?? currentConfig.y ?? 0);
+        const tgtScale = ((currentSection.scale ?? currentConfig.scale ?? 50) / 10);
 
         const d = Math.max(0.001, Math.min(0.2, delta));
-        const s = isEditing ? 8 : 1.5;
+        const s = isEditing ? 12 : 1.5;
 
+        // Create helper targets
+        const tx = orbitRad * Math.sin(orbitAzi);
+        const tz = orbitRad * Math.cos(orbitAzi);
+
+        groupRef.current.position.x = THREE.MathUtils.damp(groupRef.current.position.x, tx, s, d);
+        groupRef.current.position.z = THREE.MathUtils.damp(groupRef.current.position.z, tz, s, d);
         groupRef.current.position.y = THREE.MathUtils.damp(groupRef.current.position.y, tgtY, s, d);
         groupRef.current.scale.setScalar(THREE.MathUtils.damp(groupRef.current.scale.x, tgtScale, s, d));
 

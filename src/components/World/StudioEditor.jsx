@@ -309,7 +309,9 @@ const StudioEditor = () => {
                                     <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Global Transform</h5>
                                     {renderSlider('Model Y', config.y, -15, 20, 0.1, (v) => setConfig({ y: v }))}
                                     {renderSlider('Global Scale', config.scale, 1, 300, 1, (v) => setConfig({ scale: v }))}
-                                    <div className="pt-2">
+                                    <div className="pt-2 border-t border-white/5 space-y-2">
+                                        {renderSlider('Orbit Dist', config.orbitRadius || 0, 0, 30, 0.1, (v) => setConfig({ orbitRadius: v }))}
+                                        {renderSlider('Orbit Rot', config.orbitAzimuth || 0, 0, 360, 1, (v) => setConfig({ orbitAzimuth: v }))}
                                         {renderSlider('Ambient Dust', config.bgParticlesIntensity ?? 0.5, 0, 2, 0.1, (v) => setConfig({ bgParticlesIntensity: v }))}
                                     </div>
                                 </div>
