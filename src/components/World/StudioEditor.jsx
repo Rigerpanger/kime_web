@@ -102,6 +102,8 @@ const StudioEditor = () => {
         }
     };
 
+    const nuclearReset = useAppStore(s => s.nuclearReset);
+
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
         <div className="space-y-1">
             <div className="flex justify-between text-[7px] uppercase tracking-widest text-[#ffcc00]/50 font-bold">
@@ -199,9 +201,9 @@ const StudioEditor = () => {
                                     <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">1. Camera Rescue</h5>
                                     <button 
                                         onClick={() => { 
-                                            if (window.resetSculpture) window.resetSculpture();
+                                            nuclearReset();
                                         }}
-                                        className="w-full py-3 bg-red-600/20 border border-red-500/50 text-red-500 rounded font-black text-[9px] uppercase hover:bg-red-600/40 transition-all"
+                                        className="w-full py-3 bg-red-600/20 border border-red-500/50 text-red-500 rounded font-black text-[9px] uppercase hover:bg-red-600/40 transition-all text-center"
                                     >
                                         FORCE RESET VIEW
                                     </button>

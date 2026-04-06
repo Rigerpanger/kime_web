@@ -87,7 +87,7 @@ const useAppStore = create(
         rotationY: 248,
         roughness: 0.85,
         metalness: 0,
-        envMapIntensity: 0.02,
+        envMapIntensity: 1.0,
         emissiveIntensity: 1.0,
         bloomIntensity: 0.2,
         bloomRadius: 0.2,
@@ -147,6 +147,16 @@ const useAppStore = create(
         
         return { sculptureConfig: merged };
       }),
+
+      nuclearReset: () => set((state) => ({
+         sculptureConfig: {
+            ...state.sculptureConfig,
+            y: 5.1,
+            scale: 17.0,
+            envMapIntensity: 1.0,
+            sections: JSON.parse(JSON.stringify(DEFAULT_SECTIONS))
+         }
+      })),
 
       setShowStudioEditor: (show) => set({ showStudioEditor: show }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
