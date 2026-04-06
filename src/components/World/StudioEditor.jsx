@@ -195,9 +195,17 @@ const StudioEditor = () => {
                     <div className="flex-1 p-3 overflow-y-auto">
                         {activeTab === 'camera' && (
                             <div className="grid grid-cols-3 gap-6">
-                                <div className="space-y-2">
-                                    <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">1. Capture</h5>
-                                    <button onClick={() => { triggerCapture(); setCaptured(true); setTimeout(() => setCaptured(false), 1500); }} className={`w-full py-3 rounded font-black text-[9px] uppercase border ${captured ? 'bg-green-500 border-green-400' : 'bg-[#ffcc00] text-black'}`}>
+                                <div className="space-y-4">
+                                    <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">1. Camera Rescue</h5>
+                                    <button 
+                                        onClick={() => { 
+                                            if (window.resetSculpture) window.resetSculpture();
+                                        }}
+                                        className="w-full py-3 bg-red-600/20 border border-red-500/50 text-red-500 rounded font-black text-[9px] uppercase hover:bg-red-600/40 transition-all"
+                                    >
+                                        FORCE RESET VIEW
+                                    </button>
+                                    <button onClick={() => { triggerCapture(); setCaptured(true); setTimeout(() => setCaptured(false), 1500); }} className={`w-full py-3 rounded font-black text-[9px] uppercase border ${captured ? 'bg-green-500 border-green-400' : 'bg-white/5 border-white/10 text-white/40 opacity-50'}`}>
                                         {captured ? 'Captured' : 'Freeze View'}
                                     </button>
                                 </div>
