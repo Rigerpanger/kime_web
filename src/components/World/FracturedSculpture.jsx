@@ -5,8 +5,7 @@ import * as THREE from 'three';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
 import useActiveSlug from '../../hooks/useActiveSlug';
 
-[ignoring loop detection]
-
+// --- HELPERS ---
 const safeNum = (val, fallback) => {
     const n = Number(val);
     return Number.isFinite(n) ? n : fallback;
