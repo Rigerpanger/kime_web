@@ -218,9 +218,9 @@ const Scene = () => {
                 {/* Environment - Wrapped in Suspense so HDRI internet download doesn't freeze the canvas */}
                 <Suspense fallback={null}>
                     {config.hdriUrl ? (
-                        <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={1} />
+                        <Environment files={config.hdriUrl} background={false} blur={0.1} environmentIntensity={config.envMapIntensity ?? 1.0} />
                     ) : (
-                        <Environment preset="studio" background={false} blur={0.1} environmentIntensity={1} />
+                        <Environment preset="studio" background={false} blur={0.1} environmentIntensity={config.envMapIntensity ?? 1.0} />
                     )}
                 </Suspense>
 

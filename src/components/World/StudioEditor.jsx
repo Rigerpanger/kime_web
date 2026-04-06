@@ -247,6 +247,14 @@ const StudioEditor = () => {
                                     {renderSlider('Azimuth', config.lights.find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }))}
                                     {renderSlider('Height Y', config.lights.find(l => l.id === activeLightId).y, -10, 40, 0.1, (v) => updateLight(activeLightId, { y: v }))}
                                 </div>
+                                
+                                <div className="col-span-2 mt-4 pt-4 border-t border-white/5 space-y-4">
+                                    <h5 className="text-[7px] uppercase text-[#ffcc00]/40 font-bold">Global Scene Lighting</h5>
+                                    <div className="grid grid-cols-2 gap-8">
+                                        {renderSlider('Environment Glow', config.envMapIntensity ?? 1.0, 0, 5, 0.1, (v) => setConfig({ envMapIntensity: v }))}
+                                        {renderSlider('Mouse Light', config.mouseLightIntensity ?? 150, 0, 1000, 10, (v) => setConfig({ mouseLightIntensity: v }))}
+                                    </div>
+                                </div>
                             </div>
                         )}
 
