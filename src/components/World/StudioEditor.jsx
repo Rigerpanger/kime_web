@@ -152,52 +152,54 @@ const StudioEditor = () => {
         >
             {/* FORCE LOGIN IF NO SESSION */}
             {(showLogin || !session) && (
-                <div className="fixed inset-0 bg-black/95 backdrop-blur-xl z-[10002] flex items-center justify-center p-4">
-                    <div className="w-full max-w-[340px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-10 rounded-2xl shadow-[0_0_80px_rgba(255,204,0,0.1)] space-y-8">
-                        <div className="text-center space-y-3">
-                            <div className="w-14 h-14 bg-[#ffcc00]/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#ffcc00]/10">
-                                <Zap className="text-[#ffcc00]" size={28} fill="currentColor" />
+                <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[10002] flex items-start sm:items-center justify-center p-4 overflow-y-auto">
+                    <div className="w-full max-w-[340px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-6 sm:p-8 rounded-2xl shadow-[0_0_100px_rgba(255,204,0,0.15)] space-y-4 sm:space-y-6 my-auto">
+                        <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                            <div className="w-10 h-10 bg-[#ffcc00]/10 rounded-full flex items-center justify-center shrink-0 border border-[#ffcc00]/10">
+                                <Zap className="text-[#ffcc00]" size={20} fill="currentColor" />
                             </div>
-                            <h2 className="text-[#ffcc00] font-black uppercase tracking-[0.4em] text-[12px]">ВХОД В СТУДИЮ</h2>
-                            <p className="text-white/30 text-[9px] uppercase tracking-widest font-bold leading-relaxed px-4">
-                                Для сохранения позиций камеры и масок нужно авторизоваться под учетной записью администратора.
-                            </p>
+                            <div className="text-left">
+                                <h2 className="text-[#ffcc00] font-black uppercase tracking-[0.2em] text-[11px]">ВХОД В СТУДИЮ</h2>
+                                <p className="text-white/20 text-[7px] uppercase font-bold tracking-widest">
+                                    Админ-доступ обязателен
+                                </p>
+                            </div>
                         </div>
 
                         {loginError && (
-                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg text-[9px] font-black uppercase text-center animate-pulse tracking-widest">
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-3 py-2 rounded-lg text-[8px] font-black uppercase text-center animate-pulse tracking-widest">
                                 {loginError}
                             </div>
                         )}
 
-                        <form onSubmit={handleInlineLogin} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest mb-1 block">Email Администратора</label>
+                        <form onSubmit={handleInlineLogin} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest block">Email</label>
                                 <input 
                                     type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-[12px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white"
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-[11px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white placeholder:text-white/5"
                                     placeholder="admin@kimeproduction.ru"
                                 />
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest mb-1 block">Пароль</label>
+                            <div className="space-y-1">
+                                <label className="text-[7px] uppercase font-black text-white/20 tracking-widest block">Пароль</label>
                                 <input 
                                     type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)} required
-                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-[12px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white"
+                                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2.5 text-[11px] focus:border-[#ffcc00]/50 outline-none transition-all font-mono text-white placeholder:text-white/5"
                                     placeholder="••••••••"
                                 />
                             </div>
                             <button 
                                 type="submit"
-                                className="w-full bg-[#ffcc00] text-black py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-3"
+                                className="w-full bg-[#ffcc00] text-black py-3 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white transition-all flex items-center justify-center gap-2 shadow-lg"
                             >
-                                <Zap size={14} fill="#000" /> АВТОРИЗОВАТЬСЯ
+                                <Zap size={14} fill="#000" /> ВОЙТИ И СОХРАНИТЬ
                             </button>
                             <button 
                                 type="button" onClick={() => { setIsCollapsed(true); useAppStore.getState().toggleStudioEditor(); }}
-                                className="w-full text-white/20 py-2 text-[8px] font-black uppercase tracking-widest hover:text-white transition-all"
+                                className="w-full text-white/10 py-1 text-[7px] font-black uppercase tracking-widest hover:text-white/40 transition-all"
                             >
-                                Отмена и закрыть редактор
+                                Закрыть редактор
                             </button>
                         </form>
                     </div>
