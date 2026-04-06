@@ -206,9 +206,7 @@ const Scene = () => {
                 <MuseumRoom /> 
                 */}
 
-                <Suspense fallback={null}>
-                    <FracturedSculpture />
-                </Suspense>
+                <FracturedSculpture />
 
                 {/* Post: Slight bloom for the highlights */}
                 <EffectComposer disableNormalPass>
