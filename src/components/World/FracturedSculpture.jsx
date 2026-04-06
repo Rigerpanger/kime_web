@@ -114,8 +114,8 @@ const SculptureModel = () => {
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
                         const key = fx.id || fx.type;
-                        const modelY = 5.1 + (currentConfig.y || 0);
-                        const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0;
+                        const modelY = 5.1 + (config.y || 0);
+                        const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
 
                         switch(fx.type) {
                             case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 3) + orbitRad}} modelY={modelY} />;
