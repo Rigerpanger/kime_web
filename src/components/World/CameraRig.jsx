@@ -22,8 +22,13 @@ const CameraRig = () => {
     const stateRef = useRef({ activeSlug, config, showStudioEditor, isOverPanel });
     stateRef.current = { activeSlug, config, showStudioEditor, isOverPanel };
 
+    const setDebug = useAppStore(s => s.setDebug);
+
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig, showStudioEditor: isEditing, isOverPanel: overPanel } = stateRef.current;
+
+        // UPDATE TELEMETRY
+        setDebug({ camera: [camera.position.x, camera.position.y, camera.position.z] });
 
         if (!currentConfig || !currentConfig.sections) return;
 

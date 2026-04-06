@@ -738,10 +738,15 @@ const SculptureModel = () => {
     const groupRef = useRef();
     const isFirstRun = useRef(true);
 
+    const setDebug = useAppStore(s => s.setDebug);
+
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig } = stateRef.current;
-// [ignoring loop detection]
+
         if (!currentConfig) return;
+
+        // UPDATE TELEMETRY
+        setDebug({ config: { y: currentConfig.y || 0, scale: currentConfig.scale || 0 } });
 
         // Helper to ensure mathematical stability
         const safeNum = (val, fallback) => {

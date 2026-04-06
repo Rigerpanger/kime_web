@@ -138,6 +138,26 @@ const CameraSnooper = () => {
 
 
 
+const DebugOverlay = () => {
+    const info = useAppStore(s => s.debugInfo);
+    if (!info) return null;
+    return (
+        <div style={{ 
+            position: 'fixed', top: 10, left: 10, zIndex: 10000, 
+            background: 'rgba(0,0,0,0.8)', color: '#00ff00', padding: '10px', 
+            fontFamily: 'monospace', fontSize: '9px', border: '1px solid #444', pointerEvents: 'none' 
+        }}>
+            <div style={{ color: '#ffcc00', marginBottom: '5px' }}>--- TELEMETRY ---</div>
+            <div>CAM: {info.camera.map(v => v.toFixed(2)).join(', ')}</div>
+            <div>CFG_Y: {info.config.y.toFixed(2)}</div>
+            <div>CFG_SCALE: {info.config.scale.toFixed(2)}</div>
+            {info.lastError && (
+                <div style={{ color: '#ff0000', marginTop: '5px' }}>ERR: {info.lastError}</div>
+            )}
+        </div>
+    );
+};
+
 const Scene = () => {
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
@@ -148,6 +168,7 @@ const Scene = () => {
 
     return (
         <ErrorBoundary>
+            <DebugOverlay />
             <Canvas 
                 shadows 
                 camera={{ position: [0, 5, 18], fov: 35 }}
