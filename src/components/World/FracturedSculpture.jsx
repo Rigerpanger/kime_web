@@ -768,57 +768,62 @@ const SculptureModel = () => {
             primRef.current.rotation.y = THREE.MathUtils.damp(primRef.current.rotation.y, THREE.MathUtils.degToRad(tgtRot), s, d);
         }
 
-        clonedScene.traverse(n => {
-            const shader = n.material?.userData?.shader;
-            if (shader) {
-                shader.uniforms.uTime.value = state.clock.elapsedTime;
-                
-                // Iris
-                shader.uniforms.uIrisMix.value = irisFX ? 1.0 : 0;
-                if (irisFX) {
-                    shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
-                    shader.uniforms.uIrisColor.value.set(irisFX.color || "#ffcc00");
-                    shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
-                }
-                
-                // HoloGrid
-                shader.uniforms.uGridMix.value = holoGridFX ? 1.0 : 0;
-                if (holoGridFX) {
-                    shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
-                    shader.uniforms.uGridColor.value.set(holoGridFX.color || "#00ffcc");
-                    shader.uniforms.uGridPattern.value = holoGridFX.patternIndex ?? 0; 
-                    shader.uniforms.uGridScale.value = holoGridFX.density ?? 20.0;
-                    shader.uniforms.uGridWidth.value = holoGridFX.thickness ?? 0.08;
-                }
-                
-                // NeonEdges
-                shader.uniforms.uEdgeMix.value = neonEdgesFX ? 1.0 : 0;
-                if (neonEdgesFX) {
-                    shader.uniforms.uEdgeIntensity.value = neonEdgesFX.intensity ?? 1.0;
-                    shader.uniforms.uEdgeColor.value.set(neonEdgesFX.color || "#ff00ff");
-                    shader.uniforms.uEdgeMetal.value = neonEdgesFX.metalness ? 1.0 : 0;
-                    shader.uniforms.uEdgeRainbow.value = neonEdgesFX.rainbow ? 1.0 : 0;
-                }
 
-                // Quantum Reveal (Scanner)
-                shader.uniforms.uRevealMix.value = tetrisFX ? 1.0 : 0;
-                if (tetrisFX) {
-                    const scanSpeed = tetrisFX.speed ?? 1.0;
-                    const scanY = -5 + ((state.clock.elapsedTime * scanSpeed * 2.0) % 20);
-                    shader.uniforms.uRevealY.value = scanY;
-                    shader.uniforms.uRevealEdge.value = tetrisFX.scale ? tetrisFX.scale * 1.5 : 1.5;
-                }
-            }
-            if (n.isMesh) {
-                n.material.envMapIntensity = currentConfig.envMapIntensity ?? 0.02;
-                // Scanner transparency logic
-                if (tetrisFX) {
-                    n.material.transparent = true;
-                    n.material.opacity = tetrisFX.mode === 'Solid' ? 1.0 : 0.05;
-                } else {
-                    n.material.transparent = false;
-                    n.material.opacity = 1.0;
-                }
+        clonedScene.traverse(n => {
+            if (n.isMesh && n.material) {
+                const materials = Array.isArray(n.material) ? n.material : [n.material];
+                
+                materials.forEach(m => {
+                    const shader = m.userData?.shader;
+                    if (shader) {
+                        shader.uniforms.uTime.value = state.clock.elapsedTime;
+                        
+                        // Iris
+                        shader.uniforms.uIrisMix.value = irisFX ? 1.0 : 0;
+                        if (irisFX) {
+                            shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
+                            shader.uniforms.uIrisColor.value.set(irisFX.color || "#ffcc00");
+                            shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
+                        }
+                        
+                        // HoloGrid
+                        shader.uniforms.uGridMix.value = holoGridFX ? 1.0 : 0;
+                        if (holoGridFX) {
+                            shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
+                            shader.uniforms.uGridColor.value.set(holoGridFX.color || "#00ffcc");
+                            shader.uniforms.uGridPattern.value = holoGridFX.patternIndex ?? 0; 
+                            shader.uniforms.uGridScale.value = holoGridFX.density ?? 20.0;
+                            shader.uniforms.uGridWidth.value = holoGridFX.thickness ?? 0.08;
+                        }
+                        
+                        // NeonEdges
+                        shader.uniforms.uEdgeMix.value = neonEdgesFX ? 1.0 : 0;
+                        if (neonEdgesFX) {
+                            shader.uniforms.uEdgeIntensity.value = neonEdgesFX.intensity ?? 1.0;
+                            shader.uniforms.uEdgeColor.value.set(neonEdgesFX.color || "#ff00ff");
+                            shader.uniforms.uEdgeMetal.value = neonEdgesFX.metalness ? 1.0 : 0;
+                            shader.uniforms.uEdgeRainbow.value = neonEdgesFX.rainbow ? 1.0 : 0;
+                        }
+
+                        // Quantum Reveal (Scanner)
+                        shader.uniforms.uRevealMix.value = tetrisFX ? 1.0 : 0;
+                        if (tetrisFX) {
+                            const scanSpeed = tetrisFX.speed ?? 1.0;
+                            const scanY = -5 + ((state.clock.elapsedTime * scanSpeed * 2.0) % 20);
+                            shader.uniforms.uRevealY.value = scanY;
+                            shader.uniforms.uRevealEdge.value = tetrisFX.scale ? tetrisFX.scale * 1.5 : 1.5;
+                        }
+                    }
+                    
+                    m.envMapIntensity = currentConfig?.envMapIntensity ?? 0.02;
+                    if (tetrisFX) {
+                        m.transparent = true;
+                        m.opacity = tetrisFX.mode === 'Solid' ? 1.0 : 0.05;
+                    } else {
+                        m.transparent = false;
+                        m.opacity = 1.0;
+                    }
+                });
             }
         });
     });
@@ -831,7 +836,7 @@ const SculptureModel = () => {
     }, []);
 
     // Defensive parsing against destructive DB string/null formats
-    const currentSection = config.sections?.[activeSlug] || config.sections?.default;
+    const currentSection = (config?.sections || {})[activeSlug] || (config?.sections || {}).default;
     
     return (
         <Float 
@@ -865,27 +870,23 @@ const SmoothLoader = ({ progress }) => {
     const [displayProgress, setDisplayProgress] = useState(0);
     const lastProgress = useRef(0);
     
+    const progressRef = useRef();
+    const barRef = useRef();
+    
     useFrame((state, delta) => {
-        // If the real progress jumped, sync my reference
-        if (progress > lastProgress.current) {
-            lastProgress.current = progress;
-        }
+        if (progress > lastProgress.current) lastProgress.current = progress;
 
-        // --- SMART GROWTH LOGIC ---
-        // 1. If we are at 100% real progress, jump there fast
-        // 2. If we are stuck (e.g. at 33%), keep growing very slowly up to 99%
         let target = Math.max(displayProgress, lastProgress.current);
-        
-        if (target < 100) {
-            // Fake growth: move 0.1% of the remaining distance to 99 each second
-            target += (99.5 - target) * 0.002;
-        }
+        if (target < 100) target += (99.5 - target) * 0.002;
 
-        // Interpolate for smooth visuals
-        setDisplayProgress(p => {
-            const next = THREE.MathUtils.lerp(p, target, delta * 3.0);
-            return Math.min(100, next);
-        });
+        const next = THREE.MathUtils.lerp(displayProgress, target, delta * 3.0);
+        const final = Math.min(100, next);
+        
+        if (Math.abs(final - displayProgress) > 0.001) {
+             setDisplayProgress(final);
+             if (progressRef.current) progressRef.current.innerText = `${Math.round(final)}%`;
+             if (barRef.current) barRef.current.style.width = `${final}%`;
+        }
     });
 
     return (
@@ -902,7 +903,10 @@ const SmoothLoader = ({ progress }) => {
                 <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px', letterSpacing: '2px' }}>
                     SYNCHRONIZING_CORE_GEOMETRY
                 </div>
-                <div style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}>
+                <div 
+                    ref={progressRef}
+                    style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}
+                >
                     {Math.round(displayProgress)}%
                 </div>
                 <div style={{ 
@@ -914,16 +918,19 @@ const SmoothLoader = ({ progress }) => {
                     overflow: 'hidden',
                     borderRadius: '2px'
                 }}>
-                    <div style={{ 
-                        position: 'absolute',
-                        left: 0,
-                        top: 0,
-                        height: '100%',
-                        width: `${displayProgress}%`,
-                        background: '#ffcc00',
-                        boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)',
-                        transition: 'width 0.1s linear'
-                    }} />
+                    <div 
+                        ref={barRef}
+                        style={{ 
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            height: '100%',
+                            width: `${displayProgress}%`,
+                            background: '#ffcc00',
+                            boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)',
+                            transition: 'width 0.1s linear'
+                        }} 
+                    />
                 </div>
                 <div style={{ marginTop: '10px', fontSize: '7px', opacity: 0.2, textTransform: 'uppercase' }}>
                     Decompressing artifacts...
