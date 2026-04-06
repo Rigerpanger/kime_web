@@ -881,28 +881,33 @@ const SmoothLoader = ({ progress }) => {
     const displayProgress = Math.round(progress);
 
     return (
-        <Html center>
+        <Html fullscreen>
             <div style={{ 
-                color: 'white', fontFamily: 'monospace', fontSize: '11px', textAlign: 'center', 
-                letterSpacing: '6px', width: '300px', textShadow: '0 0 20px rgba(255,255,255,0.2)'
+                width: '100vw', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: '#020202', zIndex: 1000
             }}>
-                <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px', letterSpacing: '2px' }}>
-                    SYNCHRONIZING_CORE_GEOMETRY
-                </div>
-                <div style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}>
-                    {displayProgress}%
-                </div>
                 <div style={{ 
-                    marginTop: '15px', width: '100%', height: '2px', 
-                    background: 'rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden', borderRadius: '2px'
+                    color: 'white', fontFamily: 'monospace', fontSize: '11px', textAlign: 'center', 
+                    letterSpacing: '6px', width: '300px', textShadow: '0 0 20px rgba(255,255,255,0.2)'
                 }}>
+                    <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px', letterSpacing: '2px' }}>
+                        SYNCHRONIZING_CORE_GEOMETRY
+                    </div>
+                    <div style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}>
+                        {displayProgress}%
+                    </div>
                     <div style={{ 
-                        position: 'absolute', left: 0, top: 0, height: '100%', width: `${displayProgress}%`,
-                        background: '#ffcc00', boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)', transition: 'width 0.3s ease-out'
-                    }} />
-                </div>
-                <div style={{ marginTop: '10px', fontSize: '7px', opacity: 0.2, textTransform: 'uppercase' }}>
-                    Static asset check...
+                        marginTop: '15px', width: '100%', height: '2px', 
+                        background: 'rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden', borderRadius: '2px'
+                    }}>
+                        <div style={{ 
+                            position: 'absolute', left: 0, top: 0, height: '100%', width: `${displayProgress}%`,
+                            background: '#ffcc00', boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)', transition: 'width 0.3s ease-out'
+                        }} />
+                    </div>
+                    <div style={{ marginTop: '10px', fontSize: '7px', opacity: 0.2, textTransform: 'uppercase' }}>
+                        Static asset check...
+                    </div>
                 </div>
             </div>
         </Html>

@@ -620,7 +620,7 @@ setInterval(async () => {
     } catch (e) {
         console.error('Cron error:', e.message);
     }
-}, 30000); // Check every 30 seconds
+}, 30000);
 
 // --- Telegram Webhook (Interact in Group & DMs) ---
 app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
@@ -715,7 +715,8 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             [chatId, 'user', `${user}: ${text}`]);
         await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 15)', [chatId]);
 
-        let shouldProcess = isPrivate; 
+        // --- 3. ПОНИМАНИЕ КОНТЕКСТА И УМНОЕ ПРОДОЛЖЕНИЕ ---
+        let shouldProcess = isPrivate; // В ЛС общаемся всегда
         
         if (!isPrivate) {
             const isReplyToBot = update.message.reply_to_message && update.message.reply_to_message.from.username === TG_BOT_USERNAME;
@@ -723,7 +724,6 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             
             const stopPhrases = ['не тебе', 'молчи', 'хватит', 'стоп'];
             const isStopPhrase = stopPhrases.some(p => lowerText.includes(p));
-
             const hasOtherMentions = text.includes('@') && !text.includes(`@${TG_BOT_USERNAME}`);
             
             const { rows: historyCheck } = await pool.query("SELECT role, created_at FROM telegram_history WHERE chat_id = $1 AND role IN ('assistant', 'system') ORDER BY created_at DESC LIMIT 1", [chatId]);
@@ -737,7 +737,12 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
                 return res.sendStatus(200);
             }
             
-            if (hasTrigger || isReplyToBot || (isContextActive && !hasOtherMentions)) {
+            // Если есть чужие теги, но НЕТ явного вызова "Тумба" - сбрасываем контекст и молчим
+            if (hasOtherMentions && !hasTrigger) {
+                isContextActive = false;
+            }
+
+            if (hasTrigger || isReplyToBot || isContextActive) {
                 shouldProcess = true;
             }
         }
@@ -792,15 +797,16 @@ ${houndInstructions}
         const apiKeyRaw = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY;
         const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
 
-        let selectedModel = 'gpt-5.4-mini'; 
+        // --- 5. ВЫБОР МОДЕЛИ ---
+        let selectedModel = 'gpt-4o'; // Стабильная модель для админа и групп
         let isSmartUsed = false;
 
         if (isPrivate && dbUser && dbUser.role !== 'admin') {
             if (dbUser.smart_answers_today < 5) {
-                selectedModel = 'gpt-5.4-mini';
+                selectedModel = 'gpt-4o'; // Смарт-ответы сотрудников
                 isSmartUsed = true;
             } else {
-                selectedModel = 'gpt-5.4-mini'; 
+                selectedModel = 'gpt-4o-mini'; // Эконом-режим сотрудников
             }
         }
 
@@ -879,18 +885,17 @@ ${houndInstructions}
                 reply = reply.replace(houndCreateMatch[0], `\n⛓ *Режим докапывания включен для "${target}":* Буду пинать каждые ${interval} мин.`);
             }
 
-            const houndSuccessMatch = reply.match(/\$\$HOUND_SUCCESS:\s*@([^\s|]+)\s*\|\s*([^$]+)\$\$/);
+            const houndSuccessMatch = reply.match(/\$\$HOUND_SUCCESS:\s*@?([^\s|]+)\s*\|\s*([^$]+)\$\$/);
             if (houndSuccessMatch) {
-                const target = houndSuccessMatch[1].replace('@','').trim();
-                const summary = houndSuccessMatch[2].trim();
-                await pool.query("UPDATE telegram_hounds SET status = 'completed' WHERE LOWER(target_username) = LOWER($1) AND status = 'active'", [target]);
+                const target = houndSuccessMatch[1].trim();
+                const report = houndSuccessMatch[2].trim();
+                await pool.query("UPDATE telegram_hounds SET status = 'completed', needs_admin_ack = true, last_admin_ping_at = NOW() WHERE (LOWER(target_username) = LOWER($1) OR LOWER(target_username) = LOWER($1)) AND status = 'active'", [target]);
                 
-                // Отчет Админу
                 const { rows: admins } = await pool.query("SELECT chat_id FROM telegram_users WHERE role = 'admin' AND chat_id IS NOT NULL");
                 for (const admin of admins) {
-                    await sendTelegramMessage(admin.chat_id, `🎯 *Миссия выполнена!*\nЯ вытрясла инфу из @${target}.\n*Результат:* ${summary}`);
+                    await sendTelegramMessage(admin.chat_id, `🎯 *ОТЧЕТ: Результат по ${target}*\n${report}\n\nПожалуйста, подтверди получение ('Ок' или 'Принято'), иначе я буду напоминать каждые 30 минут.`);
                 }
-                reply = reply.replace(houndSuccessMatch[0], `\n✅ Цель достигнута, докапывание прекращено.`);
+                reply = reply.replace(houndSuccessMatch[0], `\n✅ Задача выполнена. Отправила отчет Ричарду.`);
             }
 
             // Очистка возможных хвостов парсинга и проверка IGNORE

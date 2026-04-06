@@ -209,6 +209,14 @@ const StudioEditor = () => {
                                     <div className="flex justify-between items-center"><h5 className="text-[7px] uppercase text-indigo-400/40 font-bold">3. Advanced</h5><button onClick={() => setShowAdvancedCam(!showAdvancedCam)} className="text-[6px] text-white/20 uppercase">{showAdvancedCam ? 'Hide' : 'Show'}</button></div>
                                     {showAdvancedCam && (
                                         <div className="space-y-2 p-2 bg-white/5 rounded">
+                                            <button 
+                                                onClick={() => { 
+                                                    if (window.resetSculpture) window.resetSculpture();
+                                                }}
+                                                className="w-full py-2 bg-red-900/20 border border-red-500/30 text-red-500 rounded text-[7px] font-black uppercase mb-2 hover:bg-red-900/40 transition-colors"
+                                            >
+                                                Emergency Reset Model
+                                            </button>
                                             {renderSlider('Section Scale', currentSection?.scale ?? 17.0, 1, 500, 1, (v) => updateSectionCamera(activeSlug, { scale: v }))}
                                             {renderSlider('Angle (Azim)', activeCam.azimuth, -180, 180, 1, (v) => updateSectionCamera(activeSlug, { azimuth: v }), v => `${v}°`)}
                                             {renderSlider('Height (Polar)', activeCam.polar, 1, 179, 1, (v) => updateSectionCamera(activeSlug, { polar: v }), v => `${v}°`)}

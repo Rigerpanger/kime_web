@@ -25,6 +25,8 @@ const CameraRig = () => {
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig, showStudioEditor: isEditing, isOverPanel: overPanel } = stateRef.current;
 
+        if (!currentConfig || !currentConfig.sections) return;
+
         // --- SECTION TRACKING ---
         if (lastSlug.current !== currentSlug) {
             lastSlug.current = currentSlug;

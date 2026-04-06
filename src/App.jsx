@@ -40,6 +40,27 @@ const AppLayout = () => {
     }, []);
 
     useEffect(() => {
+        // NUCLEAR SANITIZE: Fix poisoned localStorage data on start
+        const config = useAppStore.getState().sculptureConfig;
+        const isPoisoned = 
+            !Number.isFinite(Number(config.scale)) || 
+            !Number.isFinite(Number(config.y)) ||
+            !Number.isFinite(Number(config.rotationY));
+            
+        if (isPoisoned) {
+            console.warn("Poisoned state detected in localStorage. Forcing recovery...");
+            useAppStore.setState({ 
+                sculptureConfig: { 
+                    ...config, 
+                    scale: 17.0, 
+                    y: 5.1, 
+                    rotationY: 248 
+                } 
+            });
+        }
+    }, []);
+
+    useEffect(() => {
         const fetchSculptureConfig = async () => {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL || '/api';
