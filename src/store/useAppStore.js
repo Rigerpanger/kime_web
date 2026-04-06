@@ -111,6 +111,9 @@ const useAppStore = create(
       isOverPanel: false,
 
       setView: (view) => set({ view }),
+      debugInfo: { camera: [0,0,0], config: { y: 0, scale: 0 }, lastError: null },
+      setDebug: (info) => set((s) => ({ debugInfo: { ...s.debugInfo, ...info } })),
+
       setOrbiting: (status) => set({ isOrbiting: status }),
       setIsOverPanel: (val) => set({ isOverPanel: val }),
       setHoveredChunk: (chunkId) => set({ hoveredChunk: chunkId }),

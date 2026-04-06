@@ -30,6 +30,15 @@ import useAuthStore from './store/useAuthStore';
 
 const AppLayout = () => {
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
+    useEffect(() => {
+        const handleError = (event) => {
+            useAppStore.getState().setDebug({ lastError: event.message || 'Unknown Error' });
+        };
+        window.addEventListener('error', handleError);
+        return () => window.removeEventListener('error', handleError);
+    }, []);
+
+    const setHoveredChunk = useAppStore(s => s.setHoveredChunk);
     const setSculptureConfig = useAppStore(s => s.setSculptureConfig);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
