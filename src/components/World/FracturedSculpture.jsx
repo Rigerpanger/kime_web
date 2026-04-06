@@ -427,46 +427,75 @@ const DataStream = ({ config = {}, animatedOpacity = 1 }) => {
 // --- EFFECT: Geo Swarm ---
 const GeoSwarm = ({ config = {}, animatedOpacity = 1 }) => {
     const pointsRef = useRef();
-    const count = 300;
+    const count = 400; // Increased density for better cube definition
     
-    const { randomPos, spherePos, colors } = useMemo(() => {
+    const { randomPos, spherePos, cubePos, colors } = useMemo(() => {
         const rnd = new Float32Array(count * 3);
         const sph = new Float32Array(count * 3);
+        const cub = new Float32Array(count * 3);
         const col = new Float32Array(count * 3);
         const colorPalette = [new THREE.Color("#ff0044"), new THREE.Color("#00ffcc"), new THREE.Color("#ffcc00")];
         
         for(let i=0; i<count; i++) {
+            // 1. Random Cloud
             rnd[i*3] = (Math.random() - 0.5) * 20;
             rnd[i*3+1] = (Math.random() - 0.5) * 20;
             rnd[i*3+2] = (Math.random() - 0.5) * 20;
             
+            // 2. Sphere
             const phi = Math.acos(-1 + (2 * i) / count);
             const theta = Math.sqrt(count * Math.PI) * phi;
-            const r = 3.0;
+            const r = 3.5;
             sph[i*3] = r * Math.cos(theta) * Math.sin(phi);
             sph[i*3+1] = r * Math.sin(theta) * Math.sin(phi);
             sph[i*3+2] = r * Math.cos(phi);
+
+            // 3. Cube (Geometric Shape)
+            const side = 4.0;
+            const face = i % 6;
+            const u = Math.random() - 0.5;
+            const v = Math.random() - 0.5;
+            if (face === 0) { cub[i*3] = side/2; cub[i*3+1] = u * side; cub[i*3+2] = v * side; }
+            else if (face === 1) { cub[i*3] = -side/2; cub[i*3+1] = u * side; cub[i*3+2] = v * side; }
+            else if (face === 2) { cub[i*3] = u * side; cub[i*3+1] = side/2; cub[i*3+2] = v * side; }
+            else if (face === 3) { cub[i*3] = u * side; cub[i*3+1] = -side/2; cub[i*3+2] = v * side; }
+            else if (face === 4) { cub[i*3] = u * side; cub[i*3+1] = v * side; cub[i*3+2] = side/2; }
+            else { cub[i*3] = u * side; cub[i*3+1] = v * side; cub[i*3+2] = -side/2; }
             
             colorPalette[i % 3].toArray(col, i * 3);
         }
-        return { randomPos: rnd, spherePos: sph, colors: col };
+        return { randomPos: rnd, spherePos: sph, cubePos: cub, colors: col };
     }, []);
 
     useFrame((state) => {
-        const t = state.clock.elapsedTime * (config.intensity || 1.0);
+        const t = state.clock.elapsedTime * (config.intensity || 1.0) * 0.4;
         if(pointsRef.current) {
-            const cycle = (Math.sin(t * 0.5) + 1.0) / 2.0; 
-            const ease = cycle < 0.5 ? 4 * cycle * cycle * cycle : 1 - Math.pow(-2 * cycle + 2, 3) / 2;
+            // Animation sequence: 0->0.33 (Rnd), 0.33->0.66 (Sphere), 0.66->1.0 (Cube)
+            const phase = (state.clock.elapsedTime * 0.2) % 3; // 3 phases
+            const subTime = (state.clock.elapsedTime * 0.2) % 1;
+            const ease = subTime < 0.5 ? 4 * subTime * subTime * subTime : 1 - Math.pow(-2 * subTime + 2, 3) / 2;
             
             const positions = pointsRef.current.geometry.attributes.position.array;
             for(let i=0; i<count; i++) {
-                positions[i*3] = THREE.MathUtils.lerp(randomPos[i*3], spherePos[i*3], ease);
-                positions[i*3+1] = THREE.MathUtils.lerp(randomPos[i*3+1], spherePos[i*3+1], ease);
-                positions[i*3+2] = THREE.MathUtils.lerp(randomPos[i*3+2], spherePos[i*3+2], ease);
+                if (phase < 1) {
+                    // Random -> Sphere
+                    positions[i*3] = THREE.MathUtils.lerp(randomPos[i*3], spherePos[i*3], ease);
+                    positions[i*3+1] = THREE.MathUtils.lerp(randomPos[i*3+1], spherePos[i*3+1], ease);
+                    positions[i*3+2] = THREE.MathUtils.lerp(randomPos[i*3+2], spherePos[i*3+2], ease);
+                } else if (phase < 2) {
+                    // Sphere -> Cube
+                    positions[i*3] = THREE.MathUtils.lerp(spherePos[i*3], cubePos[i*3], ease);
+                    positions[i*3+1] = THREE.MathUtils.lerp(spherePos[i*3+1], cubePos[i*3+1], ease);
+                    positions[i*3+2] = THREE.MathUtils.lerp(spherePos[i*3+2], cubePos[i*3+2], ease);
+                } else {
+                    // Cube -> Random
+                    positions[i*3] = THREE.MathUtils.lerp(cubePos[i*3], randomPos[i*3], ease);
+                    positions[i*3+1] = THREE.MathUtils.lerp(cubePos[i*3+1], randomPos[i*3+1], ease);
+                    positions[i*3+2] = THREE.MathUtils.lerp(cubePos[i*3+2], randomPos[i*3+2], ease);
+                }
             }
             pointsRef.current.geometry.attributes.position.needsUpdate = true;
-            pointsRef.current.rotation.y = t * 0.2;
-            pointsRef.current.rotation.x = t * 0.1;
+            pointsRef.current.rotation.y = t * 0.3;
         }
     });
 
@@ -548,18 +577,26 @@ const UnifiedShaderInjection = (mat) => {
             float fresnelEffect = pow(1.0 - fresnelNode, 3.0);
             
             // --- 1. PEARLESCENT IRIS ---
-            // High-end metallic iridescence effect
-            vec3 pearlBase = vec3(
-                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 0.0),
-                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 2.0),
-                0.5 + 0.5 * cos(4.0 * fresnelNode + uTime * 0.5 + 4.0)
-            );
-            vec3 irisPearlescent = pearlBase * uIrisColor * (0.5 + 1.5 * fresnelEffect);
-            vec3 irisEnergy = uIrisColor * 1.5 + vec3(1.0) * fresnelEffect * 3.0; // Alternate bright mode
+            // Premium metallic iridescence effect
+            // Uses a more sophisticated palette including silver, titanium, and soft gold
+            vec3 metallicA = vec3(0.9, 0.9, 1.0); // Silver/Titanium
+            vec3 metallicB = vec3(1.0, 0.85, 0.6); // Soft Gold
+            vec3 metallicC = vec3(0.8, 1.0, 0.9); // Pale Mint/Pearl
+            
+            float shift = uTime * 0.3 + fresnelNode * 2.0;
+            vec3 pearlBase = mix(metallicA, metallicB, 0.5 + 0.5 * sin(shift));
+            pearlBase = mix(pearlBase, metallicC, 0.5 + 0.5 * cos(shift * 1.3));
+            
+            vec3 irisPearlescent = pearlBase * uIrisColor * (0.4 + 1.6 * fresnelEffect);
+            vec3 irisEnergy = uIrisColor * 1.8 + vec3(1.0) * fresnelEffect * 4.0;
             vec3 finalIris = uIrisType > 0.5 ? irisEnergy : irisPearlescent;
             
             if (uIrisMix > 0.0) {
-                diffuseColor.rgb = mix(diffuseColor.rgb, finalIris, uIrisMix * uIrisIntensity * (0.8 + 0.2 * sin(uTime * 2.0)));
+                // Add metallic shine logic
+                float luster = pow(fresnelNode, 10.0) * 0.5; // Central highlights
+                diffuseColor.rgb = mix(diffuseColor.rgb, finalIris + luster, uIrisMix * uIrisIntensity);
+                // Boost specular feel
+                specularStrength += uIrisMix * uIrisIntensity * fresnelEffect * 2.0;
             }
             
             // --- 2. HOLO GRID ---
