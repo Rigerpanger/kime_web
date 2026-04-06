@@ -232,7 +232,7 @@ const StudioEditor = () => {
                             </div>
                         )}
 
-[ignoring loop detection]
+
                         {activeTab === 'fx' && activeFX && (
                             <div className="grid grid-cols-2 gap-8 h-full">
                                 <div className="space-y-4 overflow-y-auto pr-2">

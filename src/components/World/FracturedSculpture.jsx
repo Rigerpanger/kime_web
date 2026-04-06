@@ -248,18 +248,6 @@ const TetrisReveal = ({ config = {}, animatedOpacity = 1, onRevealed }) => {
 // --- EFFECT: Software Silhouette (Matrix/Data Rain) ---
 const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
     const pointsRef = useRef();
-    const count = 800;
-    
-    const geometry = useMemo(() => {
-        const geo = new THREE.BufferGeometry();
-        const pos = new Float32Array(count * 3);
-        const data = new Float32Array(count * 3); // speed, offset, lane
-        
-        for(let i=0; i<count; i++) {
-[ignoring loop detection]
-// --- EFFECT: Software Silhouette (Matrix/Data Rain) ---
-const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
-    const pointsRef = useRef();
     const count = 2000;
     
     const geometry = useMemo(() => {
