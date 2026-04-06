@@ -496,7 +496,7 @@ app.post(['/chat', '/api/chat'], async (req, res) => {
                 'Authorization': `Bearer ${apiKey}` 
             },
             body: JSON.stringify({ 
-                model: 'gpt-4o-mini', 
+                model: 'gpt-5-mini', 
                 messages: [
                     { 
                         role: 'system', 
@@ -773,15 +773,15 @@ ${houndInstructions}
         const apiKey = apiKeyRaw ? apiKeyRaw.split(/[\n\r\s]/)[0].trim() : '';
 
         // --- 5. ВЫБОР МОДЕЛИ (Token Guard) ---
-        let selectedModel = 'gpt-4o'; // Дефолт для групп и админа
+        let selectedModel = 'gpt-5-mini'; // Переход на 5-mini
         let isSmartUsed = false;
 
         if (isPrivate && dbUser && dbUser.role !== 'admin') {
             if (dbUser.smart_answers_today < 5) {
-                selectedModel = 'gpt-4o';
+                selectedModel = 'gpt-5-mini';
                 isSmartUsed = true;
             } else {
-                selectedModel = 'gpt-4o-mini';
+                selectedModel = 'gpt-5-mini'; // Даже в эконом-режиме используем 5-mini (она дешевле и лучше старых)
             }
         }
 
