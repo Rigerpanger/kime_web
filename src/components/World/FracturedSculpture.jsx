@@ -740,21 +740,26 @@ const SculptureModel = () => {
 
     useFrame((state, delta) => {
         const { activeSlug: currentSlug, config: currentConfig } = stateRef.current;
-        const currentSection = currentConfig.sections?.[currentSlug] || currentConfig.sections?.default;
+        if (!currentConfig) return;
         
-        const irisFX = (currentSection?.fx || []).find(f => f.type === 'Iris' && f.active);
-        const holoGridFX = (currentSection?.fx || []).find(f => f.type === 'HoloGrid' && f.active);
-        const neonEdgesFX = (currentSection?.fx || []).find(f => f.type === 'NeonEdges' && f.active);
-        const tetrisFX = (currentSection?.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
-
-        // Target calculations
-        let tgtScale = currentSection?.scale ?? currentConfig?.scale ?? 17;
-        if (tgtScale < 5 || tgtScale > 50) tgtScale = 17;
+        const currentSection = (currentConfig.sections || {})[currentSlug] || (currentConfig.sections || {}).default || {};
         
-        const tgtY = 5.1 + (currentConfig?.y ?? 0);
-        const tgtRot = Number.isFinite(Number(currentConfig?.rotationY)) ? Number(currentConfig.rotationY) : 248;
+        const irisFX = (currentSection.fx || []).find(f => f.type === 'Iris' && f.active);
+        const holoGridFX = (currentSection.fx || []).find(f => f.type === 'HoloGrid' && f.active);
+        const neonEdgesFX = (currentSection.fx || []).find(f => f.type === 'NeonEdges' && f.active);
+        const tetrisFX = (currentSection.fx || []).find(f => f.type === 'TetrisReveal' && f.active);
 
-        const s = isEditing ? 8.0 : 1.5; // Faster damping when editing
+        // Target calculations with strict fallback
+        let tgtScale = Number(currentSection.scale ?? currentConfig.scale ?? 17);
+        if (!Number.isFinite(tgtScale) || tgtScale < 1) tgtScale = 17;
+        
+        let tgtY = 5.1 + Number(currentConfig.y ?? 0);
+        if (!Number.isFinite(tgtY)) tgtY = 5.1;
+
+        let rawRot = Number(currentConfig.rotationY);
+        let tgtRot = Number.isFinite(rawRot) ? rawRot : 248;
+
+        const s = isEditing ? 8.0 : 1.5;
         const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
 
         if (isFirstRun.current && groupRef.current && primRef.current) {
@@ -768,7 +773,6 @@ const SculptureModel = () => {
             primRef.current.rotation.y = THREE.MathUtils.damp(primRef.current.rotation.y, THREE.MathUtils.degToRad(tgtRot), s, d);
         }
 
-
         clonedScene.traverse(n => {
             if (n.isMesh && n.material) {
                 const materials = Array.isArray(n.material) ? n.material : [n.material];
@@ -778,7 +782,6 @@ const SculptureModel = () => {
                     if (shader) {
                         shader.uniforms.uTime.value = state.clock.elapsedTime;
                         
-                        // Iris
                         shader.uniforms.uIrisMix.value = irisFX ? 1.0 : 0;
                         if (irisFX) {
                             shader.uniforms.uIrisIntensity.value = irisFX.intensity ?? 1.0;
@@ -786,7 +789,6 @@ const SculptureModel = () => {
                             shader.uniforms.uIrisType.value = irisFX.presetIndex ?? 0;
                         }
                         
-                        // HoloGrid
                         shader.uniforms.uGridMix.value = holoGridFX ? 1.0 : 0;
                         if (holoGridFX) {
                             shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
@@ -796,7 +798,6 @@ const SculptureModel = () => {
                             shader.uniforms.uGridWidth.value = holoGridFX.thickness ?? 0.08;
                         }
                         
-                        // NeonEdges
                         shader.uniforms.uEdgeMix.value = neonEdgesFX ? 1.0 : 0;
                         if (neonEdgesFX) {
                             shader.uniforms.uEdgeIntensity.value = neonEdgesFX.intensity ?? 1.0;
@@ -805,7 +806,6 @@ const SculptureModel = () => {
                             shader.uniforms.uEdgeRainbow.value = neonEdgesFX.rainbow ? 1.0 : 0;
                         }
 
-                        // Quantum Reveal (Scanner)
                         shader.uniforms.uRevealMix.value = tetrisFX ? 1.0 : 0;
                         if (tetrisFX) {
                             const scanSpeed = tetrisFX.speed ?? 1.0;
@@ -833,10 +833,11 @@ const SculptureModel = () => {
             useAppStore.setState({ sculptureConfig: { ...useAppStore.getState().sculptureConfig, y: 0, scale: 17, rotationY: 248 } });
             console.log("Model parameters forcibly reset!");
         };
+        console.log("SculptureModel initialized successfully.");
     }, []);
 
-    // Defensive parsing against destructive DB string/null formats
-    const currentSection = (config?.sections || {})[activeSlug] || (config?.sections || {}).default;
+    // Defensive parsing
+    const currentSection = (config?.sections || {})[activeSlug] || (config?.sections || {}).default || {};
     
     return (
         <Float 
@@ -851,8 +852,7 @@ const SculptureModel = () => {
                         object={clonedScene} 
                     />
                     
-                    {/* NEW DYNAMIC FX SYSTEM */}
-                    {(currentSection?.fx || []).map(fx => (
+                    {(currentSection.fx || []).map(fx => (
                         <FXWrapper 
                             key={fx.id}
                             type={fx.type}
@@ -867,73 +867,32 @@ const SculptureModel = () => {
 };
 
 const SmoothLoader = ({ progress }) => {
-    const [displayProgress, setDisplayProgress] = useState(0);
-    const lastProgress = useRef(0);
-    
-    const progressRef = useRef();
-    const barRef = useRef();
-    
-    useFrame((state, delta) => {
-        if (progress > lastProgress.current) lastProgress.current = progress;
-
-        let target = Math.max(displayProgress, lastProgress.current);
-        if (target < 100) target += (99.5 - target) * 0.002;
-
-        const next = THREE.MathUtils.lerp(displayProgress, target, delta * 3.0);
-        const final = Math.min(100, next);
-        
-        if (Math.abs(final - displayProgress) > 0.001) {
-             setDisplayProgress(final);
-             if (progressRef.current) progressRef.current.innerText = `${Math.round(final)}%`;
-             if (barRef.current) barRef.current.style.width = `${final}%`;
-        }
-    });
+    // Simplified: No useFrame loop to avoid React overhead during sensitive loading phase
+    const displayProgress = Math.round(progress);
 
     return (
         <Html center>
             <div style={{ 
-                color: 'white', 
-                fontFamily: 'monospace', 
-                fontSize: '11px', 
-                textAlign: 'center', 
-                letterSpacing: '6px',
-                width: '300px',
-                textShadow: '0 0 20px rgba(255,255,255,0.2)'
+                color: 'white', fontFamily: 'monospace', fontSize: '11px', textAlign: 'center', 
+                letterSpacing: '6px', width: '300px', textShadow: '0 0 20px rgba(255,255,255,0.2)'
             }}>
                 <div style={{ opacity: 0.3, marginBottom: '8px', fontSize: '8px', letterSpacing: '2px' }}>
                     SYNCHRONIZING_CORE_GEOMETRY
                 </div>
-                <div 
-                    ref={progressRef}
-                    style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}
-                >
-                    {Math.round(displayProgress)}%
+                <div style={{ fontWeight: '900', fontSize: '20px', color: displayProgress > 95 ? '#ffcc00' : 'white' }}>
+                    {displayProgress}%
                 </div>
                 <div style={{ 
-                    marginTop: '15px', 
-                    width: '100%', 
-                    height: '2px', 
-                    background: 'rgba(255,255,255,0.05)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    borderRadius: '2px'
+                    marginTop: '15px', width: '100%', height: '2px', 
+                    background: 'rgba(255,255,255,0.05)', position: 'relative', overflow: 'hidden', borderRadius: '2px'
                 }}>
-                    <div 
-                        ref={barRef}
-                        style={{ 
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            height: '100%',
-                            width: `${displayProgress}%`,
-                            background: '#ffcc00',
-                            boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)',
-                            transition: 'width 0.1s linear'
-                        }} 
-                    />
+                    <div style={{ 
+                        position: 'absolute', left: 0, top: 0, height: '100%', width: `${displayProgress}%`,
+                        background: '#ffcc00', boxShadow: '0 0 15px rgba(255, 204, 0, 0.5)', transition: 'width 0.3s ease-out'
+                    }} />
                 </div>
                 <div style={{ marginTop: '10px', fontSize: '7px', opacity: 0.2, textTransform: 'uppercase' }}>
-                    Decompressing artifacts...
+                    Static asset check...
                 </div>
             </div>
         </Html>
