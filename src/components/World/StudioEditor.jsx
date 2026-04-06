@@ -4,7 +4,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Box, Palette, Camera, Lightbulb, Plus, Trash2, Zap, ChevronDown, ChevronUp } from 'lucide-react';
 import useActiveSlug from '../../hooks/useActiveSlug';
 
-const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris'];
+const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm'];
 
 const StudioEditor = () => {
     const { session } = useAuthStore();
@@ -53,15 +53,33 @@ const StudioEditor = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            if (!session?.token) throw new Error("Unauthorized");
+            if (!session?.token) throw new Error("Unauthorized: Please login again.");
+            
+            // Absolute latest state from store (bypassing react closure)
+            const latestConfig = useAppStore.getState().sculptureConfig;
+
             const response = await fetch(`${apiUrl}/content/sculpture_config`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
-                body: JSON.stringify(config)
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${session.token}` 
+                },
+                body: JSON.stringify(latestConfig)
             });
-            if (response.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
-        } catch (error) { alert('Error: ' + error.message); }
-        finally { setSaving(false); }
+
+            if (response.ok) { 
+                setSaved(true); 
+                setTimeout(() => setSaved(false), 2000); 
+            } else {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || `Server error: ${response.status}`);
+            }
+        } catch (error) { 
+            alert('🚨 SAVE ERROR: ' + error.message); 
+            console.error("Save failure:", error);
+        } finally { 
+            setSaving(false); 
+        }
     };
 
     const renderSlider = (label, value, min, max, step, onChange, format = (v) => v?.toFixed(2)) => (
@@ -84,10 +102,10 @@ const StudioEditor = () => {
         "services": "Услуги (Services)",
         "projects": "Проекты (Projects)",
         "contact": "Контакты (Contact)",
-        "about-slide-0": "О компании: Слайд 1 (О Студии)",
-        "about-slide-1": "О компании: Слайд 2 (Наш подход)",
-        "about-slide-2": "О компании: Слайд 3 (Лидерство)",
-        "about-slide-3": "О компании: Слайд 4 (Нам доверяют)",
+        "about-studio": "О нас: Студия",
+        "about-approach": "О нас: Подход",
+        "about-founder": "О нас: Видение",
+        "about-certificates": "О нас: Достижения",
         "digital-graphics": "Служба: Digital Graphics",
         "ar-vr": "Служба: AR/VR",
         "software-dev": "Служба: Software Dev",
