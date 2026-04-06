@@ -232,22 +232,25 @@ const StudioEditor = () => {
                             </div>
                         )}
 
+[ignoring loop detection]
                         {activeTab === 'fx' && activeFX && (
                             <div className="grid grid-cols-2 gap-8 h-full">
                                 <div className="space-y-4 overflow-y-auto pr-2">
                                     <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[8px] font-black text-[#ffcc00] uppercase">{activeFX.type}</span><div className="flex gap-2"><input type="checkbox" checked={activeFX.active} onChange={e => updateSectionFX(activeSlug, activeFX.id, { active: e.target.checked })} /><button onClick={() => removeSectionFX(activeSlug, activeFX.id)} className="text-red-500/30"><Trash2 size={10}/></button></div></div>
                                     <div className="space-y-3">
-                                        {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
-                                        {renderSlider('Scale', activeFX.scale ?? 1.0, 0.1, 15, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
-                                        {renderSlider('Speed', activeFX.speed ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { speed: v }))}
-                                        <div className="flex gap-4">
-                                            <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">C1</span><input type="color" value={activeFX.color || '#ffcc00'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-4 w-6 bg-transparent" /></div>
-                                            {activeFX.type === 'SoftwareSilhouette' && <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">C2</span><input type="color" value={activeFX.color2 || '#00aaff'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color2: e.target.value })} className="h-4 w-6 bg-transparent" /></div>}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {renderSlider('Radius (Dist)', activeFX.radius ?? 4.5, 0, 20, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
+                                            {renderSlider('Azimuth (Orb)', activeFX.azimuth ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
+                                            {renderSlider('Height (Y)', activeFX.height ?? 4.8, -10, 30, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                            {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
+                                            {renderSlider('Scale', activeFX.scale ?? 1.0, 0.1, 15, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
+                                            {renderSlider('Speed', activeFX.speed ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { speed: v }))}
                                         </div>
+                                        <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">Main Color</span><input type="color" value={activeFX.color || '#ffcc00'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-4 w-6 bg-transparent" /></div>
                                     </div>
                                 </div>
                                 <div className="space-y-3 overflow-y-auto pr-2">
-                                    <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Behaviors</h5>
+                                    <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Behaviors & Modes</h5>
                                     {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (
                                         <div className="grid grid-cols-3 gap-1">
                                             {(activeFX.type === 'NeuralAtom' ? ['Orbit', 'Pulse', 'Glitch'] : activeFX.type === 'NeuralSwarm' ? ['Orbit', 'Flow', 'Chaos'] : activeFX.type === 'ShapeShifter' ? ['Pulse', 'Glitch', 'Float'] : ['Rain', 'Orbit', 'Static']).map(b => (
@@ -256,10 +259,21 @@ const StudioEditor = () => {
                                         </div>
                                     )}
                                     {activeFX.type === 'ShapeShifter' && <div className="grid grid-cols-3 gap-1">{['Solid', 'Wire', 'Points'].map(m => (<button key={m} onClick={() => updateSectionFX(activeSlug, activeFX.id, { mode: m })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.mode === m ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/40'}`}>{m}</button>))}</div>}
-                                    {activeFX.type === 'HoloGrid' && <div className="grid grid-cols-3 gap-1">{['Square', 'Hex', 'Dots'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { patternIndex: i })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.patternIndex === i ? 'bg-indigo-500 text-white' : 'bg-white/5 text-white/40'}`}>{p}</button>))}</div>}
+                                    {activeFX.type === 'HoloGrid' && (
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-3 gap-1">{['Square', 'Hex', 'Dots'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { patternIndex: i })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.patternIndex === i ? 'bg-indigo-500 text-white' : 'bg-white/5 text-white/40'}`}>{p}</button>))}</div>
+                                            {renderSlider('Density (Count)', activeFX.density ?? 20, 1, 100, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { density: v }))}
+                                            {renderSlider('Thickness (Line)', activeFX.thickness ?? 0.08, 0.01, 0.5, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { thickness: v }))}
+                                        </div>
+                                    )}
+                                    {activeFX.type === 'GeoSwarm' && (
+                                        <div className="space-y-3">
+                                            {renderSlider('Shape Variations', activeFX.variety ?? 3, 1, 6, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { variety: v }))}
+                                            {renderSlider('Particle Density', activeFX.density ?? 600, 100, 2000, 10, (v) => updateSectionFX(activeSlug, activeFX.id, { density: v }))}
+                                        </div>
+                                    )}
                                     {activeFX.type === 'NeonEdges' && <div className="grid grid-cols-2 gap-1"><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { metalness: !activeFX.metalness })} className={`py-1 rounded text-[6px] font-bold ${activeFX.metalness ? 'bg-[#ffcc00] text-black' : 'bg-white/5'}`}>Metal</button><button onClick={() => updateSectionFX(activeSlug, activeFX.id, { rainbow: !activeFX.rainbow })} className={`py-1 rounded text-[6px] font-bold ${activeFX.rainbow ? 'bg-indigo-500 text-white' : 'bg-white/5'}`}>Rainbow</button></div>}
                                     {activeFX.type === 'Iris' && <div className="grid grid-cols-2 gap-1">{['Liquid', 'Pulse', 'Metal', 'Glitch'].map((p, i) => (<button key={p} onClick={() => updateSectionFX(activeSlug, activeFX.id, { presetIndex: i })} className={`py-1 rounded text-[6px] font-bold ${activeFX.presetIndex === i ? 'bg-purple-500' : 'bg-white/5'}`}>{p}</button>))}</div>}
-                                    {renderSlider('Y Offset', activeFX.height ?? 4.8, -10, 30, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                 </div>
                             </div>
                         )}

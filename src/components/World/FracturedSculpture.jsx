@@ -36,27 +36,16 @@ const FXWrapper = ({ type, config, isActive, onRevealed }) => {
     if (opacityRef.current < 0.01 && !isActive) return null;
     if (!FXComp) return null;
 
-    // --- ORBITAL POSITIONING LOGIC ---
-    // Spatial FX: NeuralAtom, NeuralSwarm, ShapeShifter, SoftwareSilhouette, TetrisReveal
-    // Non-Spatial FX: Iris (Shader-only)
-    const isSpatial = ['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal'].includes(type);
+    // SPATIAL POSITIONING (Now for ALL effects)
+    const azimuth = (config.azimuth || 0) * Math.PI / 180;
+    const radius = config.radius !== undefined ? config.radius : 4.5;
+    const height = config.height !== undefined ? config.height : 4.8;
     
-    let position = [0, 4.8, 0];
-    if (isSpatial) {
-        const azimuth = (config.azimuth || 0) * Math.PI / 180;
-        const radius = config.radius !== undefined ? config.radius : 4.5;
-        const height = config.height !== undefined ? config.height : 4.8;
-        
-        position = [
-            radius * Math.sin(azimuth),
-            height,
-            radius * Math.cos(azimuth)
-        ];
-    }
- else {
-        // Fallback for non-spatial or legacy
-        position = Array.isArray(config.pos) ? config.pos : [0, 0, 0];
-    }
+    const position = [
+        radius * Math.sin(azimuth),
+        height,
+        radius * Math.cos(azimuth)
+    ];
 
     return (
         <group position={position}>
@@ -267,11 +256,23 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
         const data = new Float32Array(count * 3); // speed, offset, lane
         
         for(let i=0; i<count; i++) {
+[ignoring loop detection]
+// --- EFFECT: Software Silhouette (Matrix/Data Rain) ---
+const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
+    const pointsRef = useRef();
+    const count = 2000;
+    
+    const geometry = useMemo(() => {
+        const geo = new THREE.BufferGeometry();
+        const pos = new Float32Array(count * 3);
+        const data = new Float32Array(count * 3);
+        
+        for(let i=0; i<count; i++) {
             data[i*3] = 0.5 + Math.random(); // speed
             data[i*3+1] = Math.random() * Math.PI * 2; // offset
-            data[i*3+2] = 4.0 + Math.random() * 4.0; // lane
+            data[i*3+2] = 3.0 + Math.random() * 5.0; // radius lane
             
-            pos[i*3+1] = (Math.random() - 0.5) * 12.0;
+            pos[i*3+1] = (Math.random() - 0.5) * 15.0;
         }
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         geo.setAttribute('aData', new THREE.BufferAttribute(data, 3));
@@ -300,21 +301,21 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
                     float lane = aData.z;
                     vec3 p = position;
                     
-                    float t = uTime * speed * (uBehavior > 0.5 ? 2.0 : 0.5);
-                    float angle = offset + uTime * 0.2;
+                    float t = uTime * speed;
+                    float angle = offset + uTime * 0.3;
                     
                     if (uBehavior < 0.5) { // Rain
-                        p.y = mod(p.y - t, 12.0) - 6.0;
+                        p.y = mod(p.y - t * 5.0, 15.0) - 7.5;
                     } else if (uBehavior < 1.5) { // Orbit
                         p.x = cos(angle) * lane;
                         p.z = sin(angle) * lane;
-                    } else { // Static
+                    } else {
                         p.x += sin(uTime + offset) * 0.2;
                     }
                     
                     vData = fract(p.y * 0.1 + uTime);
                     vec4 mvPosition = modelViewMatrix * vec4(p * uScale, 1.0);
-                    gl_PointSize = (20.0 * uScale / -mvPosition.z);
+                    gl_PointSize = (25.0 * uScale / -mvPosition.z);
                     gl_Position = projectionMatrix * mvPosition;
                 }
             `,
@@ -340,7 +341,7 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
             pointsRef.current.material.uniforms.uScale.value = config.scale || 1.0;
             pointsRef.current.material.uniforms.uColor1.value.set(config.color || "#00ff66");
             pointsRef.current.material.uniforms.uColor2.value.set(config.color2 || "#0088ff");
-            pointsRef.current.material.uniforms.uBehavior.value = config.behaviorIndex || 0;
+            pointsRef.current.material.uniforms.uBehavior.value = (config.behavior === 'Orbit' ? 1.0 : config.behavior === 'Static' ? 2.0 : 0.0);
         }
     });
 
@@ -350,16 +351,16 @@ const SoftwareSilhouette = ({ config = {}, animatedOpacity = 1 }) => {
 // --- EFFECT: Quantum Dust (Revealer Scanner) ---
 const QuantumDust = ({ config = {}, animatedOpacity = 1 }) => {
     const pointsRef = useRef();
-    const count = 1000;
+    const count = 1500;
     
     const particles = useMemo(() => {
         const geo = new THREE.BufferGeometry();
         const pos = new Float32Array(count * 3);
         const seeds = new Float32Array(count);
         for(let i=0; i<count; i++) {
-            pos[i*3] = (Math.random() - 0.5) * 12;
-            pos[i*3+1] = (Math.random() - 0.5) * 12;
-            pos[i*3+2] = (Math.random() - 0.5) * 12;
+            pos[i*3] = (Math.random() - 0.5) * 15;
+            pos[i*3+1] = (Math.random() - 0.5) * 15;
+            pos[i*3+2] = (Math.random() - 0.5) * 15;
             seeds[i] = Math.random();
         }
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -368,9 +369,8 @@ const QuantumDust = ({ config = {}, animatedOpacity = 1 }) => {
     }, []);
 
     useFrame((state) => {
-        const t = state.clock.elapsedTime;
-        const scanSpeed = config.intensity ? config.intensity * 2.0 : 2.0;
-        const scanY = -5 + ((t * scanSpeed) % 20);
+        const t = state.clock.elapsedTime * (config.speed || 1.0);
+        const intensity = config.intensity ?? 1.0;
         
         if (pointsRef.current) {
             const positions = pointsRef.current.geometry.attributes.position.array;
@@ -378,25 +378,29 @@ const QuantumDust = ({ config = {}, animatedOpacity = 1 }) => {
             
             for(let i=0; i<count; i++) {
                 const s = seeds[i];
-                // Particles gravitate towards the scanner plane
                 const pIdx = i * 3;
-                const targetY = scanY + (Math.sin(t + s * 10) * 0.5);
-                positions[pIdx+1] += (targetY - positions[pIdx+1]) * 0.1;
+                // Floating drift
+                positions[pIdx] += Math.sin(t + s * 10.0) * 0.01;
+                positions[pIdx+1] += Math.cos(t * 0.5 + s * 5.0) * 0.01;
+                positions[pIdx+2] += Math.sin(t * 0.3 + s * 8.0) * 0.01;
                 
-                // Spiral horizontal
-                const angle = t * 2.0 + s * 10.0;
-                const r = 4.0 + Math.sin(t * 0.5 + s) * 2.0;
-                positions[pIdx] = Math.cos(angle) * r;
-                positions[pIdx+2] = Math.sin(angle) * r;
+                // Reset if stray too far
+                if (Math.abs(positions[pIdx]) > 10.0) positions[pIdx] *= 0.5;
             }
             pointsRef.current.geometry.attributes.position.needsUpdate = true;
-            pointsRef.current.material.opacity = animatedOpacity;
+            pointsRef.current.material.opacity = animatedOpacity * intensity;
         }
     });
 
     return (
         <points ref={pointsRef} geometry={particles}>
-            <pointsMaterial size={0.06 * (config.scale || 1.0)} color={config.color || "#ffcc00"} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
+            <pointsMaterial 
+                size={0.08 * (config.scale || 1.0)} 
+                color={config.color || "#ffcc00"} 
+                transparent 
+                blending={THREE.AdditiveBlending} 
+                depthWrite={false} 
+            />
         </points>
     );
 };
@@ -404,30 +408,27 @@ const QuantumDust = ({ config = {}, animatedOpacity = 1 }) => {
 // --- EFFECT: Cyber Waves ---
 const CyberWaves = ({ config = {}, animatedOpacity = 1 }) => {
     const wavesRef = useRef([]);
-    const ringCount = 6;
+    const ringCount = 8;
     
     useFrame((state) => {
         const t = state.clock.elapsedTime * (config.speed || 1.0);
         wavesRef.current.forEach((mesh, i) => {
             if (!mesh) return;
-            const cycle = (t * 0.3 + i / ringCount) % 1.0;
-            const waveScale = 1.0 + cycle * 12.0 * (config.scale || 1.0);
+            const cycle = (t * 0.4 + i / ringCount) % 1.0;
+            const waveScale = 1.0 + cycle * 15.0 * (config.scale || 1.0);
             mesh.scale.setScalar(waveScale);
-            mesh.material.opacity = (1.0 - cycle) * animatedOpacity * 0.6;
+            mesh.material.opacity = (1.0 - cycle) * animatedOpacity * (config.intensity || 0.6);
             
-            // Allow manual height offset from config
-            const baseY = config.height !== undefined ? config.height : 4.8;
-            mesh.position.y = baseY + (cycle * 5.0 - 2.5);
+            // Waves expand outward centered at point
+            mesh.position.y = (cycle * 2.0 - 1.0);
         });
     });
-
-    const isBlur = config.mode === 'Blur';
 
     return (
         <group rotation={[-Math.PI / 2, 0, 0]}>
             {[...Array(ringCount)].map((_, i) => (
                 <mesh key={i} ref={el => wavesRef.current[i] = el}>
-                    <ringGeometry args={[0.95, 1.0, 64]} />
+                    <ringGeometry args={[0.98, 1.0, 128]} />
                     <meshBasicMaterial 
                         color={config.color || "#00ffff"} 
                         transparent 
@@ -441,16 +442,16 @@ const CyberWaves = ({ config = {}, animatedOpacity = 1 }) => {
     );
 };
 
-// --- EFFECT: Data Stream (Glitchy Pillars) ---
+// --- EFFECT: Data Stream ---
 const DataStream = ({ config = {}, animatedOpacity = 1 }) => {
-    const count = 200;
+    const count = 400;
     const lines = useMemo(() => {
         const pos = new Float32Array(count * 3);
-        const data = new Float32Array(count);
+        const data = new Float32Array(count); // speed & offset
         for(let i=0; i<count; i++) {
-            pos[i*3] = (Math.random() - 0.5) * 12;
+            pos[i*3] = (Math.random() - 0.5) * 15;
             pos[i*3+1] = Math.random() * 20 - 10;
-            pos[i*3+2] = (Math.random() - 0.5) * 12;
+            pos[i*3+2] = (Math.random() - 0.5) * 15;
             data[i] = Math.random();
         }
         return { pos, data };
@@ -459,7 +460,7 @@ const DataStream = ({ config = {}, animatedOpacity = 1 }) => {
     const linesRef = useRef();
     useFrame((state) => {
         const t = state.clock.elapsedTime;
-        const speed = (config.speed || 1.0) * 0.2;
+        const speed = (config.speed || 1.0) * 0.3;
         if (linesRef.current) {
             const positions = linesRef.current.geometry.attributes.position.array;
             for(let i=0; i<count; i++) {
@@ -467,82 +468,89 @@ const DataStream = ({ config = {}, animatedOpacity = 1 }) => {
                 if(positions[i*3+1] < -10) positions[i*3+1] = 10;
             }
             linesRef.current.geometry.attributes.position.needsUpdate = true;
-            linesRef.current.material.opacity = animatedOpacity * 0.8;
+            linesRef.current.material.opacity = animatedOpacity * (config.intensity || 0.8);
         }
     });
 
     return (
-        <points ref={linesRef} scale={config.scale || 3.0}>
+        <points ref={linesRef} scale={config.scale || 2.0}>
             <bufferGeometry>
                 <bufferAttribute attach="attributes-position" count={count} array={lines.pos} itemSize={3} />
             </bufferGeometry>
-            <pointsMaterial size={0.05} color={config.color || "#00ff00"} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
+            <pointsMaterial size={0.07} color={config.color || "#00ff00"} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
         </points>
     );
 };
 
-// --- EFFECT: Geo Swarm (Morphing Shapes) ---
+// --- EFFECT: Geo Swarm (3D Instanced Overhaul) ---
 const GeoSwarm = ({ config = {}, animatedOpacity = 1 }) => {
-    const pointsRef = useRef();
-    const count = 600; 
-    
-    const { sph, cub, rnd } = useMemo(() => {
-        const rnd = new Float32Array(count * 3);
-        const sph = new Float32Array(count * 3);
-        const cub = new Float32Array(count * 3);
-        for(let i=0; i<count; i++) {
-            rnd[i*3] = (Math.random() - 0.5) * 15;
-            rnd[i*3+1] = (Math.random() - 0.5) * 15;
-            rnd[i*3+2] = (Math.random() - 0.5) * 15;
-            const phi = Math.acos(-1 + (2 * i) / count);
-            const theta = Math.sqrt(count * Math.PI) * phi;
-            sph[i**3] = 4.5 * Math.cos(theta) * Math.sin(phi);
-            sph[i*3+1] = 4.5 * Math.sin(theta) * Math.sin(phi);
-            sph[i*3+2] = 4.5 * Math.cos(phi);
-            const s = 5.0; const face = i % 6; const u = Math.random()-0.5; const v = Math.random()-0.5;
-            if (face === 0) { cub[i*3]=s/2; cub[i*3+1]=u*s; cub[i*3+2]=v*s; }
-            else if (face === 1) { cub[i*3]=-s/2; cub[i*3+1]=u*s; cub[i*3+2]=v*s; }
-            else if (face === 2) { cub[i*3]=u*s; cub[i*3+1]=s/2; cub[i*3+2]=v*s; }
-            else { cub[i*3]=u*s; cub[i*3+1]=v*s; cub[i*3+2]=s/2; }
+    const count = 400;
+    const meshRefs = useRef([]);
+    const geometries = useMemo(() => [
+        new THREE.BoxGeometry(0.5, 0.5, 0.5),
+        new THREE.ConeGeometry(0.4, 0.7, 4),
+        new THREE.IcosahedronGeometry(0.4, 0),
+        new THREE.CylinderGeometry(0.2, 0.2, 0.8, 6)
+    ], []);
+
+    const particles = useMemo(() => {
+        const data = [];
+        for (let i = 0; i < count; i++) {
+            data.push({
+                pos: new THREE.Vector3((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20, (Math.random() - 0.5) * 20),
+                speed: 0.1 + Math.random() * 0.2,
+                rot: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
+                shapeIndex: i % geometries.length
+            });
         }
-        return { rnd, sph, cub };
-    }, []);
+        return data;
+    }, [geometries]);
+
+    const dummy = useMemo(() => new THREE.Object3D(), []);
 
     useFrame((state) => {
-        const t = state.clock.elapsedTime * (config.speed || 1.0) * 0.5;
-        if(pointsRef.current) {
-            const phase = (t * 0.4) % 3;
-            const sub = (t * 0.4) % 1;
-            const ease = 0.5 - 0.5 * Math.cos(sub * Math.PI);
-            const pos = pointsRef.current.geometry.attributes.position.array;
-            for(let i=0; i<count; i++) {
-                const idx = i*3;
-                if (phase < 1) { 
-                    pos[idx] = THREE.MathUtils.lerp(rnd[idx], sph[idx], ease);
-                    pos[idx+1] = THREE.MathUtils.lerp(rnd[idx+1], sph[idx+1], ease);
-                    pos[idx+2] = THREE.MathUtils.lerp(rnd[idx+2], sph[idx+2], ease);
-                } else if (phase < 2) {
-                    pos[idx] = THREE.MathUtils.lerp(sph[idx], cub[idx], ease);
-                    pos[idx+1] = THREE.MathUtils.lerp(sph[idx+1], cub[idx+1], ease);
-                    pos[idx+2] = THREE.MathUtils.lerp(sph[idx+2], cub[idx+2], ease);
-                } else {
-                    pos[idx] = THREE.MathUtils.lerp(cub[idx], rnd[idx], ease);
-                    pos[idx+1] = THREE.MathUtils.lerp(cub[idx+1], rnd[idx+1], ease);
-                    pos[idx+2] = THREE.MathUtils.lerp(cub[idx+2], rnd[idx+2], ease);
-                }
-            }
-            pointsRef.current.geometry.attributes.position.needsUpdate = true;
-            pointsRef.current.rotation.y = t * 0.2;
-        }
+        const t = state.clock.elapsedTime * (config.speed || 1.0);
+        const scale = config.scale || 1.0;
+        
+        geometries.forEach((_, geoIdx) => {
+            const mesh = meshRefs.current[geoIdx];
+            if (!mesh) return;
+            
+            let instIdx = 0;
+            particles.forEach((p, i) => {
+                if (p.shapeIndex !== geoIdx) return;
+                
+                p.pos.y -= p.speed * 1.5;
+                if (p.pos.y < -10) p.pos.y = 10;
+                
+                dummy.position.copy(p.pos);
+                dummy.rotation.set(p.rot.x + t, p.rot.y + t, p.rot.z);
+                dummy.scale.setScalar(scale * (0.8 + Math.sin(t + i) * 0.2));
+                dummy.updateMatrix();
+                mesh.setMatrixAt(instIdx++, dummy.matrix);
+            });
+            mesh.instanceMatrix.needsUpdate = true;
+            mesh.material.opacity = animatedOpacity * (config.intensity || 1.0);
+        });
     });
 
     return (
-        <points ref={pointsRef} scale={config.scale || 1.5}>
-            <bufferGeometry>
-                <bufferAttribute attach="attributes-position" count={count} array={rnd} itemSize={3} />
-            </bufferGeometry>
-            <pointsMaterial size={0.15} color={config.color || "#ffffff"} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
-        </points>
+        <group>
+            {geometries.map((geo, i) => (
+                <instancedMesh 
+                    key={i} 
+                    ref={el => meshRefs.current[i] = el} 
+                    args={[geo, null, Math.ceil(count / geometries.length)]}
+                >
+                    <meshBasicMaterial 
+                        color={config.color || "#ffffff"} 
+                        transparent 
+                        blending={THREE.AdditiveBlending} 
+                        depthWrite={false} 
+                    />
+                </instancedMesh>
+            ))}
+        </group>
     );
 };
 
@@ -558,7 +566,9 @@ const UnifiedShaderInjection = (mat) => {
         shader.uniforms.uGridMix = { value: 0 };
         shader.uniforms.uGridIntensity = { value: 1.0 };
         shader.uniforms.uGridColor = { value: new THREE.Color("#00ffcc") };
-        shader.uniforms.uGridPattern = { value: 0 }; // 0:Square, 1:Hex, 2:Dots
+        shader.uniforms.uGridPattern = { value: 0 }; 
+        shader.uniforms.uGridScale = { value: 20.0 };
+        shader.uniforms.uGridWidth = { value: 0.08 };
         
         shader.uniforms.uEdgeMix = { value: 0 };
         shader.uniforms.uEdgeIntensity = { value: 1.0 };
@@ -636,7 +646,7 @@ const UnifiedShaderInjection = (mat) => {
             float fresnelNode = max(0.0, dot(customNormal, customViewDir));
             float fresnelEffect = pow(1.0 - fresnelNode, 3.0);
             
-            // --- 1. PEARLESCENT IRIS ---
+            // --- 1. PEARLESCENT IRIS (MODES) ---
             vec3 metallicA = vec3(0.9, 0.9, 1.0); 
             vec3 metallicB = vec3(1.0, 0.85, 0.6); 
             vec3 metallicC = vec3(0.8, 1.0, 0.9); 
@@ -645,29 +655,39 @@ const UnifiedShaderInjection = (mat) => {
             vec3 pearlBase = mix(metallicA, metallicB, 0.5 + 0.5 * sin(shift));
             pearlBase = mix(pearlBase, metallicC, 0.5 + 0.5 * cos(shift * 1.3));
             
-            vec3 irisPearlescent = pearlBase * uIrisColor * (0.4 + 1.6 * fresnelEffect);
-            vec3 irisEnergy = uIrisColor * 1.8 + vec3(1.0) * fresnelEffect * 4.0;
-            vec3 finalIris = uIrisType > 0.5 ? irisEnergy : irisPearlescent;
+            vec3 irisColor = uIrisColor;
+            if (uIrisType > 3.5) { // GLITCH
+                float glitch = step(0.9, sin(uTime * 10.0 + vWorldPos.y * 5.0));
+                irisColor = mix(uIrisColor, vec3(1.0, 0.0, 0.0), glitch);
+            } else if (uIrisType > 2.5) { // METAL
+                irisColor *= 0.5; 
+            }
+
+            vec3 irisPearlescent = pearlBase * irisColor * (0.4 + 1.6 * fresnelEffect);
+            vec3 irisEnergy = irisColor * 1.8 + vec3(1.0) * fresnelEffect * 4.0;
+            
+            vec3 finalIris = irisPearlescent;
+            if (uIrisType > 0.5 && uIrisType < 1.5) finalIris = irisEnergy; // PULSE
+            if (uIrisType > 2.5) finalIris += pow(fresnelNode, 20.0) * 2.0; // METAL specular
             
             if (uIrisMix > 0.0) {
                 float luster = pow(fresnelNode, 10.0) * 0.5;
                 diffuseColor.rgb = mix(diffuseColor.rgb, finalIris + luster, uIrisMix * uIrisIntensity);
             }
             
-            // --- 2. HOLO GRID ---
-            float gridScale = 20.0;
+            // --- 2. HOLO GRID (DYNAMIC) ---
             float gridBase = 0.0;
             
             if (uGridPattern < 0.5) { // Square
-                vec2 gridUV = fract(vWorldPos.xz * gridScale + vWorldPos.y * gridScale * 0.5);
-                float lineH = smoothstep(0.0, 0.08, gridUV.x) - smoothstep(0.92, 1.0, gridUV.x);
-                float lineV = smoothstep(0.0, 0.08, gridUV.y) - smoothstep(0.92, 1.0, gridUV.y);
+                vec2 gridUV = fract(vWorldPos.xz * uGridScale + vWorldPos.y * uGridScale * 0.5);
+                float lineH = smoothstep(0.0, uGridWidth, gridUV.x) - smoothstep(1.0 - uGridWidth, 1.0, gridUV.x);
+                float lineV = smoothstep(0.0, uGridWidth, gridUV.y) - smoothstep(1.0 - uGridWidth, 1.0, gridUV.y);
                 gridBase = max(1.0 - lineH, 1.0 - lineV);
             } else if (uGridPattern < 1.5) { // Hex
-                gridBase = hexGrid(vWorldPos.xy + vWorldPos.z);
+                gridBase = hexGrid(vWorldPos.xy * (uGridScale/20.0) + vWorldPos.z);
             } else { // Dots
-                vec2 dotUV = fract(vWorldPos.xz * 30.0);
-                gridBase = smoothstep(0.4, 0.3, length(dotUV - 0.5));
+                vec2 dotUV = fract(vWorldPos.xz * uGridScale * 1.5);
+                gridBase = smoothstep(uGridWidth * 5.0, uGridWidth * 4.0, length(dotUV - 0.5));
             }
 
             float scanWave = smoothstep(0.0, 1.0, sin(vWorldPos.y * 5.0 - uTime * 6.0));
@@ -779,6 +799,8 @@ const SculptureModel = () => {
                     shader.uniforms.uGridIntensity.value = holoGridFX.intensity ?? 1.0;
                     shader.uniforms.uGridColor.value.set(holoGridFX.color || "#00ffcc");
                     shader.uniforms.uGridPattern.value = holoGridFX.patternIndex ?? 0; 
+                    shader.uniforms.uGridScale.value = holoGridFX.density ?? 20.0;
+                    shader.uniforms.uGridWidth.value = holoGridFX.thickness ?? 0.08;
                 }
                 
                 // NeonEdges
