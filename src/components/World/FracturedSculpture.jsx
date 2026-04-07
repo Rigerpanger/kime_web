@@ -45,7 +45,7 @@ const UnifiedShaderInjection = (mat) => {
 };
 
 const SculptureModel = () => {
-    const { scene } = useGLTF('/models/sculpture.glb', 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/gltf/');
+    const { scene } = useGLTF('/models/sculpture.glb', '/draco/');
     const activeSlug = useActiveSlug() || 'default';
     const config = useAppStore(s => s.sculptureConfig);
     const showStudioEditor = useAppStore(s => s.showStudioEditor);

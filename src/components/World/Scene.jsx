@@ -64,22 +64,39 @@ const MouseLight = () => {
         // --- 1. Breathing Logic (Fixed 0 during normal interaction) ---
         const glowFactor = 0; 
 
-        // --- 2. Dynamic World-Space Mapping ---
+        // --- 2. Dynamic World-Space Bounding Sphere (Anti-Glare Shield) ---
         const vec = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
         vec.unproject(state.camera);
         vec.sub(state.camera.position).normalize();
         
-        // Calculate a safe distance: slightly in front of the camera, moving dynamically
-        // This prevents the light from clipping inside the model (which causes infinite blowout)
-        const camDistance = state.camera.position.distanceTo(new THREE.Vector3(0, config.y || 5.1, 0));
-        const safeDistance = Math.max(2.0, camDistance * 0.6); 
+        const targetLookY = config.y || 5.1;
+        const camDistance = state.camera.position.distanceTo(new THREE.Vector3(0, targetLookY, 0));
         
-        target.copy(state.camera.position).add(vec.multiplyScalar(safeDistance));
+        // The scale determines how big the statue is. Base scale is 10.0 => safe radius ~ 4 units.
+        const scaleFactor = (config.scale || 170.0) / 10.0;
+        const minSafeRadius = 4.0 * scaleFactor;
+        
+        // At rest, keep light 40% along the vector between camera and center
+        let distAlongRay = camDistance * 0.4;
+        
+        // Shield: Ensure the light's final absolute distance to the statue center is NEVER less than minSafeRadius + buffer
+        const simulatedPoint = state.camera.position.clone().add(vec.clone().multiplyScalar(distAlongRay));
+        if (simulatedPoint.distanceTo(new THREE.Vector3(0, targetLookY, 0)) < minSafeRadius) {
+             // Push the light back toward the camera so it respects the boundary
+             distAlongRay = Math.max(0.1, camDistance - minSafeRadius - 1.0);
+        }
+        
+        // Extra safeguard: if the camera itself is already piercing the shield (zoomed in too deep)
+        // just keep the light right by the camera
+        if (camDistance < minSafeRadius) distAlongRay = 0.5;
+
+        target.copy(state.camera.position).add(vec.multiplyScalar(distAlongRay));
         
         lightRef.current.position.lerp(target, 0.3);
 
         // --- 3. Intensity & Fallback ---
-        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 150;
+        // Tone down absolute brightness to respect the anti-glare rules
+        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 80;
         // If not moving on mobile, stay in center
         const activeFactor = (state.pointer.x === 0 && state.pointer.y === 0) ? 0.3 : 1.0;
         lightRef.current.intensity = baseIntensity * activeFactor;
