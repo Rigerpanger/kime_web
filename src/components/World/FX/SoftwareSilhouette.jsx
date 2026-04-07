@@ -66,7 +66,7 @@ const SoftwareSilhouette = ({ scene, config, modelY }) => {
                 if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
 
                 node.material = silhouetteMaterial;
-                node.scale.multiplyScalar(scaleOffset);
+                node.scale.multiplyScalar(1.035 * scaleOffset); // Layering offset (Outer)
             }
         });
         return cloned;

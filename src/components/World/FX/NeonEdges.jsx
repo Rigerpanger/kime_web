@@ -26,7 +26,7 @@ const NeonEdges = ({ scene, config, modelY }) => {
                     polygonOffsetFactor: -1,
                     renderOrder: 5
                 });
-                node.scale.multiplyScalar(1.002);
+                node.scale.multiplyScalar(1.05); // Layering offset (Outermost)
             }
         });
         return cloned;

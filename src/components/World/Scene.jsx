@@ -98,10 +98,19 @@ const GlobalParticles = () => {
 
     const pos = useMemo(() => {
         const positions = new Float32Array(count * 3);
+        const minRadius = 15; // Dust-free zone around the statue
         for (let i = 0; i < count; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * 100;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 100;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 100;
+            let x, y, z, dist;
+            do {
+                x = (Math.random() - 0.5) * 100;
+                y = (Math.random() - 0.5) * 100;
+                z = (Math.random() - 0.5) * 100;
+                dist = Math.sqrt(x*x + y*y + z*z);
+            } while (dist < minRadius);
+            
+            positions[i * 3] = x;
+            positions[i * 3 + 1] = y;
+            positions[i * 3 + 2] = z;
         }
         return positions;
     }, [count]);

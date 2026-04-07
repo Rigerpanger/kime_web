@@ -43,13 +43,17 @@ const HoloGrid = ({ scene, config, modelY }) => {
                 void main() {
                     vec2 grid = fract(vUv * uDensity + uTime * 0.1);
                     float line = 0.0;
+                    float soften = uThickness * 0.5; // Smooth anti-aliased edge
                     if (uPattern < 0.5) {
-                        line = step(1.0 - uThickness, grid.x) + step(1.0 - uThickness, grid.y);
+                        line = smoothstep(1.0 - uThickness - soften, 1.0 - uThickness, grid.x) + 
+                               smoothstep(1.0 - uThickness - soften, 1.0 - uThickness, grid.y);
                     } else if (uPattern < 1.5) {
                         grid = fract(vUv * uDensity * vec2(1.0, 1.73) + uTime * 0.05);
-                        line = step(1.0 - uThickness, grid.x) + step(1.0 - uThickness, grid.y);
+                        line = smoothstep(1.0 - uThickness - soften, 1.0 - uThickness, grid.x) + 
+                               smoothstep(1.0 - uThickness - soften, 1.0 - uThickness, grid.y);
                     } else {
-                        line = 1.0 - smoothstep(uThickness, uThickness + 0.1, distance(grid, vec2(0.5)));
+                        // Dots mode
+                        line = 1.0 - smoothstep(uThickness * 0.5, uThickness, distance(grid, vec2(0.5)));
                     }
                     float scanline = sin(vWorldPos.y * 10.0 + uTime * 5.0) * 0.5 + 0.5;
                     gl_FragColor = vec4(uColor, line * (0.3 + scanline * 0.7));
@@ -67,7 +71,7 @@ const HoloGrid = ({ scene, config, modelY }) => {
                 if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
 
                 node.material = shaderMaterial;
-                node.scale.multiplyScalar(1.005);
+                node.scale.multiplyScalar(1.025); // Layering offset to avoid conflicts
             }
         });
         return cloned;

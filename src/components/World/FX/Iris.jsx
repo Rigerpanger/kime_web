@@ -71,7 +71,7 @@ const Iris = ({ scene, config, modelY }) => {
                 if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
 
                 node.material = shaderMaterial;
-                node.scale.multiplyScalar(1.02);
+                node.scale.multiplyScalar(1.01); // Layering offset (Inner)
                 node.renderOrder = 10;
             }
         });
