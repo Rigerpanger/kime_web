@@ -240,12 +240,12 @@ const StudioEditor = () => {
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[8px] font-black uppercase text-[#ffcc00]">{activeLightId}</span><button onClick={() => removeLight(activeLightId)} className="text-red-500/30"><Trash2 size={10}/></button></div>
-                                    {renderSlider('Intensity', config.lights.find(l => l.id === activeLightId).intensity, 0, 150, 1, (v) => updateLight(activeLightId, { intensity: v }))}
+                                    {renderSlider('Intensity', config.lights.find(l => l.id === activeLightId).intensity, 0, 2000, 1, (v) => updateLight(activeLightId, { intensity: v }))}
                                     {renderSlider('Radius', config.lights.find(l => l.id === activeLightId).radius, 0, 50, 0.1, (v) => updateLight(activeLightId, { radius: v }))}
                                 </div>
                                 <div className="space-y-4 pt-5">
                                     {renderSlider('Azimuth', config.lights.find(l => l.id === activeLightId).azimuth, 0, 360, 1, (v) => updateLight(activeLightId, { azimuth: v }))}
-                                    {renderSlider('Height Y', config.lights.find(l => l.id === activeLightId).y, -10, 40, 0.1, (v) => updateLight(activeLightId, { y: v }))}
+                                    {renderSlider('Height Y', config.lights.find(l => l.id === activeLightId).y, -20, 100, 0.1, (v) => updateLight(activeLightId, { y: v }))}
                                 </div>
                                 
                                 <div className="col-span-2 mt-4 pt-4 border-t border-white/5 space-y-4">
