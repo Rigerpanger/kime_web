@@ -212,8 +212,8 @@ const StudioEditor = () => {
                                     </button>
                                 </div>
                                 <div className="space-y-4 pt-4">
-                                    {renderSlider('Vertical Framing', activeCam.pivotY ?? 5.1, -20, 30, 0.1, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
-                                    {renderSlider('FOV Zoom', activeCam.radius, 1, 90, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
+                                    {renderSlider('Vertical Framing', activeCam.pivotY ?? 5.1, -100, 200, 0.5, (v) => updateSectionCamera(activeSlug, { pivotY: v }))}
+                                    {renderSlider('FOV Zoom', activeCam.radius, 1, 300, 0.5, (v) => updateSectionCamera(activeSlug, { radius: v }))}
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between items-center"><h5 className="text-[7px] uppercase text-indigo-400/40 font-bold">3. Advanced</h5><button onClick={() => setShowAdvancedCam(!showAdvancedCam)} className="text-[6px] text-white/20 uppercase">{showAdvancedCam ? 'Hide' : 'Show'}</button></div>
