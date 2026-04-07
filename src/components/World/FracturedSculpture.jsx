@@ -54,10 +54,25 @@ const SculptureModel = () => {
     const stateRef = useRef({ activeSlug, config, showStudioEditor });
     stateRef.current = { activeSlug, config, showStudioEditor };
 
-    const clonedScene = useMemo(() => {
+    const { sceneOffset, clonedScene } = useMemo(() => {
         const clone = scene.clone();
-        clone.traverse(n => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; if (n.material) UnifiedShaderInjection(n.material); } });
-        return clone;
+        clone.traverse(n => { 
+            if (n.isMesh) { 
+                n.castShadow = true; 
+                n.receiveShadow = true; 
+                if (n.material) UnifiedShaderInjection(n.material); 
+            } 
+        });
+
+        // Manual Centering: Compute the Bounding Box
+        const box = new THREE.Box3().setFromObject(clone);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        
+        // Offset to bring the model's center to [0, h/2, 0] and bottom to 0
+        const offset = new THREE.Vector3(-center.x, -box.min.y, -center.z);
+
+        return { sceneOffset: offset, clonedScene: clone };
     }, [scene]);
 
     const currentSection = config.sections?.[activeSlug] || config.sections?.default || {};
@@ -105,33 +120,34 @@ const SculptureModel = () => {
     return (
         <group>
             <group ref={groupRef}>
-                <Center bottom>
+                {/* 1. Main Sculpture and its FX in a single pivoted group */}
+                <group position={sceneOffset}>
                     <primitive object={clonedScene} />
-                </Center>
 
-                {/* 2. FX Sub-group that can rotate independently around the anchored model */}
-                <group>
-                    {activeFXs.map(fx => {
-                        if (!fx.active) return null;
-                        const key = fx.id || fx.type;
-                        const modelY = 5.1 + (config.y || 0);
-                        const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
+                    {/* 2. FX Sub-group that can rotate independently around the anchored model */}
+                    <group>
+                        {activeFXs.map(fx => {
+                            if (!fx.active) return null;
+                            const key = fx.id || fx.type;
+                            const modelY = 5.1 + (config.y || 0);
+                            const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
 
-                        switch(fx.type) {
-                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 3) + orbitRad}} modelY={modelY} />;
-                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius || 4) + orbitRad}} modelY={modelY} />;
-                            case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius || 1.5) + orbitRad}} modelY={modelY} />;
-                            case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 8.0) + orbitRad * 2}} modelY={modelY} />;
-                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 5.0) + orbitRad}} modelY={modelY} />;
-                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 3.0) + orbitRad}} modelY={modelY} />;
-                            default: return null;
-                        }
-                    })}
+                            switch(fx.type) {
+                                case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius ?? 2) + orbitRad}} modelY={modelY} />;
+                                case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius ?? 2.5) + orbitRad}} modelY={modelY} />;
+                                case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                                case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                                case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                                case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius ?? 1.1) + orbitRad}} modelY={modelY} />;
+                                case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                                case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                                case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius ?? 6.0) + orbitRad}} modelY={modelY} />;
+                                case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius ?? 4.0) + orbitRad}} modelY={modelY} />;
+                                case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius ?? 2.5) + orbitRad}} modelY={modelY} />;
+                                default: return null;
+                            }
+                        })}
+                    </group>
                 </group>
             </group>
         </group>

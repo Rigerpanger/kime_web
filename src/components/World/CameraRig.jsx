@@ -69,8 +69,8 @@ const CameraRig = () => {
             
             // Adjust radius for vertical aspect to keep the model 'centered' and 'identically sized'
             if (aspect < 1.0) {
-                // On mobile, we zoom out proportional to the crop
-                baseRadius = baseRadius * (1.1 / aspect); 
+                // On mobile, we zoom in more (radius is smaller) to make the model larger
+                baseRadius = baseRadius * (0.85 / aspect); 
             }
             
             const r = safeNum(baseRadius, 18);
