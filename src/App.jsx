@@ -8,6 +8,7 @@ import { supabase } from './lib/supabase';
 import ScrollNavigator from './components/Layout/ScrollNavigator';
 import StudioEditor from './components/World/StudioEditor';
 
+import { Loader } from '@react-three/drei';
 import HomeOverlay from './components/Sections/HomeOverlay';
 import ServicesOverlay from './components/Sections/ServicesOverlay';
 import ProjectsOverlay from './components/Sections/ProjectsOverlay';
@@ -128,6 +129,14 @@ const AppLayout = () => {
                     )}
                 </main>
             </div>
+            
+            <Loader 
+                containerStyles={{ background: '#020202', zIndex: 99999 }} 
+                innerStyles={{ backgroundColor: '#ffcc00', height: '2px' }}
+                barStyles={{ backgroundColor: '#ffffff' }}
+                dataInterpolation={(p) => `КЭШИРОВАНИЕ ... ${p.toFixed(0)}%`}
+                dataStyles={{ color: '#ffcc00', letterSpacing: '0.2em', fontSize: '10px', fontWeight: 'bold' }}
+            />
         </div>
     );
 };

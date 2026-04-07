@@ -95,8 +95,8 @@ const MouseLight = () => {
         lightRef.current.position.lerp(target, 0.3);
 
         // --- 3. Intensity & Fallback ---
-        // Tone down absolute brightness to respect the anti-glare rules
-        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 80;
+        // DirectionalLight physics: intensity doesn't blow up on proximity! Safe base is ~2.0
+        const baseIntensity = config.mouseLightIntensity !== undefined ? (config.mouseLightIntensity / 40.0) : 2.5;
         // If not moving on mobile, stay in center
         const activeFactor = (state.pointer.x === 0 && state.pointer.y === 0) ? 0.3 : 1.0;
         lightRef.current.intensity = baseIntensity * activeFactor;
@@ -104,12 +104,10 @@ const MouseLight = () => {
 
     return (
         <group>
-            {/* The Directed Flashlight - White as requested */}
-            <pointLight
+            {/* The Directed Flashlight - Changed to Directional to banish point-source glares forever */}
+            <directionalLight
                 ref={lightRef}
                 color="#ffffff" 
-                distance={35}
-                decay={1.2}
             />
         </group>
     );
