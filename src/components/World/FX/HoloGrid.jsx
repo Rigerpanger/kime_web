@@ -60,20 +60,17 @@ const HoloGrid = ({ scene, config, modelY }) => {
 
     const gridGroup = useMemo(() => {
         if (!scene) return null;
-        const group = new THREE.Group();
-        scene.traverse(node => {
+        const cloned = scene.clone();
+        cloned.traverse(node => {
             if (node.isMesh && node.geometry && node.geometry.attributes.position) {
                 // Ignore small helper/null objects from the GLTF
                 if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
 
-                const gridMesh = new THREE.Mesh(node.geometry, shaderMaterial);
-                gridMesh.position.copy(node.position);
-                gridMesh.rotation.copy(node.rotation);
-                gridMesh.scale.copy(node.scale).multiplyScalar(1.005);
-                group.add(gridMesh);
+                node.material = shaderMaterial;
+                node.scale.multiplyScalar(1.005);
             }
         });
-        return group;
+        return cloned;
     }, [scene, shaderMaterial]);
 
     useFrame((state) => {

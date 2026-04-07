@@ -61,26 +61,22 @@ const ShapeShifter = ({ scene, config, modelY }) => {
         });
     }, [intensity, speed, behavior, mode, color]);
 
-    const morphedGroup = useMemo(() => {
+    const warpedGroup = useMemo(() => {
         if (!scene) return null;
-        const group = new THREE.Group();
-        scene.traverse(node => {
+        const cloned = scene.clone();
+        cloned.traverse(node => {
             if (node.isMesh && node.geometry && node.geometry.attributes.position) {
                 // Ignore small helper/null objects from the GLTF
                 if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
-                
-                const mesh = new THREE.Mesh(node.geometry, shaderMaterial);
-                mesh.position.copy(node.position);
-                mesh.rotation.copy(node.rotation);
-                mesh.scale.copy(node.scale);
-                group.add(mesh);
+
+                node.material = shaderMaterial;
             }
         });
-        return group;
+        return cloned;
     }, [scene, shaderMaterial]);
 
     useFrame((state) => {
-        if (!active || !morphedGroup) return;
+        if (!active || !warpedGroup) return;
         shaderMaterial.uniforms.uTime.value = state.clock.elapsedTime;
         shaderMaterial.uniforms.uIntensity.value = intensity;
         shaderMaterial.uniforms.uSpeed.value = speed;
