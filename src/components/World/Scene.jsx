@@ -12,31 +12,38 @@ import MouseSparks from './FX/MouseSparks';
 import useAppStore, { VIEWS } from '../../store/useAppStore';
  
 // A lighting component for the Studio mode with auto-focus
-const StudioLight = ({ light, safeY }) => {
+const StudioLight = ({ light, safeY, globalScale }) => {
     const targetRef = useRef();
     const lightRef = useRef();
+    
+    // Calculate a spatial scalar relative to the default base scale of 10.0
+    const factor = (globalScale || 170.0) / 10.0;
+
     const angleInRadians = (light.azimuth * Math.PI) / 180;
-    const x = light.radius * Math.sin(angleInRadians);
-    const z = light.radius * Math.cos(angleInRadians);
+    // Scale X and Z out so they orbit proportional to the model size
+    const x = (light.radius * factor) * Math.sin(angleInRadians);
+    const z = (light.radius * factor) * Math.cos(angleInRadians);
 
     useEffect(() => {
         if (lightRef.current && targetRef.current) {
             lightRef.current.target = targetRef.current;
         }
-    }, [light, safeY]);
+    }, [light, safeY, globalScale]);
 
     return (
         <group>
-            <group ref={targetRef} position={[0, safeY + 4.5, 0]} />
+            {/* The light targets slightly below the proportional center */}
+            <group ref={targetRef} position={[0, safeY + (4.5 * factor * 0.7), 0]} />
             <spotLight
                 ref={lightRef}
-                position={[x, safeY + light.y, z]}
+                position={[x, safeY + (light.y * factor), z]}
                 intensity={light.intensity}
                 color={light.color}
                 angle={0.6}
                 penumbra={1}
                 castShadow
                 shadow-bias={-0.0001}
+                shadow-mapSize={[1024, 1024]}
                 distance={0}
                 decay={0}
             />
@@ -254,7 +261,7 @@ const Scene = () => {
                 {/* --- Dynamic Lighting System: Fixed at 5.1 for model stability --- */}
                 {config.lights?.map(light => {
                     const safeY = 5.1 + (config.y || 0);
-                    return <StudioLight key={light.id} light={light} safeY={safeY} />;
+                    return <StudioLight key={light.id} light={light} safeY={safeY} globalScale={config.scale} />;
                 })}
 
 
