@@ -57,20 +57,22 @@ const MouseLight = () => {
         // --- 1. Breathing Logic (Fixed 0 during normal interaction) ---
         const glowFactor = 0; 
 
-        // --- 2. World-Space Mapping via Raycast (Improved) ---
-        const targetZ = 4.5;
+        // --- 2. Dynamic World-Space Mapping ---
         const vec = new THREE.Vector3(state.pointer.x, state.pointer.y, 0.5);
         vec.unproject(state.camera);
         vec.sub(state.camera.position).normalize();
         
-        // Project to a sphere or plane around the model
-        const t = (targetZ - state.camera.position.z) / vec.z;
-        target.copy(state.camera.position).add(vec.multiplyScalar(t));
+        // Calculate a safe distance: slightly in front of the camera, moving dynamically
+        // This prevents the light from clipping inside the model (which causes infinite blowout)
+        const camDistance = state.camera.position.distanceTo(new THREE.Vector3(0, config.y || 5.1, 0));
+        const safeDistance = Math.max(2.0, camDistance * 0.6); 
+        
+        target.copy(state.camera.position).add(vec.multiplyScalar(safeDistance));
         
         lightRef.current.position.lerp(target, 0.3);
 
-        // --- 3. Intensity & Fallback (Bright and responsive) ---
-        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 400;
+        // --- 3. Intensity & Fallback ---
+        const baseIntensity = config.mouseLightIntensity !== undefined ? config.mouseLightIntensity : 150;
         // If not moving on mobile, stay in center
         const activeFactor = (state.pointer.x === 0 && state.pointer.y === 0) ? 0.3 : 1.0;
         lightRef.current.intensity = baseIntensity * activeFactor;

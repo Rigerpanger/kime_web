@@ -46,31 +46,31 @@ const DEFAULT_SECTIONS = {
   "default": {
     camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
     modelY: 5.1,
-    scale: 17.0,
+    scale: 170.0,
     fx: [] 
   },
   "about-studio": {
     camera: { azimuth: 0, polar: 90, radius: 18, pivotX: 0, pivotY: 5.1, pivotZ: 0 },
     modelY: 5.1,
-    scale: 17.0,
+    scale: 170.0,
     fx: []
   },
   "about-approach": {
     camera: { azimuth: 45, polar: 80, radius: 22, pivotX: 0, pivotY: 6, pivotZ: 0 },
     modelY: 5.1,
-    scale: 17.0,
+    scale: 170.0,
     fx: []
   },
   "about-founder": {
     camera: { azimuth: -30, polar: 85, radius: 15, pivotX: 2, pivotY: 8, pivotZ: 0 },
     modelY: 5.1,
-    scale: 17.0,
+    scale: 170.0,
     fx: []
   },
   "about-certificates": {
     camera: { azimuth: 0, polar: 60, radius: 25, pivotX: 0, pivotY: 4, pivotZ: 0 },
     modelY: 5.1,
-    scale: 17.0,
+    scale: 170.0,
     fx: []
   }
 };
@@ -83,7 +83,7 @@ const useAppStore = create(
       activeSlug: null,
       sculptureConfig: {
         y: 5.1,
-        scale: 17.0,
+        scale: 170.0,
         rotationY: 248,
         roughness: 0.85,
         metalness: 0,
@@ -152,7 +152,7 @@ const useAppStore = create(
          sculptureConfig: {
             ...state.sculptureConfig,
             y: 5.1,
-            scale: 17.0,
+            scale: 170.0,
             envMapIntensity: 1.0,
             sections: JSON.parse(JSON.stringify(DEFAULT_SECTIONS))
          }
