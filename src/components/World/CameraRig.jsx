@@ -67,10 +67,11 @@ const CameraRig = () => {
             const aspect = safeNum(state.size.width / Math.max(1, state.size.height), 1);
             let baseRadius = safeNum(activeCam.radius, 18);
             
-            // Adjust radius for vertical aspect to keep the model 'centered' and 'identically sized'
+            // Adjust radius for vertical aspect to keep the model 'centered' and proportionally large
             if (aspect < 1.0) {
-                // On mobile, we zoom in more (radius is smaller) to make the model larger
-                baseRadius = baseRadius * (0.85 / aspect); 
+                // On mobile, the screen is tall. To make the model larger vertically, we zoom in (smaller radius).
+                // Previously, this math was inverted, pushing the camera away.
+                baseRadius = baseRadius * Math.min(0.9, aspect * 1.4); 
             }
             
             const r = safeNum(baseRadius, 18);
