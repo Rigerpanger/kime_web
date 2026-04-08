@@ -4,7 +4,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Camera, Lightbulb, Trash2, Zap, ChevronDown, ChevronUp, Palette } from 'lucide-react';
 import useActiveSlug from '../../hooks/useActiveSlug';
 
-const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm'];
+const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm', 'SacredGeometry', 'MilkyWay', 'Levitation'];
 
 const SECTION_NAMES = {
     "default": "Главная (Home)",
@@ -122,12 +122,12 @@ const StudioEditor = () => {
         <div 
             onMouseEnter={() => setIsOverPanel(true)}
             onMouseLeave={() => setIsOverPanel(false)}
-            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${isCollapsed ? 'h-[32px]' : 'h-[165px]'}`}
+            className={`fixed bottom-0 left-0 w-full transition-all duration-500 ease-in-out bg-[#050505]/98 backdrop-blur-3xl border-t border-[#ffcc00]/20 z-[9999] flex text-white font-sans shadow-[0_-20px_50px_rgba(0,0,0,0.8)] ${((showLogin || !session) && window.location.hostname !== 'localhost') ? 'h-full' : (isCollapsed ? 'h-[32px]' : 'h-[240px]')}`}
         >
-            {/* LOGIN OVERLAY */}
-            {(showLogin || !session) && (
+            {/* LOGIN OVERLAY - Bypassed for localhost to allow focus on UX */}
+            {(showLogin && window.location.hostname !== 'localhost') && (
                 <div className="fixed inset-0 bg-black/98 backdrop-blur-3xl z-[10002] flex items-center justify-center p-4">
-                    <div className="w-full max-w-[320px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-8 rounded-2xl space-y-6">
+                    <div className="w-full max-w-[320px] bg-[#0c0c0c] border border-[#ffcc00]/20 p-8 rounded-2xl space-y-6 relative -top-10">
                         <div className="flex items-center gap-4 border-b border-white/5 pb-4">
                             <Zap className="text-[#ffcc00]" size={20} fill="currentColor" />
                             <div>

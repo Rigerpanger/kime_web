@@ -25,6 +25,7 @@ const CyberWaves = ({ config, modelY }) => {
         const rotX = (config.rotationX || -90) * (Math.PI / 180);
         const rotY = (config.rotationY || 0) * (Math.PI / 180);
         const rotZ = (config.rotationZ || 0) * (Math.PI / 180);
+        const centerPos = modelY ?? 5.1;
 
         wavesRef.current.forEach((mesh, i) => {
             if (!mesh) return;
