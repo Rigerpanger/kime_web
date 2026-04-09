@@ -1,0 +1,24 @@
+{
+  "y": 5.1,
+  "scale": 17.0,
+  "rotationY": 248,
+  "roughness": 0.85,
+  "metalness": 0,
+  "envMapIntensity": 1.0,
+  "emissiveIntensity": 1.0,
+  "bloomIntensity": 0.2,
+  "bloomRadius": 0.2,
+  "mouseLightIntensity": 150,
+  "lights": [
+    { "id": "1", "name": "Main Spot", "intensity": 600, "color": "#ffffff", "y": 30, "radius": 0, "azimuth": 0 },
+    { "id": "2", "name": "Back Rim", "intensity": 400, "color": "#ffffff", "y": 8, "radius": 6, "azimuth": 180 }
+  ],
+  "sections": {
+    "default": {
+      "camera": { "azimuth": 0, "polar": 90, "radius": 15.0, "pivotX": 0, "pivotY": 8.6, "pivotZ": 0 },
+      "modelY": 5.1,
+      "scale": 17.0,
+      "fx": []
+    }
+  }
+}

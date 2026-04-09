@@ -163,9 +163,19 @@ const StudioEditor = () => {
                                 <span className="text-[6px] font-black uppercase mt-0.5">{tab.label}</span>
                             </button>
                         ))}
-                        <button onClick={handleSave} disabled={saving} className={`w-full mt-auto py-2 rounded font-black uppercase text-[7px] ${saved ? 'bg-green-500' : 'bg-[#ffcc00] text-black'}`}>
+                        <button onClick={handleSave} disabled={saving} className={`w-full py-2 rounded font-black uppercase text-[7px] ${saved ? 'bg-green-500' : 'bg-[#ffcc00] text-black'}`}>
                             {saving ? '...' : saved ? 'OK' : 'Save'}
                         </button>
+                        
+                        {window.location.hostname === 'localhost' && (
+                            <button 
+                                onClick={useAppStore.getState().saveToGoldenFile} 
+                                className="w-full mt-2 py-2 rounded font-black uppercase text-[6px] bg-indigo-600 text-white shadow-lg border border-indigo-400/50 hover:bg-indigo-500 transition-all"
+                                title="Save current settings directly to goldenConfig.json file"
+                            >
+                                Push to Golden (Git)
+                            </button>
+                        )}
                     </div>
 
                     {/* LIST (FX/LIGHT) */}
