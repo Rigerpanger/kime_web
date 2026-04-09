@@ -26,7 +26,7 @@ jobs:
           VITE_API_URL: "/api"
           # Больше не нужны ключи Supabase для сборки фронтенда!
 
-      - name: Cleanup Old Static Files
+      - name: Cleanup and Diagnose
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -34,8 +34,14 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /var/www/kimeproducti_usr/data/www/kimeproduction.ru
-            # Удаляем всё кроме папки uploads и server (второй мы обновим позже)
+            echo "--- DIRECTORY AUDIT BEFORE ---"
+            pwd
+            ls -la
+            # Чистим всё кроме uploads
             find . -maxdepth 1 ! -name 'uploads' ! -name '.' ! -name 'server' -exec rm -rf {} +
+            # Создаем маркер
+            echo "DEPLOY_SUCCESS_$(date)" > SUCCESS.txt
+            echo "THIS_IS_THE_REAL_FOLDER" > REVISION.txt
             mkdir -p dist
 
       - name: Deploy Frontend
