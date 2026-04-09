@@ -1,23 +1,408 @@
 {
-  "y": 5.1,
-  "scale": 17.0,
-  "rotationY": 248,
-  "roughness": 0.85,
-  "metalness": 0,
-  "envMapIntensity": 1.0,
-  "emissiveIntensity": 1.0,
-  "bloomIntensity": 0.2,
-  "bloomRadius": 0.2,
-  "mouseLightIntensity": 150,
+  "y": 16.9,
+  "scale": 50,
+  "rotationY": 324,
+  "roughness": 1,
+  "metalness": 0.35,
+  "envMapIntensity": 0.9,
+  "emissiveIntensity": 6.2,
+  "bloomIntensity": 0.65,
+  "bloomRadius": 0.65,
+  "mouseLightIntensity": 1000,
   "lights": [
-    { "id": "1", "name": "Main Spot", "intensity": 600, "color": "#ffffff", "y": 30, "radius": 0, "azimuth": 0 },
-    { "id": "2", "name": "Back Rim", "intensity": 400, "color": "#ffffff", "y": 8, "radius": 6, "azimuth": 180 }
+    {
+      "y": 11.9,
+      "id": "light-1774859263300",
+      "name": "Light 2",
+      "color": "#ffffff",
+      "radius": 18.3,
+      "azimuth": 200,
+      "intensity": 3
+    },
+    {
+      "id": "light-1775567796939",
+      "name": "Light 2",
+      "intensity": 0,
+      "color": "#ffffff",
+      "y": 5.2,
+      "radius": 14.6,
+      "azimuth": 49
+    },
+    {
+      "id": "light-1775574962191",
+      "name": "Light 3",
+      "intensity": 0,
+      "color": "#ffffff",
+      "y": 16.6,
+      "radius": 19.7,
+      "azimuth": 53
+    },
+    {
+      "id": "light-1775716117613",
+      "name": "Light 4",
+      "intensity": 25,
+      "color": "#ffffff",
+      "y": -10,
+      "radius": 41,
+      "azimuth": 269
+    }
   ],
   "sections": {
     "default": {
-      "camera": { "azimuth": 0, "polar": 90, "radius": 15.0, "pivotX": 0, "pivotY": 8.6, "pivotZ": 0 },
+      "camera": {
+        "azimuth": -5.825139949548163,
+        "polar": 82.935056632503,
+        "radius": 14.992209295823493,
+        "pivotX": 0.22953285460866346,
+        "pivotY": 8.593242747096784,
+        "pivotZ": 0.26959884602948275
+      },
       "modelY": 5.1,
-      "scale": 17.0,
+      "scale": 21,
+      "fx": [
+        {
+          "id": "fx-1775574107603",
+          "type": "NeuralSwarm",
+          "active": true,
+          "azimuth": 0,
+          "height": 1,
+          "radius": 4.5,
+          "scale": 0.2,
+          "intensity": 1.5,
+          "color": "#ffffff",
+          "speed": 0.1,
+          "behavior": "Orbit"
+        },
+        {
+          "id": "fx-1775574270510",
+          "type": "GeoSwarm",
+          "active": true,
+          "azimuth": -15,
+          "height": 0.2,
+          "radius": 9.1,
+          "scale": 0.1,
+          "intensity": 1.7,
+          "color": "#9ed5ff",
+          "speed": 0.1,
+          "density": 780,
+          "variety": 2
+        },
+        {
+          "id": "fx-1775574468932",
+          "type": "GeoSwarm",
+          "active": true,
+          "azimuth": 0,
+          "height": -3.1,
+          "radius": 7.9,
+          "scale": 0.1,
+          "intensity": 0.4,
+          "color": "#f4a9fe",
+          "density": 210,
+          "variety": 6,
+          "speed": 0.1
+        },
+        {
+          "id": "fx-1775574693218",
+          "type": "Levitation",
+          "active": true,
+          "azimuth": 0,
+          "height": 4.8,
+          "radius": 4.5,
+          "scale": 1,
+          "intensity": 3.3,
+          "color": "#ffffff",
+          "speed": 0.4
+        }
+      ]
+    },
+    "about-studio": {
+      "camera": {
+        "azimuth": 7.146150847799319,
+        "polar": 90.575933033332,
+        "radius": 36.43522710081723,
+        "pivotX": 0.0009572421991480469,
+        "pivotY": 6.622633216741786,
+        "pivotZ": 0.0011393089664942734
+      },
+      "modelY": 5.1,
+      "scale": 35,
+      "fx": [
+        {
+          "id": "fx-1775609545358",
+          "type": "Iris",
+          "active": true,
+          "azimuth": -125,
+          "height": -1.3,
+          "radius": 9.6,
+          "scale": 6.5,
+          "intensity": 0.2,
+          "color": "#1e4971",
+          "speed": 2.5,
+          "presetIndex": 4,
+          "mode": "Spectral",
+          "offset": 0.18,
+          "brightness": 4.6,
+          "gloss": 0.7
+        },
+        {
+          "id": "fx-1775613342917",
+          "type": "Levitation",
+          "active": true,
+          "azimuth": 0,
+          "height": 4.8,
+          "radius": 1.5,
+          "scale": 1,
+          "intensity": 4.7,
+          "color": "#ffffff",
+          "speed": 1.4
+        }
+      ]
+    },
+    "about-approach": {
+      "camera": {
+        "azimuth": 45,
+        "polar": 80,
+        "radius": 22,
+        "pivotX": 0,
+        "pivotY": 6,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "about-founder": {
+      "camera": {
+        "azimuth": -30,
+        "polar": 85,
+        "radius": 15,
+        "pivotX": 2,
+        "pivotY": 8,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "about-certificates": {
+      "camera": {
+        "azimuth": 0,
+        "polar": 60,
+        "radius": 25,
+        "pivotX": 0,
+        "pivotY": 4,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "services": {
+      "camera": {
+        "azimuth": -3.8481735841148934,
+        "polar": 103.88735703398885,
+        "radius": 11.359155338472064,
+        "pivotX": 0.003612645592498609,
+        "pivotY": 8.337584582659538,
+        "pivotZ": 0.0042436340492980175
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "certificates": {
+      "camera": {
+        "azimuth": -26.43447643908197,
+        "polar": 132.47183772688928,
+        "radius": 11.000839791597986,
+        "pivotX": 0,
+        "pivotY": 8.7848300055586,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "studio": {
+      "camera": {
+        "azimuth": 22.99076358478297,
+        "polar": 94.13172968406546,
+        "radius": 6.950302637618017,
+        "pivotX": 0,
+        "pivotY": 8.698903106673892,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 35,
+      "fx": []
+    },
+    "approach": {
+      "camera": {
+        "azimuth": -25.845545517786654,
+        "polar": 132.1543930653518,
+        "radius": 7.46296087686934,
+        "pivotX": 0,
+        "pivotY": 8.997118098868556,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 36,
+      "fx": []
+    },
+    "founder": {
+      "camera": {
+        "azimuth": -26.315678786248927,
+        "polar": 132.40519240089628,
+        "radius": 10.990306068526861,
+        "pivotX": 0,
+        "pivotY": 8.787051627760551,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "projects": {
+      "camera": {
+        "azimuth": -13.987276388226261,
+        "polar": 119.38691433731508,
+        "radius": 1.8350143572220516,
+        "pivotX": 0,
+        "pivotY": 5.440207190062883,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "gamedev": {
+      "camera": {
+        "azimuth": 40.60176442399573,
+        "polar": 83.0076097411043,
+        "radius": 10.745523979053393,
+        "pivotX": 0.0001964103650948337,
+        "pivotY": 8.562745704225334,
+        "pivotZ": 0.0002307465641973993
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": [
+        {
+          "id": "fx-1775607793226",
+          "type": "Levitation",
+          "active": true,
+          "azimuth": 0,
+          "height": 4.8,
+          "radius": 4.5,
+          "scale": 1.1,
+          "intensity": 3,
+          "color": "#ffffff",
+          "speed": 2.2
+        },
+        {
+          "id": "fx-1775610914654",
+          "type": "NeuralAtom",
+          "active": true,
+          "azimuth": -32,
+          "height": 0,
+          "radius": 0.7,
+          "scale": 1.5,
+          "intensity": 0.9,
+          "color": "#ffffff",
+          "behavior": "Orbit",
+          "speed": 0.6
+        },
+        {
+          "id": "fx-1775611126868",
+          "type": "CyberWaves",
+          "active": true,
+          "azimuth": 0,
+          "height": 4.8,
+          "radius": 4.5,
+          "scale": 1,
+          "intensity": 1,
+          "color": "#ffffff",
+          "speed": 0.1
+        },
+        {
+          "id": "fx-1775611500258",
+          "type": "ShapeShifter",
+          "active": true,
+          "azimuth": 0,
+          "height": 4.8,
+          "radius": 4.5,
+          "scale": 1,
+          "intensity": 0.1,
+          "color": "#ffffff",
+          "behavior": "Pulse",
+          "mode": "Wire",
+          "speed": 0.2
+        }
+      ]
+    },
+    "digital-graphics": {
+      "camera": {
+        "azimuth": 0.18333415913028336,
+        "polar": 88.99153890673598,
+        "radius": 3.4999999620289945,
+        "pivotX": 2.805794995521619e-14,
+        "pivotY": 9.5,
+        "pivotZ": 3.2963003492522985e-14
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "ar-vr": {
+      "camera": {
+        "azimuth": -16.505076412205312,
+        "polar": 125.3111674705779,
+        "radius": 10.845177188544122,
+        "pivotX": 0.0006518698625393608,
+        "pivotY": 8.568031724803479,
+        "pivotZ": 0.0007657284555541477
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "ai-ml": {
+      "camera": {
+        "azimuth": -17.46490081835649,
+        "polar": 124.29683115379117,
+        "radius": 10.20198164677631,
+        "pivotX": 0.00002658121788179339,
+        "pivotY": 8.616493862685438,
+        "pivotZ": 0.0000312281110874132
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "software-dev": {
+      "camera": {
+        "azimuth": -22.155698776384476,
+        "polar": 127.72509300257656,
+        "radius": 10.9065377965534,
+        "pivotX": 0.000004109925376457662,
+        "pivotY": 8.62360671051607,
+        "pivotZ": 0.000004828417072075073
+      },
+      "modelY": 5.1,
+      "scale": 17,
+      "fx": []
+    },
+    "contact": {
+      "camera": {
+        "azimuth": -21.040964504287825,
+        "polar": 126.60317051752702,
+        "radius": 10.574913062796574,
+        "pivotX": 0,
+        "pivotY": 8.64370323662119,
+        "pivotZ": 0
+      },
+      "modelY": 5.1,
+      "scale": 17,
       "fx": []
     }
   }
