@@ -246,7 +246,18 @@ for (const p of potentialDistPaths) {
     }
 }
 console.log('📂 Serving static files from:', finalDistPath);
-app.use(express.static(finalDistPath));
+app.use(express.static(finalDistPath, {
+    fallthrough: true, // Allow passing to next middleware if file not found
+    index: 'index.html'
+}));
+
+// --- GLOBAL FALLBACK FOR ASSETS (Fixes 500 for missing icons) ---
+app.use((req, res, next) => {
+    if (req.path.includes('.') && !req.path.startsWith('/api')) {
+        return res.status(404).send('Not found');
+    }
+    next();
+});
 
 // --- SMART MEDIA PROXY (Works with /api and without) ---
 app.get(['/m/:id', '/api/m/:id'], (req, res) => {
