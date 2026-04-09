@@ -120,7 +120,11 @@ const useAppStore = create(
       setActiveSlug: (slug) => set({ activeSlug: slug }),
       
       setSculptureConfig: (newConfig) => set((state) => {
-        let merged = { ...state.sculptureConfig, ...newConfig };
+        // Strip UI flags that might have leaked into the database JSON
+        const sanitized = { ...newConfig };
+        delete sanitized.showStudioEditor;
+        
+        let merged = { ...state.sculptureConfig, ...sanitized };
         
         if (!merged.cameras || !merged.cameras.length) {
             merged.cameras = JSON.parse(JSON.stringify(DEFAULT_CAMERAS));

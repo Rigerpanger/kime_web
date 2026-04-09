@@ -73,7 +73,10 @@ const StudioEditor = () => {
                 setShowLogin(true);
                 throw new Error("Login required");
             }
-            const latestConfig = useAppStore.getState().sculptureConfig;
+            const latestConfig = { ...useAppStore.getState().sculptureConfig };
+            // Ensure UI flags are NOT saved to the database to prevent poisoning state on refresh
+            delete latestConfig.showStudioEditor;
+
             const response = await fetch(`${apiUrl}/content/sculpture_config`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
