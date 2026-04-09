@@ -230,8 +230,9 @@ const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use(['/uploads', '/api/uploads'], express.static(uploadsDir));
 
-// --- ROBUST STATIC SERVING ---
+// --- ROBUST STATIC SERVING (Nginx-friendly) ---
 const potentialDistPaths = [
+    path.join(__dirname, '..'), // Родительская папка (корень сайта по конфигу Nginx)
     path.join(__dirname, '../dist'),
     path.join(__dirname, 'dist'),
     path.join(process.cwd(), 'dist')
