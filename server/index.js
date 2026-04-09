@@ -47,11 +47,13 @@ const PORT = process.env.PORT || 3204;
 const JWT_SECRET = process.env.JWT_SECRET || 'kime-super-secret-key';
 
 const pool = new Pool({
-    user: 'kime_admin',
-    host: '127.0.0.1',
-    database: 'kime_db',
-    password: 'O)1%eFPrk@UfKdpG',
-    port: 5432,
+    connectionString: process.env.DATABASE_URL, // Приоритет одной строке подключения
+    user: process.env.DB_USER || 'kime_admin',
+    host: process.env.DB_HOST || '127.0.0.1',
+    database: process.env.DB_NAME || 'kime_db',
+    password: process.env.DB_PASSWORD || 'O)1%eFPrk@UfKdpG',
+    port: process.env.DB_PORT || 5432,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false // SSL для внешних подключений
 });
 
 // --- INITIALIZE DATABASE ---
@@ -182,6 +184,19 @@ const initDB = async () => {
             ON CONFLICT (username) DO UPDATE SET role = 'admin';
         `);
         
+        
+        // --- ТЕМПОРАРНЫЙ СБРОС ПАРОЛЯ ---
+        const resetEmail = 'kimeproduction@gmail.com';
+        const resetPass = 'KimeAdmin2026!';
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(resetPass, salt);
+        await pool.query(
+            "INSERT INTO users (email, password_hash) VALUES ($1, $2) ON CONFLICT (email) DO UPDATE SET password_hash = $2",
+            [resetEmail, hash]
+        );
+        console.log('✅ [ADMIN RESET] Пароль для ' + resetEmail + ' обновлен: ' + resetPass);
+        // --------------------------------
+
         console.log('✅ Database tables checked/initialized');
     } catch (err) {
         console.error('❌ Database initialization error:', err.message);
