@@ -229,7 +229,23 @@ app.use(express.json());
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
 app.use(['/uploads', '/api/uploads'], express.static(uploadsDir));
-app.use(express.static(path.join(__dirname, '../dist')));
+
+// --- ROBUST STATIC SERVING ---
+const potentialDistPaths = [
+    path.join(__dirname, '../dist'),
+    path.join(__dirname, 'dist'),
+    path.join(process.cwd(), 'dist')
+];
+
+let finalDistPath = potentialDistPaths[0];
+for (const p of potentialDistPaths) {
+    if (fs.existsSync(path.join(p, 'index.html'))) {
+        finalDistPath = p;
+        break;
+    }
+}
+console.log('📂 Serving static files from:', finalDistPath);
+app.use(express.static(finalDistPath));
 
 // --- SMART MEDIA PROXY (Works with /api and without) ---
 app.get(['/m/:id', '/api/m/:id'], (req, res) => {
