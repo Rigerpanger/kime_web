@@ -246,9 +246,33 @@ for (const p of potentialDistPaths) {
     }
 }
 console.log('📂 Serving static files from:', finalDistPath);
+
+// Specific handler for 3D models to ensure Content-Length and proper MIME type
+app.get(['/models/*.glb', '/api/models/*.glb'], (req, res, next) => {
+    try {
+        const relativePath = req.path.replace(/^\/api/, '');
+        const filePath = path.join(finalDistPath, relativePath);
+        if (fs.existsSync(filePath)) {
+            const stats = fs.statSync(filePath);
+            res.set({
+                'Content-Type': 'model/gltf-binary',
+                'Content-Length': stats.size,
+                'Cache-Control': 'public, max-age=31536000' // cache for 1 year
+            });
+            return res.sendFile(filePath);
+        }
+    } catch (e) { console.error('Error serving model:', e); }
+    next();
+});
+
 app.use(express.static(finalDistPath, {
-    fallthrough: true, // Allow passing to next middleware if file not found
-    index: 'index.html'
+    fallthrough: true,
+    index: 'index.html',
+    setHeaders: (res, p) => {
+        if (p.endsWith('.glb')) {
+            res.set('Content-Type', 'model/gltf-binary');
+        }
+    }
 }));
 
 // --- GLOBAL FALLBACK FOR ASSETS (Fixes 500 for missing icons) ---

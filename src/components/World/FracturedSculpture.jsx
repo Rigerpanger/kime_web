@@ -222,19 +222,72 @@ const SculptureModel = () => {
     );
 };
 
-const SmoothLoader = ({ progress }) => (
-    <Html fullscreen>
-        <div style={{ width: '100vw', height: '100vh', background: '#020202', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-            <div style={{ textAlign: 'center', color: 'white', fontFamily: 'monospace' }}>
-                <div style={{ opacity: 0.3, fontSize: '9px', letterSpacing: '4px' }}>SYNCHRONIZING</div>
-                <div style={{ fontSize: '30px', fontWeight: 'bold', margin: '15px 0' }}>{Math.round(progress)}%</div>
-                <div style={{ width: '200px', height: '2px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                    <div style={{ width: `${progress}%`, height: '100%', background: '#ffcc00', transition: 'width 0.3s' }} />
+const SmoothLoader = ({ progress }) => {
+    const [smoothProgress, setSmoothProgress] = React.useState(0);
+    const [isFinished, setIsFinished] = React.useState(false);
+
+    React.useEffect(() => {
+        // Linear interpolation for smooth visual updates
+        const interval = setInterval(() => {
+            setSmoothProgress(prev => {
+                if (progress >= 100) {
+                    if (prev >= 99) {
+                        clearInterval(interval);
+                        setTimeout(() => setIsFinished(true), 500); // Wait for GLTF internal init
+                        return 100;
+                    }
+                    return prev + (100 - prev) * 0.1;
+                }
+                
+                // If stuck at 0 (server issue), slowly move to 15% to show "life"
+                if (progress === 0 && prev < 15) return prev + 0.05;
+                
+                // Otherwise follow the real progress with smoothing
+                return prev + (progress - prev) * 0.1;
+            });
+        }, 16);
+        return () => clearInterval(interval);
+    }, [progress]);
+
+    if (isFinished && progress >= 100) return null;
+
+    return (
+        <Html fullscreen>
+            <div style={{ 
+                width: '100vw', height: '100vh', 
+                background: '#020202', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                zIndex: 9999,
+                transition: 'opacity 0.8s ease-out',
+                opacity: progress >= 100 && isFinished ? 0 : 1
+            }}>
+                <div style={{ textAlign: 'center', color: 'white', fontFamily: 'monospace' }}>
+                    <div style={{ opacity: 0.3, fontSize: '9px', letterSpacing: '6px', marginBottom: '20px' }}>
+                        SYNCHRONIZING SYSTEM
+                    </div>
+                    
+                    <div style={{ position: 'relative', width: '240px', height: '2px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                        {/* Background subtle glow bar */}
+                        <div style={{ 
+                            position: 'absolute', top: 0, left: 0, 
+                            width: `${smoothProgress}%`, height: '100%', 
+                            background: '#ffcc00', 
+                            boxShadow: '0 0 15px #ffcc00',
+                            transition: 'width 0.1s ease-out' 
+                        }} />
+                    </div>
+
+                    <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '8px', opacity: 0.2, fontWeight: 'bold' }}>ESTABLISHING LINK...</span>
+                        <span style={{ fontSize: '18px', fontWeight: '900', color: '#ffcc00' }}>
+                            {Math.round(smoothProgress)}%
+                        </span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </Html>
-);
+        </Html>
+    );
+};
 
 const BrutalistTotem = () => {
     const { progress } = useProgress();
