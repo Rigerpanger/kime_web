@@ -471,6 +471,28 @@ app.delete(['/certificates/:id', '/api/certificates/:id'], authenticateToken, as
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// --- LOCAL GIT SYNC (Developer Only) ---
+app.post(['/api/content/save_to_git', '/content/save_to_git'], (req, res) => {
+    const remoteAddr = req.connection.remoteAddress;
+    const isLocal = 
+        req.hostname === 'localhost' || 
+        req.hostname === '127.0.0.1' || 
+        remoteAddr === '::1' || 
+        remoteAddr === '127.0.0.1';
+
+    if (!isLocal && process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'Access denied: Local only' });
+    }
+
+    try {
+        const configPath = path.join(__dirname, '../src/store/goldenConfig.json');
+        fs.writeFileSync(configPath, JSON.stringify(req.body, null, 2));
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // --- SITE CONTENT ---
 app.get(['/content/:key', '/api/content/:key'], async (req, res) => {
     try {
