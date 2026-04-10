@@ -151,6 +151,30 @@ const useAppStore = create(
       }),
 
       setActiveLightId: (id) => set({ activeLightId: id }),
+      addLight: () => set((state) => {
+         const newLight = {
+            id: `light-${Date.now()}`,
+            name: `Light ${ (state.sculptureConfig.lights || []).length + 1 }`,
+            intensity: 1.0,
+            color: '#ffffff',
+            y: 8,
+            radius: 10,
+            azimuth: 0
+         };
+         return {
+            sculptureConfig: {
+               ...state.sculptureConfig,
+               lights: [...(state.sculptureConfig.lights || []), newLight]
+            },
+            activeLightId: newLight.id
+         };
+      }),
+      removeLight: (id) => set((state) => ({
+         sculptureConfig: {
+            ...state.sculptureConfig,
+            lights: (state.sculptureConfig.lights || []).filter(l => l.id !== id)
+         }
+      })),
       updateLight: (id, updates) => set((state) => ({
          sculptureConfig: {
             ...state.sculptureConfig,

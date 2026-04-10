@@ -156,32 +156,32 @@ const StudioEditor = () => {
             ) : (
                 <div className="flex w-full h-full overflow-hidden">
                     {/* SIDEBAR */}
-                    <div className="w-[80px] border-r border-white/5 p-2 flex flex-col gap-1.5 bg-black/20">
+                    <div className="w-[80px] border-r border-white/5 p-2 flex flex-col gap-1.5 bg-black/20 overflow-y-auto custom-scrollbar">
                         {[{ id: 'camera', icon: Camera, label: 'Cam' }, { id: 'fx', icon: Zap, label: 'FX' }, { id: 'light', icon: Lightbulb, label: 'Light' }, { id: 'mat', icon: Palette, label: 'Mat' }].map(tab => (
                             <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`w-full flex flex-col items-center py-1 rounded transition-all ${activeTab === tab.id ? 'bg-[#ffcc00]/10 text-[#ffcc00]' : 'text-white/20'}`}>
                                 <tab.icon size={12} />
                                 <span className="text-[6px] font-black uppercase mt-0.5">{tab.label}</span>
                             </button>
                         ))}
-                        <button onClick={handleSave} disabled={saving} className={`w-full py-2 rounded font-black uppercase text-[7px] ${saved ? 'bg-green-500' : 'bg-[#ffcc00] text-black'}`}>
+                        <button onClick={handleSave} disabled={saving} className={`w-full py-2 mt-auto rounded font-black uppercase text-[7px] ${saved ? 'bg-green-500' : 'bg-[#ffcc00] text-black'}`}>
                             {saving ? '...' : saved ? 'OK' : 'Save'}
                         </button>
                         
                         {window.location.hostname === 'localhost' && (
-                            <div className="flex flex-col gap-1 mt-2">
+                            <div className="flex flex-col gap-1 mt-1 border-t border-white/5 pt-2">
                                 <button 
-                                    onClick={useAppStore.getState().pullFromProductionDB} 
-                                    className="w-full py-2 rounded font-black uppercase text-[6px] bg-teal-600 text-white shadow-lg border border-teal-400/30 hover:bg-teal-500 transition-all"
+                                    onClick={() => useAppStore.getState().pullFromProductionDB()} 
+                                    className="w-full py-1.5 rounded font-black uppercase text-[5px] bg-teal-600/80 text-white hover:bg-teal-500 transition-all"
                                     title="Import settings from live website database"
                                 >
-                                    Pull from Web (DB)
+                                    Pull Web
                                 </button>
                                 <button 
-                                    onClick={useAppStore.getState().saveToGoldenFile} 
-                                    className="w-full py-1.5 rounded font-black uppercase text-[5px] bg-indigo-600 text-white shadow-lg border border-indigo-400/50 hover:bg-indigo-500 transition-all"
+                                    onClick={() => useAppStore.getState().saveToGoldenFile()} 
+                                    className="w-full py-1.5 rounded font-black uppercase text-[5px] bg-indigo-600/80 text-white hover:bg-indigo-500 transition-all"
                                     title="Save to local goldenConfig.json"
                                 >
-                                    Push to Golden
+                                    Push Gold
                                 </button>
                             </div>
                         )}
@@ -189,22 +189,22 @@ const StudioEditor = () => {
 
                     {/* LIST (FX/LIGHT) */}
                     {(activeTab === 'fx' || activeTab === 'light') && (
-                        <div className="w-[140px] border-r border-white/5 p-3 flex flex-col gap-1.5 overflow-y-auto">
+                        <div className="w-[140px] border-r border-white/5 p-3 flex flex-col gap-1.5 overflow-y-auto custom-scrollbar pb-10">
                             <h4 className="text-[7px] uppercase font-bold tracking-widest text-white/20">List</h4>
                             {activeTab === 'light' ? (
                                 <>
                                     {config.lights?.map(l => (
                                         <button key={l.id} onClick={() => setActiveLightId(l.id)} className={`w-full text-left px-2 py-1.5 rounded text-[8px] font-bold ${activeLightId === l.id ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/40'}`}>{l.name}</button>
                                     ))}
-                                    <button onClick={addLight} className="w-full py-1.5 border border-dashed border-white/10 text-white/20 text-[7px] rounded">+ Add Light</button>
+                                    <button onClick={() => addLight()} className="w-full py-2 mt-2 border border-dashed border-[#ffcc00]/20 text-[#ffcc00]/40 text-[7px] font-bold rounded hover:bg-[#ffcc00]/5 transition-all">+ Add Light</button>
                                 </>
                             ) : (
                                 <>
                                     {sectionFX.map(f => (
                                         <button key={f.id} onClick={() => setActiveFXId(f.id)} className={`w-full text-left px-2 py-1.5 rounded text-[8px] font-bold ${activeFXId === f.id ? 'bg-emerald-500 text-white' : 'bg-white/5 text-white/40'}`}>{f.type}</button>
                                     ))}
-                                    <select onChange={e => { if (e.target.value !== 'None') { addSectionFX(activeSlug, e.target.value); e.target.value = 'None'; } }} className="w-full py-1.5 bg-white/5 text-[7px] border border-dashed border-white/20 text-white/40 rounded transition-all hover:bg-white/10">
-                                        <option value="None" className="bg-black">+ Add Effect Component</option>
+                                    <select onChange={e => { if (e.target.value !== 'None') { addSectionFX(activeSlug, e.target.value); e.target.value = 'None'; } }} className="w-full py-2 mt-2 bg-white/5 text-[7px] border border-dashed border-emerald-500/20 text-emerald-500/40 rounded transition-all hover:bg-emerald-500/5 cursor-pointer">
+                                        <option value="None" className="bg-black">+ Add Effect</option>
                                         {FX_TYPES.filter(t => t !== 'None').map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </>
