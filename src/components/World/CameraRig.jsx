@@ -115,20 +115,12 @@ const CameraRig = () => {
                 controls.target.x = THREE.MathUtils.damp(controls.target.x, targetLookArr[0], s, d);
                 controls.target.y = THREE.MathUtils.damp(controls.target.y, targetLookArr[1], s, d);
                 controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLookArr[2], s, d);
-                // We keep controls.update() to sync camera matrix
                 controls.update();
             } else {
-                if (isFirstRun.current) {
-                    vecTarget.set(...targetLookArr);
-                    camera.position.set(...targetPosArr);
-                    camera.lookAt(vecTarget);
-                    isFirstRun.current = false;
-                } else {
-                    vecTarget.x = THREE.MathUtils.damp(vecTarget.x, targetLookArr[0], s, d);
-                    vecTarget.y = THREE.MathUtils.damp(vecTarget.y, targetLookArr[1], s, d);
-                    vecTarget.z = THREE.MathUtils.damp(vecTarget.z, targetLookArr[2], s, d);
-                    camera.lookAt(vecTarget);
-                }
+                vecTarget.x = THREE.MathUtils.damp(vecTarget.x, targetLookArr[0], s, d);
+                vecTarget.y = THREE.MathUtils.damp(vecTarget.y, targetLookArr[1], s, d);
+                vecTarget.z = THREE.MathUtils.damp(vecTarget.z, targetLookArr[2], s, d);
+                camera.lookAt(vecTarget);
             }
 
             // --- AUTO-CAPTURE LOGIC (AUTO-RESCUE) ---

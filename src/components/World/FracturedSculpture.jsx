@@ -218,17 +218,17 @@ const SculptureModel = () => {
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
                         const key = fx.id || fx.type;
-                        const modelY = 9.0 + (config.y || 0);
+                             const modelY = 9.0 + (config.y || 0);
                         const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
 
                         switch(fx.type) {
-                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius ?? 0.02) + orbitRad}} modelY={modelY} />;
-                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius ?? 0.02) + orbitRad}} modelY={modelY} />;
-                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius ?? 0.02) + orbitRad}} modelY={modelY} />;
-                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius ?? 0.05) + orbitRad}} modelY={modelY} />;
-                            case 'SacredGeometry': return <SacredGeometry key={key} config={{...fx, radius: (fx.radius ?? 1.5) + orbitRad}} modelY={modelY} />;
-                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius ?? 1.0) + orbitRad}} modelY={modelY} />;
-                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius ?? 1.0) + orbitRad}} modelY={modelY} />;
+                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius ?? 0.02)}} modelY={modelY} />;
+                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius ?? 0.02)}} modelY={modelY} />;
+                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius ?? 0.02)}} modelY={modelY} />;
+                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius ?? 0.05)}} modelY={modelY} />;
+                            case 'SacredGeometry': return <SacredGeometry key={key} config={{...fx, radius: (fx.radius ?? 1.5)}} modelY={modelY} />;
+                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
+                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
                             case 'EngineGizmo': return <EngineGizmo key={key} config={fx} modelY={modelY} />;
                             case 'SpatialAR': return <SpatialAR key={key} config={fx} modelY={modelY} />;
                             case 'MilkyWay': return <MilkyWay key={key} config={fx} />;

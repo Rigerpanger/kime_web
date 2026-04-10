@@ -287,6 +287,7 @@ const StudioEditor = () => {
                                             {renderSlider('Azimuth (Orb)', activeFX.azimuth ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
                                             {renderSlider('Height (Y)', activeFX.height ?? 4.8, -25, 25, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                             {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
+                                            {renderSlider('Variant (Mode)', activeFX.variant ?? 0, 0, 1, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { variant: v }))}
                                             {renderSlider('Scale', activeFX.scale ?? 1.0, 0.1, 15, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
                                             {renderSlider('Speed', activeFX.speed ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { speed: v }))}
                                         </div>

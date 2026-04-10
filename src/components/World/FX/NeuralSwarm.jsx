@@ -16,7 +16,9 @@ const NeuralSwarm = ({ config, modelY }) => {
     const particles = useMemo(() => {
         const positions = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
-            const r = radius * (0.5 + Math.random() * 1.5);
+            // High compression at small radii
+            const compression = radius < 0.5 ? 0.2 : 0.5;
+            const r = radius * (compression + Math.random() * (1.0 - compression));
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);

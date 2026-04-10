@@ -40,38 +40,41 @@ const SacredGeometry = ({ config, modelY }) => {
 
     if (!active) return null;
 
+    const isDigitalMode = config.variant > 0.5; // Mode switcher
+
     return (
         <group ref={groupRef}>
-            {/* Inner Core Glow */}
-            <Sphere args={[0.2, 16, 16]}>
-                <meshBasicMaterial color={color} transparent opacity={0.4 * intensity} />
-            </Sphere>
+            {/* Mode 1: Sacred Merkaba */}
+            {!isDigitalMode && (
+                <>
+                    <Tetrahedron ref={starRef1} args={[1, 0]}>
+                        <meshBasicMaterial color={color} wireframe transparent opacity={0.8 * intensity} />
+                    </Tetrahedron>
+                    <Tetrahedron ref={starRef2} args={[1, 0]} rotation={[Math.PI, 0, 0]}>
+                        <meshBasicMaterial color={color} wireframe transparent opacity={0.6 * intensity} />
+                    </Tetrahedron>
+                </>
+            )}
 
-            {/* Merkaba - Pyramid 1 (Up) */}
-            <Tetrahedron ref={starRef1} args={[1, 0]}>
-                <meshBasicMaterial 
-                    color={color} 
-                    wireframe 
-                    transparent 
-                    opacity={0.8 * intensity}
-                    linewidth={2} 
-                />
-            </Tetrahedron>
+            {/* Mode 2: Digital Logic Cube (Software/Automation) */}
+            {isDigitalMode && (
+                <group ref={starRef1}>
+                    <boxGeometry args={[1, 1, 1]} />
+                    <meshBasicMaterial color={color} wireframe transparent opacity={0.8 * intensity} />
+                    <group scale={0.7} rotation={[0, Math.PI/4, 0]}>
+                        <boxGeometry args={[1, 1, 1]} />
+                        <meshBasicMaterial color={color} wireframe transparent opacity={0.4 * intensity} />
+                    </group>
+                    <group scale={0.4} rotation={[Math.PI/4, 0, Math.PI/4]}>
+                        <boxGeometry args={[1, 1, 1]} />
+                        <meshBasicMaterial color={color} wireframe transparent opacity={0.3 * intensity} />
+                    </group>
+                </group>
+            )}
 
-            {/* Merkaba - Pyramid 2 (Down) */}
-            <Tetrahedron ref={starRef2} args={[1, 0]} rotation={[Math.PI, 0, 0]}>
-                <meshBasicMaterial 
-                    color={color} 
-                    wireframe 
-                    transparent 
-                    opacity={0.6 * intensity}
-                    linewidth={2} 
-                />
-            </Tetrahedron>
-
-            {/* Metatron Energy Grid (Outer Ring) */}
+            {/* External Decorative Ring */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[1.2, 0.01, 16, 100]} />
+                <torusGeometry args={[1.2, 0.005, 16, 100]} />
                 <meshBasicMaterial color={color} transparent opacity={0.2 * intensity} />
             </mesh>
 
