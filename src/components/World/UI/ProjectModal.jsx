@@ -26,14 +26,14 @@ const ProjectModal = ({ activeProject, onClose }) => {
                 {/* Close Button - Always Visible */}
                 <button 
                     onClick={onClose}
-                    className="absolute top-3 right-3 md:top-8 md:right-8 z-[10001] p-3 rounded-full bg-black/60 border border-white/20 text-white hover:text-[#ffaa44] hover:border-[#ffaa44]/50 hover:bg-black/80 hover:scale-105 transition-all duration-300 backdrop-blur-xl shadow-[0_0_20px_rgba(0,0,0,0.4)] active:scale-95 flex items-center justify-center"
+                    className="absolute top-4 right-4 md:top-8 md:right-8 z-[10001] p-3 rounded-full bg-black/60 border border-white/20 text-white hover:text-[#ffaa44] hover:border-[#ffaa44]/50 hover:bg-black/80 hover:scale-105 transition-all duration-300 backdrop-blur-xl shadow-[0_0_20px_rgba(0,0,0,0.4)] active:scale-95 flex items-center justify-center"
                     aria-label="Закрыть"
                 >
-                    <X size={22} className="md:w-7 md:h-7" strokeWidth={2.5} />
+                    <X size={24} className="md:w-7 md:h-7" strokeWidth={2.5} />
                 </button>
 
                 {/* Content Area - Scrollable */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-12">
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-12 pt-20 md:pt-12">
                     <div className="flex flex-col lg:flex-row gap-8 lg:gap-16">
                         
                         {/* LEFT SIDE: Media / Visuals */}

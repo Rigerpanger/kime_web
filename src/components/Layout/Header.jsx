@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useAppStore from '../../store/useAppStore';
 
 const NavBarItem = ({ to, children, onClick }) => (
     <NavLink
@@ -38,6 +39,7 @@ const ROUTES = [
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
+    const isModalOpen = useAppStore(s => s.isModalOpen);
 
     const activeIndex = ROUTES.findIndex(r =>
         r.path === '/' ? location.pathname === '/' : location.pathname.startsWith(r.path)
@@ -63,8 +65,8 @@ const Header = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 w-full z-[100] flex justify-center pointer-events-none transition-all duration-500 px-4 pt-4 md:pt-6">
-                <div className="pointer-events-auto w-full md:w-auto rounded-full border border-white/10 bg-black/40 backdrop-blur-xl px-6 md:px-12 py-3 md:py-4 flex justify-between items-center md:gap-16 shadow-2xl shadow-black/50">
+            <header className="fixed top-0 left-0 w-full z-[120] flex justify-center pointer-events-none px-4 pt-4 md:pt-6 transition-all duration-700">
+                <div className={`pointer-events-auto relative z-20 rounded-[2rem] md:w-auto border border-white/10 bg-black/40 backdrop-blur-xl px-6 md:px-12 py-3 md:py-4 flex justify-between items-center md:gap-16 shadow-2xl shadow-black/50 transition-all duration-700 ${isModalOpen ? 'w-[60%] md:max-w-none opacity-80 scale-95' : 'w-full scale-100 opacity-100'}`}>
                     
                     {/* Logo */}
                     <NavLink to="/" onClick={() => setIsMenuOpen(false)} className="group flex items-center shrink-0">
@@ -103,38 +105,38 @@ const Header = () => {
 
                     {/* Mobile Menu Toggle */}
                     <button 
-                        className="md:hidden text-white/80 hover:text-white p-2 shrink-0 outline-none"
+                        className="md:hidden text-white/80 hover:text-white p-2 shrink-0 outline-none z-[130]"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
-            </header>
 
-            {/* Mobile Menu Overlay */}
-            <AnimatePresence>
-                {isMenuOpen && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="fixed inset-0 z-[110] bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
-                    >
-                        <nav className="flex flex-col items-center gap-8 text-center">
-                            <MobileNavItem to="/about" onClick={() => setIsMenuOpen(false)}>О СТУДИИ</MobileNavItem>
-                            <MobileNavItem to="/services" onClick={() => setIsMenuOpen(false)}>НАПРАВЛЕНИЯ</MobileNavItem>
-                            <MobileNavItem to="/projects" onClick={() => setIsMenuOpen(false)}>ПРАКТИКА</MobileNavItem>
-                            <MobileNavItem to="/contact" onClick={() => setIsMenuOpen(false)}>ОБСУДИТЬ</MobileNavItem>
-                        </nav>
-                        
-                        <div className="mt-20 flex gap-8 border-t border-white/10 pt-8 w-64 justify-center">
-                            <a href="mailto:hello@kime.xyz" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Почта</a>
-                            <a href="https://t.me/kime_bot" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Телеграм</a>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                {/* Mobile Menu Overlay - Moved inside header for consistent z-stacking */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 z-10 bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
+                        >
+                            <nav className="flex flex-col items-center gap-8 text-center">
+                                <MobileNavItem to="/about" onClick={() => setIsMenuOpen(false)}>О СТУДИИ</MobileNavItem>
+                                <MobileNavItem to="/services" onClick={() => setIsMenuOpen(false)}>НАПРАВЛЕНИЯ</MobileNavItem>
+                                <MobileNavItem to="/projects" onClick={() => setIsMenuOpen(false)}>ПРАКТИКА</MobileNavItem>
+                                <MobileNavItem to="/contact" onClick={() => setIsMenuOpen(false)}>ОБСУДИТЬ</MobileNavItem>
+                            </nav>
+                            
+                            <div className="mt-20 flex gap-8 border-t border-white/10 pt-8 w-64 justify-center">
+                                <a href="mailto:hello@kime.xyz" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Почта</a>
+                                <a href="https://t.me/kime_bot" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Телеграм</a>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </header>
         </>
     );
 };

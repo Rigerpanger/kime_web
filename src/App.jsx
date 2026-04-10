@@ -124,10 +124,6 @@ const AppLayout = () => {
 
             {/* 2. UI Layer (Glass Overlay) */}
             <div className="absolute inset-0 z-10 pointer-events-none overflow-y-auto">
-                <div className="pointer-events-auto">
-                    <Header />
-                </div>
-
                 <main className="pointer-events-auto min-h-screen">
                     {isMobile ? (
                         <MobileScrollStack />
@@ -144,6 +140,10 @@ const AppLayout = () => {
                         </Routes>
                     )}
                 </main>
+
+                <div className="pointer-events-auto">
+                    <Header />
+                </div>
             </div>
         </div>
     );
