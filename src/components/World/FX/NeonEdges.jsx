@@ -11,10 +11,10 @@ const NeonEdges = ({ scene, config, modelY }) => {
 
     const wireframeGroup = useMemo(() => {
         if (!scene) return null;
-        const group = new THREE.Group();
-        scene.traverse(node => {
+        const group = scene.clone();
+        group.traverse(node => {
             if (node.isMesh) {
-                const wireframe = new THREE.Mesh(node.geometry, new THREE.MeshBasicMaterial({
+                node.material = new THREE.MeshBasicMaterial({
                     color: color,
                     wireframe: true,
                     transparent: true,
@@ -25,11 +25,8 @@ const NeonEdges = ({ scene, config, modelY }) => {
                     polygonOffset: true,
                     polygonOffsetFactor: -1,
                     renderOrder: 5
-                }));
-                wireframe.position.copy(node.position);
-                wireframe.rotation.copy(node.rotation);
-                wireframe.scale.copy(node.scale).multiplyScalar(1.002);
-                group.add(wireframe);
+                });
+                node.scale.multiplyScalar(1.002);
             }
         });
         return group;

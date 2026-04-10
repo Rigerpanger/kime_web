@@ -64,18 +64,16 @@ const Iris = ({ scene, config, modelY }) => {
 
     const irisGroup = useMemo(() => {
         if (!scene) return null;
-        const group = new THREE.Group();
-        scene.traverse(node => {
-            if (node.isMesh && node.geometry && node.geometry.attributes.position) {
-                // Ignore small helper/null objects from the GLTF
-                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
-
-                const irisMesh = new THREE.Mesh(node.geometry, shaderMaterial);
-                irisMesh.position.copy(node.position);
-                irisMesh.rotation.copy(node.rotation);
-                irisMesh.scale.copy(node.scale).multiplyScalar(1.02);
-                irisMesh.renderOrder = 10;
-                group.add(irisMesh);
+        const group = scene.clone();
+        group.traverse(node => {
+            if (node.isMesh) {
+                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) {
+                    node.visible = false;
+                    return;
+                }
+                node.material = shaderMaterial;
+                node.scale.multiplyScalar(1.02);
+                node.renderOrder = 10;
             }
         });
         return group;
