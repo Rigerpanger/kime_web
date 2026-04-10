@@ -91,14 +91,20 @@ const UnifiedShaderInjection = (mat) => {
                 float fMode = uIrisMode;
                 vec3 finalEffect = vec3(0.0);
 
+                // PETROL IRIDESCENCE (Spectra 3.0)
+                // Rainbow shift based on normal and time
+                float t = uIrisTime * 0.2;
+                vec3 petrol = 0.5 + 0.5 * cos(t + vec3(0.0, 2.0, 4.0) + vIrisWorldPos.y * 2.0 + norm.x * 2.0);
+                
+                // Fresnel calculation (Edge pop)
+                float rim = pow(1.0 - vDotV, 3.0 / max(uIrisGloss, 0.1));
+                
                 if (fMode < 4.0) {
-                    finalEffect = uIrisColor * pow(1.0 - vDotV, 3.0);
+                    // Standard Rim mode using base color but with petrol touch
+                    finalEffect = mix(uIrisColor, petrol, 0.4) * rim;
                 } else {
-                    // SPECTRAL MODE (Golden Formula Restored)
-                    float t = uIrisTime * 0.15;
-                    vec3 spectralCol = 0.5 + 0.5 * cos(t + vec3(0.0, 2.0, 4.0) + vIrisWorldPos.y * 4.0);
-                    float rim = pow(max(1.0 - vDotV, 0.0), 3.0 / max(uIrisGloss, 0.1));
-                    finalEffect = spectralCol * rim * 2.0 * uIrisBrightness;
+                    // Full Spectral/Petrol mode
+                    finalEffect = petrol * rim * 2.5 * uIrisBrightness;
                 }
                 gl_FragColor.rgb += finalEffect * uIrisIntensity;
             }
@@ -185,93 +191,12 @@ const SculptureModel = () => {
         });
     });
 
-    const irisMaterial = useMemo(() => {
-        return new THREE.ShaderMaterial({
-            uniforms: {
-                uTime: { value: 0 },
-                uIntensity: { value: 1.0 },
-                uColor: { value: new THREE.Color('#00f2ff') },
-                uMode: { value: 0 },
-                uBrightness: { value: 1.0 }
-            },
-            transparent: true,
-            blending: THREE.AdditiveBlending,
-            side: THREE.BackSide, // Render back first for depth feel
-            depthWrite: false,
-            polygonOffset: true,
-            polygonOffsetFactor: -1,
-            polygonOffsetUnits: -1,
-            vertexShader: `
-                varying vec3 vNormal;
-                varying vec3 vViewVec;
-                void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    vViewVec = normalize(-mvPosition.xyz);
-                    gl_Position = projectionMatrix * mvPosition;
-                }
-            `,
-            fragmentShader: `
-                varying vec3 vNormal;
-                varying vec3 vViewVec;
-                uniform float uTime;
-                uniform float uIntensity;
-                uniform vec3 uColor;
-                uniform float uMode;
-                uniform float uBrightness;
-
-                void main() {
-                    float vDotV = abs(dot(vNormal, vViewVec));
-                    float fresnel = pow(1.0 - vDotV, 3.0);
-                    vec3 col = uColor;
-                    if (uMode > 4.0) {
-                        float t = uTime * 0.2;
-                        col = 0.5 + 0.5 * cos(t + vec3(0, 2, 4) + vNormal.y * 3.0);
-                    }
-                    gl_FragColor = vec4(col * fresnel * uIntensity * 2.0 * uBrightness, fresnel * uIntensity * 0.5);
-                }
-            `
-        });
-    }, []);
-
-    const irisFX = activeFXs.find(f => f.type === 'Iris' && f.active);
-
-    const clonedIrisScene = useMemo(() => {
-        if (!irisFX) return null;
-        const clone = scene.clone();
-        clone.traverse(n => {
-            if (n.isMesh) {
-                n.material = irisMaterial;
-                n.castShadow = false;
-                n.receiveShadow = false;
-            }
-        });
-        return clone;
-    }, [scene, !!irisFX]);
-
-    useFrame((state) => {
-        if (irisFX && irisMaterial) {
-            irisMaterial.uniforms.uTime.value = state.clock.elapsedTime * safeNum(irisFX.speed, 1.0);
-            irisMaterial.uniforms.uIntensity.value = safeNum(irisFX.intensity, 1.0);
-            irisMaterial.uniforms.uColor.value.set(irisFX.color || '#00f2ff');
-            irisMaterial.uniforms.uBrightness.value = safeNum(irisFX.brightness, 1.0);
-            irisMaterial.uniforms.uMode.value = (irisFX.mode === 'Spectral' || irisFX.presetIndex === 4) ? 4.1 : 0.0;
-        }
-    });
-
     return (
         <group>
             <group ref={groupRef}>
                 <Center bottom>
                     <primitive object={clonedScene} />
                     
-                    {/* Integrated Iris Ghost Shell (Spectra 2.0) - No flicker, perfect depth */}
-                    {irisFX && clonedIrisScene && (
-                        <group scale={1.015}>
-                            <primitive object={clonedIrisScene} />
-                        </group>
-                    )}
-
                     {/* Scene-linked FX */}
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
