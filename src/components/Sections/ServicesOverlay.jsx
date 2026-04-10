@@ -45,6 +45,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
 
 const ServicesOverlay = () => {
     const activeSlug = useActiveSlug();
+    const [interactionCount, setInteractionCount] = React.useState(0);
     
     const activeService = useMemo(() => {
         const found = servicesData.find(s => s.slug === activeSlug);
@@ -55,11 +56,19 @@ const ServicesOverlay = () => {
         return servicesData.findIndex(s => s.id === activeService?.id);
     }, [activeService]);
 
-    const hintIndex = (activeIndex + 1) % servicesData.length;
+    // Only show hint for the first 2 interactions
+    const hintIndex = interactionCount < 2 ? (activeIndex + 1) % servicesData.length : -1;
 
     const [layout, setLayout] = React.useState({});
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
     const [isReady, setIsReady] = React.useState(false);
+
+    React.useEffect(() => {
+        // Increment interaction when activeService changes (but not on first load)
+        if (activeService) {
+            setInteractionCount(prev => prev + 1);
+        }
+    }, [activeService?.id]);
 
     React.useEffect(() => {
         const fetchLayout = async () => {
