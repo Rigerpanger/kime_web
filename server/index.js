@@ -1012,7 +1012,7 @@ ${houndInstructions}
 
 // --- SPA FALLBACK (Always serve index.html for unknown routes) ---
 app.get('*', (req, res) => {
-    const fullDistPath = path.join(__dirname, '../dist/index.html');
+    const fullDistPath = path.join(finalDistPath, 'index.html');
     if (fs.existsSync(fullDistPath)) {
         res.sendFile(fullDistPath);
     } else {

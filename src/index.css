@@ -34,39 +34,42 @@ body {
 
 .neon-hint-border {
   position: relative;
-  border-color: rgba(255, 255, 255, 0.05) !important;
-  overflow: hidden;
+  background: linear-gradient(
+    110deg, 
+    rgba(225, 138, 255, 0.05) 0%, 
+    rgba(145, 225, 255, 0.15) 25%, 
+    rgba(255, 184, 225, 0.15) 50%, 
+    rgba(184, 255, 242, 0.15) 75%, 
+    rgba(225, 138, 255, 0.05) 100%
+  ) !important;
+  background-size: 200% 100% !important;
+  animation: neon-flow 4s linear infinite !important;
+  border-color: rgba(145, 225, 255, 0.3) !important;
+  box-shadow: 0 0 30px rgba(145, 225, 255, 0.05);
 }
 
 .neon-hint-border::before {
   content: '';
   position: absolute;
-  inset: -1px;
-  padding: 1px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     90deg, 
-    #ffb8e1 0%, 
-    #e18aff 25%, 
-    #91e1ff 50%, 
-    #b8fff2 75%, 
-    #ffb8e1 100%
+    transparent, 
+    rgba(255, 255, 255, 0.05), 
+    transparent
   );
-  background-size: 200% auto;
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) content-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  animation: neon-flow 4s linear infinite;
-  opacity: 0.6;
+  background-size: 200% 100%;
+  animation: neon-flow 2s linear infinite;
   pointer-events: none;
-  border-radius: inherit;
 }
 
 .neon-hint-text {
-  color: #c9e9ff !important;
-  text-shadow: 0 0 10px rgba(145, 225, 255, 0.3);
-  animation: pulse-light 2.5s ease-in-out infinite;
+  color: #ffffff !important;
+  text-shadow: 0 0 10px rgba(145, 225, 255, 0.8);
+  font-weight: 500 !important;
 }
 
 @keyframes neon-flow {
@@ -75,7 +78,7 @@ body {
 }
 
 @keyframes pulse-light {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.9; }
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
