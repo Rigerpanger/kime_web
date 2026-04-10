@@ -283,7 +283,7 @@ const StudioEditor = () => {
                                     <div className="flex justify-between border-b border-white/5 pb-1"><span className="text-[8px] font-black text-[#ffcc00] uppercase">{activeFX.type}</span><div className="flex gap-2"><input type="checkbox" checked={activeFX.active} onChange={e => updateSectionFX(activeSlug, activeFX.id, { active: e.target.checked })} /><button onClick={() => removeSectionFX(activeSlug, activeFX.id)} className="text-red-500/30"><Trash2 size={10}/></button></div></div>
                                     <div className="space-y-3">
                                         <div className="grid grid-cols-2 gap-4">
-                                            {renderSlider('Radius (Dist)', activeFX.radius ?? 4.5, 0.1, 20, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
+                                            {renderSlider('Radius (Dist)', activeFX.radius ?? 4.5, 0.02, 20, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
                                             {renderSlider('Azimuth (Orb)', activeFX.azimuth ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
                                             {renderSlider('Height (Y)', activeFX.height ?? 4.8, -25, 25, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                             {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}

@@ -99,13 +99,11 @@ const CameraRig = () => {
                 targetLookArr[0] = 0; targetLookArr[1] = 5.1; targetLookArr[2] = 0;
             }
 
-            // --- CINEMATIC SMOOTHING (HEAVY/EXPENSIVE FEEL) ---
-            // On mobile, we use a slightly faster damping (1.4) to feel more responsive to touch/scroll.
-            const mobileSmoothing = 1.4;
-            const desktopSmoothing = 1.0;
-            const transitionSmoothing = (aspect < 1.0) ? mobileSmoothing : desktopSmoothing; 
+            // --- CINEMATIC SMOOTHING ---
+            // Unify smoothing to prevent mobile "jumps" or speed changes during transitions
+            const smoothing = 1.0; 
             const editorSmoothing = 4.0; 
-            const s = isEditing ? editorSmoothing : transitionSmoothing;
+            const s = isEditing ? editorSmoothing : smoothing;
             const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
 
             // Apply movement (Independent axes for buttery glide)
