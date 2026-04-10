@@ -160,11 +160,10 @@ const SculptureModel = () => {
         clonedScene.traverse(n => {
             if (n.isMesh && n.material.userData.shader) {
                 const shader = n.material.userData.shader;
-                const ud = n.material.userData;
                 const iris = activeFXs.find(f => f.type === 'Iris' && f.active);
 
                 if (iris) {
-                    shader.uniforms.uIrisMix.value = 1.0;
+                    shader.uniforms.uIrisMix.value = 0.3; // Base rim glow for Iris
                     shader.uniforms.uIrisTime.value = state.clock.elapsedTime * safeNum(iris.speed, 1.0);
                     shader.uniforms.uIrisIntensity.value = safeNum(iris.intensity, 1.0);
                     shader.uniforms.uIrisBrightness.value = safeNum(iris.brightness, 1.0);
@@ -186,12 +185,94 @@ const SculptureModel = () => {
         });
     });
 
+    const irisMaterial = useMemo(() => {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uIntensity: { value: 1.0 },
+                uColor: { value: new THREE.Color('#00f2ff') },
+                uMode: { value: 0 },
+                uBrightness: { value: 1.0 }
+            },
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            side: THREE.BackSide, // Render back first for depth feel
+            depthWrite: false,
+            polygonOffset: true,
+            polygonOffsetFactor: -1,
+            polygonOffsetUnits: -1,
+            vertexShader: `
+                varying vec3 vNormal;
+                varying vec3 vViewVec;
+                void main() {
+                    vNormal = normalize(normalMatrix * normal);
+                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                    vViewVec = normalize(-mvPosition.xyz);
+                    gl_Position = projectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                varying vec3 vNormal;
+                varying vec3 vViewVec;
+                uniform float uTime;
+                uniform float uIntensity;
+                uniform vec3 uColor;
+                uniform float uMode;
+                uniform float uBrightness;
+
+                void main() {
+                    float vDotV = abs(dot(vNormal, vViewVec));
+                    float fresnel = pow(1.0 - vDotV, 3.0);
+                    vec3 col = uColor;
+                    if (uMode > 4.0) {
+                        float t = uTime * 0.2;
+                        col = 0.5 + 0.5 * cos(t + vec3(0, 2, 4) + vNormal.y * 3.0);
+                    }
+                    gl_FragColor = vec4(col * fresnel * uIntensity * 2.0 * uBrightness, fresnel * uIntensity * 0.5);
+                }
+            `
+        });
+    }, []);
+
+    const irisFX = activeFXs.find(f => f.type === 'Iris' && f.active);
+
+    const clonedIrisScene = useMemo(() => {
+        if (!irisFX) return null;
+        const clone = scene.clone();
+        clone.traverse(n => {
+            if (n.isMesh) {
+                n.material = irisMaterial;
+                n.castShadow = false;
+                n.receiveShadow = false;
+            }
+        });
+        return clone;
+    }, [scene, !!irisFX]);
+
+    useFrame((state) => {
+        if (irisFX && irisMaterial) {
+            irisMaterial.uniforms.uTime.value = state.clock.elapsedTime * safeNum(irisFX.speed, 1.0);
+            irisMaterial.uniforms.uIntensity.value = safeNum(irisFX.intensity, 1.0);
+            irisMaterial.uniforms.uColor.value.set(irisFX.color || '#00f2ff');
+            irisMaterial.uniforms.uBrightness.value = safeNum(irisFX.brightness, 1.0);
+            irisMaterial.uniforms.uMode.value = (irisFX.mode === 'Spectral' || irisFX.presetIndex === 4) ? 4.1 : 0.0;
+        }
+    });
+
     return (
         <group>
             <group ref={groupRef}>
                 <Center bottom>
                     <primitive object={clonedScene} />
-                    {/* Scene-linked FX that must share the same centering transform */}
+                    
+                    {/* Integrated Iris Ghost Shell (Spectra 2.0) - No flicker, perfect depth */}
+                    {irisFX && clonedIrisScene && (
+                        <group scale={1.015}>
+                            <primitive object={clonedIrisScene} />
+                        </group>
+                    )}
+
+                    {/* Scene-linked FX */}
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
                         const key = `scene-fx-${fx.id || fx.type}`;
@@ -215,12 +296,12 @@ const SculptureModel = () => {
                         const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
 
                         switch(fx.type) {
-                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 3) + orbitRad}} modelY={modelY} />;
-                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius || 4) + orbitRad}} modelY={modelY} />;
-                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius || 1.5) + orbitRad}} modelY={modelY} />;
-                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 8.0) + orbitRad * 2}} modelY={modelY} />;
-                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 5.0) + orbitRad}} modelY={modelY} />;
-                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 3.0) + orbitRad}} modelY={modelY} />;
+                            case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 0.5) + orbitRad}} modelY={modelY} />;
+                            case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius || 0.8) + orbitRad}} modelY={modelY} />;
+                            case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius || 0.2) + orbitRad}} modelY={modelY} />;
+                            case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 1.0) + orbitRad}} modelY={modelY} />;
+                            case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 1.0) + orbitRad}} modelY={modelY} />;
+                            case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 1.0) + orbitRad}} modelY={modelY} />;
                             case 'EngineGizmo': return <EngineGizmo key={key} config={fx} modelY={modelY} />;
                             case 'SpatialAR': return <SpatialAR key={key} config={fx} modelY={modelY} />;
                             case 'MilkyWay': return <MilkyWay key={key} config={fx} />;
