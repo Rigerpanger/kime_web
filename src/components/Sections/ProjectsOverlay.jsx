@@ -234,24 +234,18 @@ const ArtifactPassport = ({ project, onClose }) => {
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                     className="relative w-full max-w-5xl max-h-[90vh] bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                 >
-                    {/* Persistent Close Button */}
+                    {/* Persistent Smart Close Button */}
                     <button 
-                        onClick={onClose} 
-                        className="absolute top-4 right-4 md:top-8 md:right-8 z-[120] p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md"
+                        onClick={() => isVideoOpen ? setIsVideoOpen(false) : onClose()} 
+                        className="absolute top-4 right-4 md:top-8 md:right-8 z-[200] p-2 md:p-3 rounded-full bg-white/10 border border-white/20 text-white/60 hover:text-white hover:bg-white/20 transition-all backdrop-blur-xl shadow-2xl active:scale-90"
                     >
                         <X size={20} className="md:w-6 md:h-6" />
                     </button>
 
                     <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
-                    {isVideoOpen ? (
-                        <div className="w-full flex items-center justify-center pt-8">
-                            <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/50 border border-white/10 shadow-3xl">
-                                <button 
-                                    onClick={() => setIsVideoOpen(false)} 
-                                    className="absolute top-4 right-4 text-white hover:text-[#ffaa44] transition-colors z-[120] bg-black/60 rounded-full p-2 border border-white/10"
-                                >
-                                    <X size={24} />
-                                </button>
+                        {isVideoOpen ? (
+                            <div className="w-full h-full flex items-center justify-center pt-8 md:pt-4">
+                            <div className="relative w-full aspect-video rounded-3xl overflow-hidden bg-black/50 border border-white/10 shadow-3xl">
                                 <iframe 
                                     src={getVideoEmbedUrl(project.video_url)} 
                                     className="absolute inset-0 w-full h-full"
