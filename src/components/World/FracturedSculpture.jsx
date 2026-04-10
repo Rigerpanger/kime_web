@@ -198,6 +198,7 @@ const SculptureModel = () => {
                         switch(fx.type) {
                             case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             default: return null;
