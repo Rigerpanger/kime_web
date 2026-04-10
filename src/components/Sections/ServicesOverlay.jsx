@@ -37,7 +37,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
             </div>
             <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-light' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/60'}`}>
                 {service.title}
-                {isHint && <span className="ml-2 text-[8px] text-[#ffcc00] opacity-50 lowercase transition-opacity animate-pulse">следующее</span>}
+                {isHint && <span className="ml-2 text-[8px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse">следующее</span>}
             </span>
         </NavLink>
     );

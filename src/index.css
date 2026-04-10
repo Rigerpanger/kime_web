@@ -34,17 +34,25 @@ body {
 
 .neon-hint-border {
   position: relative;
-  background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.4), transparent);
+  background: linear-gradient(90deg, 
+    rgba(224, 247, 255, 0) 0%, 
+    rgba(224, 247, 255, 0.4) 25%, 
+    rgba(255, 233, 243, 0.4) 50%, 
+    rgba(209, 196, 233, 0.4) 75%, 
+    rgba(224, 247, 255, 0) 100%
+  );
   background-size: 200% 100%;
-  animation: neon-flow 2.5s linear infinite;
+  animation: neon-flow 3s linear infinite;
   border-width: 1px;
   border-style: solid;
-  border-color: rgba(255, 204, 0, 0.2) !important;
-  box-shadow: 0 0 15px rgba(255, 204, 0, 0.05);
+  border-color: rgba(224, 247, 255, 0.2) !important;
+  box-shadow: 0 0 20px rgba(224, 247, 255, 0.08);
 }
 
 .neon-hint-text {
-  animation: pulse-light 2s ease-in-out infinite;
+  color: #E0F7FF !important;
+  text-shadow: 0 0 8px rgba(255, 233, 243, 0.5);
+  animation: pulse-light 2.5s ease-in-out infinite;
 }
 
 @keyframes pulse-light {
