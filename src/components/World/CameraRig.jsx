@@ -67,26 +67,30 @@ const CameraRig = () => {
             const aspect = safeNum(state.size.width / Math.max(1, state.size.height), 1);
             let baseRadius = safeNum(activeCam.radius, 18);
             
-            // Adjust radius for vertical aspect to keep the model 'centered' and 'identically sized'
+            const targetLookArr = [
+                safeNum(activeCam.pivotX, 0),
+                safeNum(activeCam.pivotY, 5.1),
+                safeNum(activeCam.pivotZ, 0)
+            ];
+
+            // Adjust framing for vertical aspect (Mobile / Portrait)
             if (aspect < 1.0) {
-                // On mobile, we zoom out proportional to the crop
-                // Reduced from 1.1 to 0.77 (30% closer) per user request
-                baseRadius = baseRadius * (0.77 / aspect); 
+                // 1. Zoom Adjustment: Reduced from original 1.1 down to 0.69 (Approx 40% closer total)
+                baseRadius = baseRadius * (0.69 / aspect); 
+                
+                // 2. Vertical Offset: Shift target down so model appears higher on screen
+                // A value of 1.2 units is approx 10-15% of vertical view
+                targetLookArr[1] -= 1.2;
             }
             
             const r = safeNum(baseRadius, 18);
             const theta = rawTheta;
             const phi = rawPhi;
 
-            const px = safeNum(activeCam.pivotX, 0);
-            const py = safeNum(activeCam.pivotY, 5.1);
-            const pz = safeNum(activeCam.pivotZ, 0);
-            
-            const targetLookArr = [px, py, pz];
             const targetPosArr = [
-                px + r * Math.sin(phi) * Math.sin(theta),
-                py + r * Math.cos(phi),
-                pz + r * Math.sin(phi) * Math.cos(theta)
+                targetLookArr[0] + r * Math.sin(phi) * Math.sin(theta),
+                targetLookArr[1] + r * Math.cos(phi),
+                targetLookArr[2] + r * Math.sin(phi) * Math.cos(theta)
             ];
 
             // Safety check for NaN in the final position array as well
@@ -96,10 +100,11 @@ const CameraRig = () => {
             }
 
             // --- CINEMATIC SMOOTHING (HEAVY/EXPENSIVE FEEL) ---
-            // We use a high damping value (smaller number in DAMP is actually slower/smoother)
-            // For a 'heavy' cinematic feel, we use 1.0.
-            const transitionSmoothing = 1.0; 
-            const editorSmoothing = 4.0; // Sliders respond faster
+            // On mobile, we use a slightly faster damping (1.4) to feel more responsive to touch/scroll.
+            const mobileSmoothing = 1.4;
+            const desktopSmoothing = 1.0;
+            const transitionSmoothing = (aspect < 1.0) ? mobileSmoothing : desktopSmoothing; 
+            const editorSmoothing = 4.0; 
             const s = isEditing ? editorSmoothing : transitionSmoothing;
             const d = Math.max(0.001, Math.min(0.2, delta || 0.016));
 

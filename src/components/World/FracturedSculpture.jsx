@@ -16,9 +16,10 @@ import NeuralAtom from './FX/NeuralAtom';
 import ShapeShifter from './FX/ShapeShifter';
 import SoftwareSilhouette from './FX/SoftwareSilhouette';
 import QuantumDust from './FX/QuantumDust';
-import CyberWaves from './FX/CyberWaves';
 import DataStream from './FX/DataStream';
 import MilkyWay from './FX/MilkyWay';
+import EngineGizmo from './FX/EngineGizmo';
+import SpatialAR from './FX/SpatialAR';
 
 const safeNum = (val, fallback) => {
     const n = Number(val);
@@ -221,6 +222,8 @@ const SculptureModel = () => {
                             case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 8.0) + orbitRad * 2}} modelY={modelY} />;
                             case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 5.0) + orbitRad}} modelY={modelY} />;
                             case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 3.0) + orbitRad}} modelY={modelY} />;
+                            case 'EngineGizmo': return <EngineGizmo key={key} config={fx} modelY={modelY} />;
+                            case 'SpatialAR': return <SpatialAR key={key} config={fx} modelY={modelY} />;
                             case 'MilkyWay': return <MilkyWay key={key} config={fx} />;
                             default: return null;
                         }

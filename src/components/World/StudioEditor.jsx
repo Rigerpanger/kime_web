@@ -4,7 +4,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { Save, Loader2, Check, Camera, Lightbulb, Trash2, Zap, ChevronDown, ChevronUp, Palette } from 'lucide-react';
 import useActiveSlug from '../../hooks/useActiveSlug';
 
-const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm', 'SacredGeometry', 'MilkyWay', 'Levitation'];
+const FX_TYPES = ['None', 'NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'TetrisReveal', 'Iris', 'HoloGrid', 'NeonEdges', 'QuantumDust', 'CyberWaves', 'DataStream', 'GeoSwarm', 'SacredGeometry', 'MilkyWay', 'Levitation', 'EngineGizmo', 'SpatialAR'];
 
 const SECTION_NAMES = {
     "default": "Главная (Home)",

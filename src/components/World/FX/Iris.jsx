@@ -13,9 +13,9 @@ const Iris = ({ scene, config, modelY }) => {
         return new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0 },
-                uIntensity: { value: intensity },
-                uPreset: { value: presetIndex },
-                uSpeed: { value: speed }
+                uIntensity: { value: 1.0 },
+                uPreset: { value: 0 },
+                uSpeed: { value: 1.0 }
             },
             transparent: true,
             blending: THREE.AdditiveBlending,
@@ -60,7 +60,7 @@ const Iris = ({ scene, config, modelY }) => {
                 }
             `
         });
-    }, [intensity, presetIndex, speed]);
+    }, []); // Empty dependencies make the material instance stable
 
     const irisGroup = useMemo(() => {
         if (!scene) return null;
@@ -77,7 +77,7 @@ const Iris = ({ scene, config, modelY }) => {
             }
         });
         return group;
-    }, [scene, shaderMaterial]);
+    }, [scene]); // Only re-clone if the scene actually changes
 
     useFrame((state) => {
         if (!active || !irisGroup) return;
