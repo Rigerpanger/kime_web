@@ -1,12 +1,14 @@
 import React, { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, Ring, Plane } from '@react-three/drei';
+import { Html, Ring, Plane, Box } from '@react-three/drei';
 import * as THREE from 'three';
 
 const SpatialAR = ({ config, modelY }) => {
-    const active = config.active;
+    const active = config.active !== false;
     const intensity = config.intensity || 1.0;
     const color = new THREE.Color(config.color || '#44aaff');
+    const scale = config.scale || 1.0;
+    const heightOffset = config.height || 0;
     
     const groupRef = useRef();
 
@@ -24,13 +26,13 @@ const SpatialAR = ({ config, modelY }) => {
 
     useFrame((state) => {
         if (!active || !groupRef.current) return;
-        groupRef.current.position.y = modelY;
+        groupRef.current.position.y = modelY + heightOffset;
     });
 
     if (!active) return null;
 
     return (
-        <group ref={groupRef}>
+        <group ref={groupRef} scale={scale}>
             {/* 1. Ground Spatial Mesh */}
             <group position={[0, -6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <gridHelper args={[10, 20, color, color]} />
@@ -60,7 +62,8 @@ const SpatialAR = ({ config, modelY }) => {
                     fontSize: '9px',
                     fontFamily: 'monospace',
                     letterSpacing: '2px',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    opacity: intensity
                 }}>
                     <div style={{ marginBottom: '2px' }}>[ SPATIAL_MAPPING ]</div>
                     <ScanningText />
