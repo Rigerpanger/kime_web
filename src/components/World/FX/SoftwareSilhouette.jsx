@@ -59,17 +59,16 @@ const SoftwareSilhouette = ({ scene, config, modelY }) => {
 
     const silhouetteGroup = useMemo(() => {
         if (!scene) return null;
-        const group = new THREE.Group();
-        scene.traverse(node => {
-            if (node.isMesh && node.geometry && node.geometry.attributes.position) {
+        const group = scene.clone();
+        group.traverse(node => {
+            if (node.isMesh) {
                 // Ignore small helper/null objects from the GLTF
-                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) return;
-
-                const mesh = new THREE.Mesh(node.geometry, silhouetteMaterial);
-                mesh.position.copy(node.position);
-                mesh.rotation.copy(node.rotation);
-                mesh.scale.copy(node.scale).multiplyScalar(scaleOffset);
-                group.add(mesh);
+                if (node.name.toLowerCase().includes('pivot') || node.name.toLowerCase().includes('null')) {
+                    node.visible = false;
+                    return;
+                }
+                node.material = silhouetteMaterial;
+                node.scale.multiplyScalar(scaleOffset);
             }
         });
         return group;
