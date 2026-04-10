@@ -224,7 +224,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                 animate={{ opacity: 1, backdropFilter: "blur(20px)" }}
                 exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
                 transition={{ duration: 0.5 }}
-                className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 pointer-events-auto bg-black/60"
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-12 pointer-events-auto bg-black/80"
             >
                 <div className="absolute inset-0" onClick={onClose} />
                 <motion.div 
@@ -232,14 +232,15 @@ const ArtifactPassport = ({ project, onClose }) => {
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     exit={{ y: -20, opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative w-full max-w-5xl max-h-[90vh] bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+                    className="relative w-full max-w-5xl max-h-[92vh] mt-6 md:mt-0 bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                 >
                     {/* Persistent Smart Close Button */}
                     <button 
                         onClick={() => isVideoOpen ? setIsVideoOpen(false) : onClose()} 
-                        className="absolute top-4 right-4 md:top-8 md:right-8 z-[200] p-2 md:p-3 rounded-full bg-white/10 border border-white/20 text-white/60 hover:text-white hover:bg-white/20 transition-all backdrop-blur-xl shadow-2xl active:scale-90"
+                        className="absolute top-3 right-3 md:top-8 md:right-8 z-[200] p-3 rounded-full bg-black/60 border border-white/20 text-white hover:text-[#ffaa44] hover:border-[#ffaa44]/50 hover:bg-black/80 hover:scale-105 transition-all backdrop-blur-xl shadow-[0_0_20px_rgba(0,0,0,0.4)] active:scale-95 flex items-center justify-center"
+                        aria-label="Закрыть карточку"
                     >
-                        <X size={20} className="md:w-6 md:h-6" />
+                        <X size={22} className="md:w-7 md:h-7" strokeWidth={2.5} />
                     </button>
 
                     <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
