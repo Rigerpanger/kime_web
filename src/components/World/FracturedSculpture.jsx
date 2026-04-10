@@ -190,6 +190,19 @@ const SculptureModel = () => {
             <group ref={groupRef}>
                 <Center bottom>
                     <primitive object={clonedScene} />
+                    {/* Scene-linked FX that must share the same centering transform */}
+                    {activeFXs.map(fx => {
+                        if (!fx.active) return null;
+                        const key = `scene-fx-${fx.id || fx.type}`;
+                        const modelY = 5.1 + (config.y || 0);
+                        switch(fx.type) {
+                            case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
+                            default: return null;
+                        }
+                    })}
                 </Center>
 
                 {/* 2. FX Sub-group that can rotate independently around the anchored model */}
@@ -203,12 +216,7 @@ const SculptureModel = () => {
                         switch(fx.type) {
                             case 'GeoSwarm': return <GeoSwarm key={key} config={{...fx, radius: (fx.radius || 3) + orbitRad}} modelY={modelY} />;
                             case 'NeuralSwarm': return <NeuralSwarm key={key} config={{...fx, radius: (fx.radius || 4) + orbitRad}} modelY={modelY} />;
-                            case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius || 1.5) + orbitRad}} modelY={modelY} />;
-                            case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius || 8.0) + orbitRad * 2}} modelY={modelY} />;
                             case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius || 5.0) + orbitRad}} modelY={modelY} />;
                             case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius || 3.0) + orbitRad}} modelY={modelY} />;
