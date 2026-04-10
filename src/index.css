@@ -24,3 +24,31 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Neon Hint Animation */
+@keyframes neon-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.neon-hint-border {
+  position: relative;
+  background: linear-gradient(90deg, transparent, rgba(255, 204, 0, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: neon-flow 2.5s linear infinite;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgba(255, 204, 0, 0.2) !important;
+  box-shadow: 0 0 15px rgba(255, 204, 0, 0.05);
+}
+
+.neon-hint-text {
+  animation: pulse-light 2s ease-in-out infinite;
+}
+
+@keyframes pulse-light {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+

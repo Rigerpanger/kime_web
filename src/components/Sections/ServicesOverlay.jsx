@@ -14,7 +14,7 @@ const ICON_MAP = {
     Code: Code
 };
 
-const ServiceListItem = ({ service, isActive, index }) => {
+const ServiceListItem = ({ service, isActive, isHint, index }) => {
     const IconComponent = ICON_MAP[service.icon] || Box;
     const number = (index + 1).toString().padStart(2, '0');
     
@@ -24,17 +24,20 @@ const ServiceListItem = ({ service, isActive, index }) => {
             className={`group flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 border ${
                 isActive 
                 ? 'bg-white/5 border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.02)]' 
+                : isHint 
+                ? 'neon-hint-border'
                 : 'border-transparent hover:bg-white/[0.03]'
             }`}
         >
-            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-white' : 'text-white/10 group-hover:text-white/30'}`}>
+            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-white' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
                 {number}
             </span>
-            <div className={`p-1.5 rounded-lg transition-colors duration-500 ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white/50'}`}>
-                <IconComponent size={18} strokeWidth={1} />
+            <div className={`p-1.5 rounded-lg transition-colors duration-500 ${isActive ? 'text-white' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/50'}`}>
+                <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
             </div>
-            <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-light' : 'text-white/30 group-hover:text-white/60'}`}>
+            <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-light' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/60'}`}>
                 {service.title}
+                {isHint && <span className="ml-2 text-[8px] text-[#ffcc00] opacity-50 lowercase transition-opacity animate-pulse">следующее</span>}
             </span>
         </NavLink>
     );
@@ -47,6 +50,12 @@ const ServicesOverlay = () => {
         const found = servicesData.find(s => s.slug === activeSlug);
         return found || servicesData[0];
     }, [activeSlug]);
+
+    const activeIndex = useMemo(() => {
+        return servicesData.findIndex(s => s.id === activeService?.id);
+    }, [activeService]);
+
+    const hintIndex = (activeIndex + 1) % servicesData.length;
 
     const [layout, setLayout] = React.useState({});
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
@@ -102,6 +111,7 @@ const ServicesOverlay = () => {
                             key={service.id} 
                             service={service} 
                             isActive={activeService?.id === service.id} 
+                            isHint={index === hintIndex}
                             index={index}
                         />
                     ))}
