@@ -168,13 +168,22 @@ const StudioEditor = () => {
                         </button>
                         
                         {window.location.hostname === 'localhost' && (
-                            <button 
-                                onClick={useAppStore.getState().saveToGoldenFile} 
-                                className="w-full mt-2 py-2 rounded font-black uppercase text-[6px] bg-indigo-600 text-white shadow-lg border border-indigo-400/50 hover:bg-indigo-500 transition-all"
-                                title="Save current settings directly to goldenConfig.json file"
-                            >
-                                Push to Golden (Git)
-                            </button>
+                            <div className="flex flex-col gap-1 mt-2">
+                                <button 
+                                    onClick={useAppStore.getState().pullFromProductionDB} 
+                                    className="w-full py-2 rounded font-black uppercase text-[6px] bg-teal-600 text-white shadow-lg border border-teal-400/30 hover:bg-teal-500 transition-all"
+                                    title="Import settings from live website database"
+                                >
+                                    Pull from Web (DB)
+                                </button>
+                                <button 
+                                    onClick={useAppStore.getState().saveToGoldenFile} 
+                                    className="w-full py-1.5 rounded font-black uppercase text-[5px] bg-indigo-600 text-white shadow-lg border border-indigo-400/50 hover:bg-indigo-500 transition-all"
+                                    title="Save to local goldenConfig.json"
+                                >
+                                    Push to Golden
+                                </button>
+                            </div>
                         )}
                     </div>
 

@@ -93,13 +93,43 @@ const useAppStore = create(
           }
       },
 
-      nuclearReset: () => set((state) => ({
-         sculptureConfig: {
-            ...state.sculptureConfig,
-            ...goldenConfig,
-            sections: JSON.parse(JSON.stringify(goldenConfig.sections))
-         }
-      })),
+      pullFromProductionDB: async () => {
+          try {
+              const res = await fetch('https://kimeproduction.ru/api/content/sculptureConfig');
+              if (!res.ok) throw new Error('Could not fetch from production');
+              const data = await res.json();
+              if (data) {
+                  set((state) => ({
+                      sculptureConfig: {
+                          ...state.sculptureConfig,
+                          ...data,
+                          // Merge sections properly
+                          sections: {
+                              ...state.sculptureConfig.sections,
+                              ...(data.sections || {})
+                          }
+                      }
+                  }));
+                  alert('✅ Настройки успешно импортированы с kimeproduction.ru!');
+              }
+          } catch (err) {
+              alert('❌ Ошибка импорта: ' + err.message);
+          }
+      },
+
+      nuclearReset: () => set((state) => {
+         // Deep reset to goldenConfig.json
+         const resetConfig = JSON.parse(JSON.stringify(goldenConfig));
+         return {
+            sculptureConfig: {
+                ...state.sculptureConfig,
+                ...resetConfig,
+                sections: resetConfig.sections || {}
+            },
+            // Force reset active section override if any
+            activeSlug: 'default' 
+         };
+      }),
 
       setShowStudioEditor: (show) => set({ showStudioEditor: show }),
       setIsModalOpen: (isOpen) => set({ isModalOpen: isOpen }),
