@@ -3,12 +3,71 @@ import { useFrame } from '@react-three/fiber';
 import { Html, Ring, Plane, Box } from '@react-three/drei';
 import * as THREE from 'three';
 
+const HoloMask = ({ color, intensity }) => (
+    <group position={[0, 6.2, 0.45]} scale={0.82}>
+        {/* Core Face Shield */}
+        <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.5, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
+            <meshBasicMaterial color={color} wireframe transparent opacity={0.3 * intensity} />
+        </mesh>
+        
+        {/* Neon Outline (Asian Style Accents) */}
+        <group position={[0, 0, 0.1]}>
+            {/* Forehead ornament */}
+            <Box args={[0.2, 0.4, 0.05]} position={[0, 0.4, 0]}>
+                <meshBasicMaterial color={color} wireframe />
+            </Box>
+            {/* Cheek guard L */}
+            <Box args={[0.3, 0.6, 0.05]} position={[-0.4, -0.2, 0]} rotation={[0, 0, 0.3]}>
+                <meshBasicMaterial color={color} wireframe />
+            </Box>
+            {/* Cheek guard R */}
+            <Box args={[0.3, 0.6, 0.05]} position={[0.4, -0.2, 0]} rotation={[0, 0, -0.3]}>
+                <meshBasicMaterial color={color} wireframe />
+            </Box>
+        </group>
+
+        {/* Floating Data Rings around face */}
+        {[0, 1].map(i => (
+            <mesh key={i} rotation={[Math.PI / 2 + (i * 0.2), 0, 0]} position={[0, 0, 0]}>
+                <ringGeometry args={[0.6 + i * 0.1, 0.62 + i * 0.1, 64]} />
+                <meshBasicMaterial color={color} transparent opacity={0.2 * intensity} side={THREE.DoubleSide} />
+            </mesh>
+        ))}
+    </group>
+);
+
+const POIPoint = ({ position, label, color, intensity }) => (
+    <group position={position}>
+        <mesh>
+            <sphereGeometry args={[0.05, 8, 8]} />
+            <meshBasicMaterial color={color} />
+        </mesh>
+        <Html distanceFactor={15}>
+            <div style={{ 
+                color: color.getStyle(), 
+                fontSize: '6px', 
+                background: 'rgba(0,0,0,0.8)', 
+                padding: '2px 4px', 
+                whiteSpace: 'nowrap',
+                border: `1px solid ${color.getStyle()}`,
+                fontFamily: 'monospace',
+                opacity: intensity
+            }}>
+                ID_{Math.floor(Math.random() * 999)}: {label}
+            </div>
+        </Html>
+    </group>
+);
+
 const SpatialAR = ({ config, modelY }) => {
     const active = config.active !== false;
     const intensity = config.intensity || 1.0;
     const color = new THREE.Color(config.color || '#44aaff');
     const scale = config.scale || 1.0;
     const heightOffset = config.height || 0;
+    
+    const showMask = config.showMask !== false;
     
     const groupRef = useRef();
 
@@ -17,6 +76,12 @@ const SpatialAR = ({ config, modelY }) => {
         { id: 2, pos: [-2, 8, -1.5], size: 0.3 },
         { id: 3, pos: [1.2, 11, -2], size: 0.25 },
         { id: 4, pos: [-3, 2, 2], size: 0.15 },
+    ], []);
+
+    const poiPoints = useMemo(() => [
+        { pos: [1.5, 14, 0], label: 'SCULPTURE_HEAD_CORE' },
+        { pos: [-1.8, 8, 1], label: 'STRUCTURAL_PIVOT_A' },
+        { pos: [2, 3, -1], label: 'BASE_STABILITY' }
     ], []);
 
     const markers = useMemo(() => [
@@ -33,6 +98,9 @@ const SpatialAR = ({ config, modelY }) => {
 
     return (
         <group ref={groupRef} scale={scale}>
+            {/* 0. The Holographic Face Mask (AR Visor) */}
+            {showMask && <HoloMask color={color} intensity={intensity} />}
+
             {/* 1. Ground Spatial Mesh */}
             <group position={[0, -6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <gridHelper args={[10, 20, color, color]} />
@@ -46,24 +114,29 @@ const SpatialAR = ({ config, modelY }) => {
                 <Anchor key={a.id} position={a.pos} size={a.size} color={color} intensity={intensity} />
             ))}
 
-            {/* 3. AR Floating Markers */}
+            {/* 3. AR Floating Markers & POIs */}
             {markers.map(m => (
                 <ARMarker key={m.id} position={m.pos} rotation={m.rot} color={color} intensity={intensity} />
             ))}
+            
+            {poiPoints.map((p, i) => (
+                <POIPoint key={i} position={p.pos} label={p.label} color={color} intensity={intensity} />
+            ))}
 
-            {/* 4. Scanning Panel */}
-            <Html position={[3, 9, 0]} center>
+            {/* 4. Scanning Panel (Adaptive Scale) */}
+            <Html position={[2, 9, 0]} center distanceFactor={18}>
                 <div style={{ 
                     border: `1px solid ${color.getStyle()}`, 
-                    padding: '4px 8px', 
-                    background: 'rgba(0,0,0,0.4)',
+                    padding: '6px 12px', 
+                    background: 'rgba(0,0,0,0.6)',
                     backdropFilter: 'blur(5px)',
                     color: color.getStyle(),
-                    fontSize: '9px',
+                    fontSize: '12px',
                     fontFamily: 'monospace',
-                    letterSpacing: '2px',
+                    letterSpacing: '3px',
                     whiteSpace: 'nowrap',
-                    opacity: intensity
+                    opacity: intensity,
+                    boxShadow: `0 0 20px ${color.getStyle()}33`
                 }}>
                     <div style={{ marginBottom: '2px' }}>[ SPATIAL_MAPPING ]</div>
                     <ScanningText />

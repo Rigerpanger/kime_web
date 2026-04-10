@@ -11,7 +11,7 @@ import GeoSwarm from './FX/GeoSwarm';
 import NeuralSwarm from './FX/NeuralSwarm';
 import NeonEdges from './FX/NeonEdges';
 import HoloGrid from './FX/HoloGrid';
-import Iris from './FX/Iris';
+// Iris is now handled via UnifiedShaderInjection for better performance
 import NeuralAtom from './FX/NeuralAtom';
 import ShapeShifter from './FX/ShapeShifter';
 import SoftwareSilhouette from './FX/SoftwareSilhouette';
@@ -199,7 +199,6 @@ const SculptureModel = () => {
                         switch(fx.type) {
                             case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
-                            case 'Iris': return <Iris key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'ShapeShifter': return <ShapeShifter key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'SoftwareSilhouette': return <SoftwareSilhouette key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             default: return null;

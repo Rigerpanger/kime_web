@@ -325,6 +325,16 @@ const StudioEditor = () => {
                                             {renderSlider('Rotation Z', activeFX.rotationZ ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { rotationZ: v }))}
                                         </div>
                                     )}
+                                    {activeFX.type === 'SpatialAR' && (
+                                        <div className="pt-2 border-t border-white/5">
+                                            <button 
+                                                onClick={() => updateSectionFX(activeSlug, activeFX.id, { showMask: !activeFX.showMask })}
+                                                className={`w-full py-2 rounded text-[7px] font-black uppercase transition-all ${activeFX.showMask !== false ? 'bg-[#44aaff] text-white' : 'bg-white/5 text-white/20'}`}
+                                            >
+                                                {activeFX.showMask !== false ? 'AR Mask: ON' : 'AR Mask: OFF'}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}
