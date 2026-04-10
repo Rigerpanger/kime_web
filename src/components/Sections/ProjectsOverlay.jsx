@@ -232,9 +232,17 @@ const ArtifactPassport = ({ project, onClose }) => {
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     exit={{ y: -20, opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative w-full max-w-5xl max-h-[90vh] overflow-y-auto bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-8 md:p-10 shadow-2xl"
+                    className="relative w-full max-w-5xl max-h-[90vh] bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                 >
-                    <button onClick={onClose} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors z-[60]"><X size={24} /></button>
+                    {/* Persistent Close Button */}
+                    <button 
+                        onClick={onClose} 
+                        className="absolute top-4 right-4 md:top-8 md:right-8 z-[120] p-2 md:p-3 rounded-full bg-white/5 border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all backdrop-blur-md"
+                    >
+                        <X size={20} className="md:w-6 md:h-6" />
+                    </button>
+
+                    <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar">
                     {isVideoOpen ? (
                         <div className="w-full flex items-center justify-center pt-8">
                             <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/50 border border-white/10 shadow-3xl">
@@ -302,6 +310,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                             </div>
                         </div>
                     )}
+                    </div>
                 </motion.div>
             </motion.div>
         </AnimatePresence>

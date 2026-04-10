@@ -94,6 +94,23 @@ const AppLayout = () => {
         fetchSculptureConfig();
     }, [setSculptureConfig]);
 
+    const isScrollLocked = useAppStore(s => s.isScrollLocked);
+
+    useEffect(() => {
+        if (isScrollLocked) {
+            document.body.style.overflow = 'hidden';
+            // Prevent scrolling on iOS devices specifically
+            document.body.style.touchAction = 'none';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.touchAction = '';
+        };
+    }, [isScrollLocked]);
+
     return (
         <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
             <RouteManager />

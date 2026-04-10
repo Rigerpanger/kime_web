@@ -83,10 +83,12 @@ const MobileScrollStack = () => {
         }
     }, [location.pathname]);
 
+    const isScrollLocked = useAppStore(s => s.isScrollLocked);
+
     return (
         <div 
             ref={containerRef}
-            className="fixed inset-0 w-full overflow-y-auto overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar z-0"
+            className={`fixed inset-0 w-full overflow-x-hidden pointer-events-auto snap-y snap-mandatory scroll-smooth no-scrollbar z-0 ${isScrollLocked ? 'overflow-y-hidden touch-none' : 'overflow-y-auto'}`}
         >
             {sections.map(section => (
                 <div 

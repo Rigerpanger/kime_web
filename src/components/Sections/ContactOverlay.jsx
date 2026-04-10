@@ -143,7 +143,7 @@ const ContactOverlay = () => {
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
-                    <button onClick={() => navigate('/')} className="absolute right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2 md:p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
+                    <button onClick={() => navigate('/')} className="absolute right-2 md:right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2 md:p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
                         <X size={20} />
                     </button>
                 </motion.div>
