@@ -133,7 +133,7 @@ const SculptureModel = () => {
 
         const orbitRad = currentSection.orbitRadius ?? currentConfig.orbitRadius ?? 0.0;
         const orbitAzi = ((currentSection.orbitAzimuth ?? currentConfig.orbitAzimuth ?? 0) * (Math.PI / 180));
-        const tgtY = 5.1 + (currentSection.modelY ?? currentConfig.y ?? 0);
+        const tgtY = (currentSection.modelY ?? currentConfig.y ?? 0);
         const tgtScale = ((currentSection.scale ?? currentConfig.scale ?? 170) / 10);
 
         const d = Math.max(0.001, Math.min(0.2, delta));
@@ -194,7 +194,7 @@ const SculptureModel = () => {
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
                         const key = `scene-fx-${fx.id || fx.type}`;
-                        const modelY = 5.1 + (config.y || 0);
+                        const modelY = 14.0 + (config.y || 0);
                         switch(fx.type) {
                             case 'NeonEdges': return <NeonEdges key={key} scene={clonedScene} config={fx} modelY={modelY} />;
                             case 'HoloGrid': return <HoloGrid key={key} scene={clonedScene} config={fx} modelY={modelY} />;
@@ -211,7 +211,7 @@ const SculptureModel = () => {
                     {activeFXs.map(fx => {
                         if (!fx.active) return null;
                         const key = fx.id || fx.type;
-                        const modelY = 5.1 + (config.y || 0);
+                        const modelY = 14.0 + (config.y || 0);
                         const orbitRad = currentSection.orbitRadius ?? config.orbitRadius ?? 0;
 
                         switch(fx.type) {
