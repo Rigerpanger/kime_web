@@ -149,7 +149,7 @@ const ServicesOverlay = () => {
                                 
                                 {/* Bottom decoration */}
                                 <div className="absolute bottom-4 right-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <IconComponent size={64} strokeWidth={0.5} />
+                                    {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 64, strokeWidth: 0.5 })}
                                 </div>
                             </motion.div>
                         )}
