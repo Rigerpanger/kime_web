@@ -115,13 +115,13 @@ const Header = () => {
                 {/* Mobile Menu Overlay - Moved inside header for consistent z-stacking */}
                 <AnimatePresence>
                     {isMenuOpen && (
-                        <motion.div 
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                            className="fixed inset-0 z-10 bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
-                        >
+                            <motion.div 
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.3 }}
+                                className="fixed inset-0 z-[150] bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
+                            >
                             <nav className="flex flex-col items-center gap-8 text-center">
                                 <MobileNavItem to="/about" onClick={() => setIsMenuOpen(false)}>О СТУДИИ</MobileNavItem>
                                 <MobileNavItem to="/services" onClick={() => setIsMenuOpen(false)}>НАПРАВЛЕНИЯ</MobileNavItem>
