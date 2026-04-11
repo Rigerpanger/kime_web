@@ -300,6 +300,7 @@ const StudioEditor = () => {
                                     {['SynapseCore'].includes(activeFX.type) && (
                                         <div className="grid grid-cols-2 gap-4 mt-2">
                                             {renderSlider('Pulse Size', activeFX.pulseSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { pulseSize: v }))}
+                                            {renderSlider('Node Size', activeFX.nodeSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { nodeSize: v }))}
                                         </div>
                                     )}
                                     {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (
