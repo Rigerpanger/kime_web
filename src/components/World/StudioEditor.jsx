@@ -297,6 +297,11 @@ const StudioEditor = () => {
                                 </div>
                                 <div className="space-y-3 overflow-y-auto pr-2">
                                     <h5 className="text-[7px] uppercase text-white/20 font-bold border-b border-white/5 pb-1">Behaviors & Modes</h5>
+                                    {['SynapseCore'].includes(activeFX.type) && (
+                                        <div className="grid grid-cols-2 gap-4 mt-2">
+                                            {renderSlider('Pulse Size', activeFX.pulseSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { pulseSize: v }))}
+                                        </div>
+                                    )}
                                     {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (
                                         <div className="grid grid-cols-3 gap-1">
                                             {(activeFX.type === 'NeuralAtom' ? ['Orbit', 'Pulse', 'Glitch'] : activeFX.type === 'NeuralSwarm' ? ['Orbit', 'Flow', 'Chaos'] : activeFX.type === 'ShapeShifter' ? ['Pulse', 'Glitch', 'Float'] : ['Rain', 'Orbit', 'Static']).map(b => (
