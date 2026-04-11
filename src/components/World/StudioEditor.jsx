@@ -288,7 +288,7 @@ const StudioEditor = () => {
                                             {renderSlider('Height (Y)', activeFX.height ?? 4.8, -25, 25, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
                                             {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
                                             {renderSlider('Variant (Mode)', activeFX.variant ?? 0, 0, 1, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { variant: v }))}
-                                            {renderSlider('Scale', activeFX.scale ?? 1.0, 0.1, 15, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
+                                            {renderSlider('Scale', activeFX.scale ?? 1.0, 0.01, 10, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { scale: v }))}
                                             {renderSlider('Speed', activeFX.speed ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { speed: v }))}
                                         </div>
                                         <div className="flex items-center gap-1"><span className="text-[6px] text-white/20 uppercase">Main Color</span><input type="color" value={activeFX.color || '#ffcc00'} onChange={e => updateSectionFX(activeSlug, activeFX.id, { color: e.target.value })} className="h-4 w-6 bg-transparent" /></div>
