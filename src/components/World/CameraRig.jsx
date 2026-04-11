@@ -14,8 +14,8 @@ const CameraRig = () => {
     const setSectionView = useAppStore(s => s.setSectionView);
     const activeCameraId = useAppStore(s => s.activeCameraId);
  
-    const vecPos = new THREE.Vector3();
-    const vecTarget = new THREE.Vector3();
+    const vecPos = useRef(new THREE.Vector3());
+    const vecTarget = useRef(new THREE.Vector3());
     const lastSlug = useRef(activeSlug);
     const lastCamState = useRef({ azimuth: 0, polar: 0, radius: 0 });
     const settleTimer = useRef(0);
@@ -75,12 +75,12 @@ const CameraRig = () => {
 
             // Adjust framing for vertical aspect (Mobile / Portrait)
             if (aspect < 1.0) {
-                // 1. Zoom Adjustment: Reduced from original 1.1 down to 0.69 (Approx 40% closer total)
-                baseRadius = baseRadius * (0.69 / aspect); 
+                // 1. Zoom Adjustment: Adjusted to 0.76 (Approx 30% closer than original 1.1)
+                baseRadius = baseRadius * (0.76 / aspect); 
                 
-                // 2. Vertical Offset: Shift target down so model appears higher on screen
-                // A value of 1.2 units is approx 10-15% of vertical view
-                targetLookArr[1] -= 1.2;
+                // 2. Vertical Offset: Shift target down so model appears lower on screen
+                // Reduced from -1.2 to -0.5 based on latest screenshots
+                targetLookArr[1] -= 0.5;
             }
             
             const r = safeNum(baseRadius, 18);
@@ -100,7 +100,6 @@ const CameraRig = () => {
             }
 
             // --- CINEMATIC SMOOTHING ---
-            // Unify smoothing to prevent mobile "jumps" or speed changes during transitions
             const smoothing = 1.0; 
             const editorSmoothing = 4.0; 
             const s = isEditing ? editorSmoothing : smoothing;
@@ -117,10 +116,15 @@ const CameraRig = () => {
                 controls.target.z = THREE.MathUtils.damp(controls.target.z, targetLookArr[2], s, d);
                 controls.update();
             } else {
-                vecTarget.x = THREE.MathUtils.damp(vecTarget.x, targetLookArr[0], s, d);
-                vecTarget.y = THREE.MathUtils.damp(vecTarget.y, targetLookArr[1], s, d);
-                vecTarget.z = THREE.MathUtils.damp(vecTarget.z, targetLookArr[2], s, d);
-                camera.lookAt(vecTarget);
+                if (isFirstRun.current) {
+                    vecTarget.current.set(...targetLookArr);
+                    isFirstRun.current = false;
+                } else {
+                    vecTarget.current.x = THREE.MathUtils.damp(vecTarget.current.x, targetLookArr[0], s, d);
+                    vecTarget.current.y = THREE.MathUtils.damp(vecTarget.current.y, targetLookArr[1], s, d);
+                    vecTarget.current.z = THREE.MathUtils.damp(vecTarget.current.z, targetLookArr[2], s, d);
+                }
+                camera.lookAt(vecTarget.current);
             }
 
             // --- AUTO-CAPTURE LOGIC (AUTO-RESCUE) ---
