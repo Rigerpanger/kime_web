@@ -25,6 +25,23 @@ const About = () => {
         }
     }, [currentSlide, isMobile, setActiveSlug]);
 
+    // Lock scroll when certificate is open
+    useEffect(() => {
+        if (selectedFullCert) {
+            setScrollLocked(true);
+        } else {
+            // Only unlock if we're not supposed to be locked for other reasons
+            // But usually About component is the one managing this here
+            setScrollLocked(false);
+        }
+        return () => setScrollLocked(false);
+    }, [selectedFullCert, setScrollLocked]);
+
+    // Close certificate on route change
+    useEffect(() => {
+        setSelectedFullCert(null);
+    }, [slug]);
+
     const [content, setContent] = useState({
         slide1_title: 'О СТУДИИ',
         slide1_text1: 'KIME — мастерская мультимедийных решений. Мы берем на себя полную ответственность за интерактивный проект: от формирования идеи и защиты концепции до внедрения на площадке и полного технического сопровождения.',
@@ -434,9 +451,27 @@ const About = () => {
 
             <AnimatePresence>
                 {selectedFullCert && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-10 pointer-events-auto" onClick={() => setSelectedFullCert(null)}>
-                        <button className="absolute top-10 right-10 text-white/50 hover:text-white" onClick={() => setSelectedFullCert(null)}><X size={32} strokeWidth={1} /></button>
-                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }} 
+                        className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 backdrop-blur-2xl p-4 md:p-10 pointer-events-auto" 
+                        onClick={() => setSelectedFullCert(null)}
+                    >
+                        {/* Improved Close Button */}
+                        <button 
+                            className="absolute top-6 right-6 md:top-10 md:right-10 text-white/70 hover:text-white bg-white/10 p-3 rounded-full border border-white/20 z-[210] transition-colors" 
+                            onClick={(e) => { e.stopPropagation(); setSelectedFullCert(null); }}
+                        >
+                            <X size={28} strokeWidth={1.5} />
+                        </button>
+                        
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-xl shadow-2xl overflow-hidden" 
+                            onClick={(e) => e.stopPropagation()}
+                        >
                             <img src={selectedFullCert.image_url} alt="Full Certificate" className="w-full h-full object-contain" />
                         </motion.div>
                     </motion.div>
