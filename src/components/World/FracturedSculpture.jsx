@@ -18,6 +18,7 @@ import SoftwareSilhouette from './FX/SoftwareSilhouette';
 import QuantumDust from './FX/QuantumDust';
 import DataStream from './FX/DataStream';
 import MilkyWay from './FX/MilkyWay';
+import EngineGizmo from './FX/EngineGizmo';
 import SpatialAR from './FX/SpatialAR';
 import SacredGeometry from './FX/SacredGeometry';
 import SynapseCore from './FX/SynapseCore';
