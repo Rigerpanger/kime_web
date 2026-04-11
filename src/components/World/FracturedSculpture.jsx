@@ -18,9 +18,9 @@ import SoftwareSilhouette from './FX/SoftwareSilhouette';
 import QuantumDust from './FX/QuantumDust';
 import DataStream from './FX/DataStream';
 import MilkyWay from './FX/MilkyWay';
-import EngineGizmo from './FX/EngineGizmo';
 import SpatialAR from './FX/SpatialAR';
 import SacredGeometry from './FX/SacredGeometry';
+import SynapseCore from './FX/SynapseCore';
 
 const safeNum = (val, fallback) => {
     const n = Number(val);
@@ -227,6 +227,7 @@ const SculptureModel = () => {
                             case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius ?? 0.02)}} modelY={modelY} />;
                             case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius ?? 0.05)}} modelY={modelY} />;
                             case 'SacredGeometry': return <SacredGeometry key={key} config={{...fx, radius: (fx.radius ?? 1.5)}} modelY={modelY} />;
+                            case 'SynapseCore': return <SynapseCore key={key} config={{...fx, radius: (fx.radius ?? 0.4)}} modelY={modelY} />;
                             case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
                             case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
                             case 'EngineGizmo': return <EngineGizmo key={key} config={fx} modelY={modelY} />;
