@@ -286,6 +286,7 @@ const StudioEditor = () => {
                                             {renderSlider('Radius (Dist)', activeFX.radius ?? 4.5, 0.02, 20, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { radius: v }))}
                                             {renderSlider('Azimuth (Orb)', activeFX.azimuth ?? 0, -180, 180, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { azimuth: v }), v => `${v}°`)}
                                             {renderSlider('Height (Y)', activeFX.height ?? 4.8, -25, 25, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { height: v }))}
+                                            {renderSlider('Offset (X)', activeFX.offsetX ?? 0, -10, 10, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { offsetX: v }))}
                                             {renderSlider('Depth (Z)', activeFX.depth ?? 0, -10, 10, 0.01, (v) => updateSectionFX(activeSlug, activeFX.id, { depth: v }))}
                                             {renderSlider('Intensity', activeFX.intensity ?? 1.0, 0, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { intensity: v }))}
                                             {renderSlider('Variant (Mode)', activeFX.variant ?? 0, 0, 1, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { variant: v }))}
@@ -301,6 +302,7 @@ const StudioEditor = () => {
                                         <div className="grid grid-cols-2 gap-4 mt-2">
                                             {renderSlider('Pulse Size', activeFX.pulseSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { pulseSize: v }))}
                                             {renderSlider('Node Size', activeFX.nodeSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { nodeSize: v }))}
+                                            {renderSlider('Line Width', activeFX.lineWidth ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { lineWidth: v }))}
                                         </div>
                                     )}
                                     {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (

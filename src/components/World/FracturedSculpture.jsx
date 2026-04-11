@@ -228,7 +228,7 @@ const SculptureModel = () => {
                             case 'NeuralAtom': return <NeuralAtom key={key} config={{...fx, radius: (fx.radius ?? 0.02)}} modelY={modelY} />;
                             case 'QuantumDust': return <QuantumDust key={key} config={{...fx, radius: (fx.radius ?? 0.05)}} modelY={modelY} />;
                             case 'SacredGeometry': return <SacredGeometry key={key} config={{...fx, radius: (fx.radius ?? 1.5)}} modelY={modelY} />;
-                            case 'SynapseCore': return <SynapseCore key={key} config={{...fx, radius: (fx.radius ?? 0.8), scale: fx.scale ?? 1.0, pulseSize: fx.pulseSize ?? 1.0, nodeSize: fx.nodeSize ?? 1.0, depth: fx.depth ?? 0}} modelY={modelY + 1.8} />;
+                            case 'SynapseCore': return <SynapseCore key={key} config={{...fx, radius: (fx.radius ?? 0.8), scale: fx.scale ?? 1.0, pulseSize: fx.pulseSize ?? 1.0, nodeSize: fx.nodeSize ?? 1.0, lineWidth: fx.lineWidth ?? 1.0, depth: fx.depth ?? 0, offsetX: fx.offsetX ?? 0}} modelY={modelY + 1.8} />;
                             case 'CyberWaves': return <CyberWaves key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
                             case 'DataStream': return <DataStream key={key} config={{...fx, radius: (fx.radius ?? 1.0)}} modelY={modelY} />;
                             case 'EngineGizmo': return <EngineGizmo key={key} config={fx} modelY={modelY} />;
