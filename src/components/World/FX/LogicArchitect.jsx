@@ -158,15 +158,24 @@ const LogicArchitect = ({ config, modelY }) => {
                     fragmentShader={`
                         uniform vec3 uColor;
                         uniform float uIntensity;
+                        uniform float uTime;
                         varying vec3 vPos;
                         varying float vImpact;
                         void main() {
-                            // Wireframe box effect in shader
-                            vec3 coord = fract(vPos * 5.0);
-                            float edge = step(0.9, max(max(coord.x, coord.y), coord.z));
+                            float d = distance(gl_PointCoord, vec2(0.5));
                             
-                            float alpha = (0.1 + vImpact * 2.0) * uIntensity;
-                            gl_FragColor = vec4(uColor, alpha * 0.3);
+                            // Glowing Edges logic
+                            vec3 grid = abs(fract(vPos * 4.0 - 0.5) - 0.5);
+                            float edge = 1.0 - smoothstep(0.0, 0.05, min(min(grid.x, grid.y), grid.z));
+                            
+                            // Micro-glitch pulse
+                            float noise = sin(vPos.x * 10.0 + uTime * 5.0) * sin(vPos.z * 10.0 + uTime * 3.0);
+                            float glitch = step(0.98, sin(uTime * 10.0 + vPos.y * 5.0)) * 0.5;
+
+                            float alpha = (0.05 + vImpact * 1.5 + glitch) * uIntensity;
+                            vec3 finalColor = mix(uColor, vec3(1.0), vImpact * 0.5 + glitch);
+                            
+                            gl_FragColor = vec4(finalColor, alpha * (edge * 0.8 + 0.1));
                         }
                     `}
                 />
