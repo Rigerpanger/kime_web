@@ -8,8 +8,11 @@ const easeInOut = (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
 const SynapseCore = ({ config, modelY }) => {
     const groupRef = useRef();
     const coreRef = useRef();
+    const cageRef = useRef();
+    const auraRef = useRef();
     const signalsRef = useRef();
-    const junctionsRef = useRef();
+    const cordsRef = useRef();
+    const dustRef = useRef();
     const explosionRef = useRef();
 
     const intensity = config.intensity || 1.0;
@@ -23,106 +26,108 @@ const SynapseCore = ({ config, modelY }) => {
     const depthOffset = config.depth || 0;
     const offsetX = config.offsetX || 0;
 
-    // --- NEURAL ARCHITECTURE v7 (Dendritic Movement) ---
-    const { curves, treePositions, junctionPoints, branchOpacities } = useMemo(() => {
-        const branchCount = 12;
-        const subBranchCount = 4;
-        const segmentsPerCurve = 40;
+    // --- NEURAL TREE v8 (Architecture) ---
+    const { curves, cordPositions, cordColors, cordSizes } = useMemo(() => {
+        const branchCount = 14;
+        const subBranchCount = 3;
+        const pointsPerCord = 180; // Total density ~3000-5000 points
         const allCurves = [];
         const posArray = [];
-        const opacArray = [];
-        const junctions = [];
+        const colorArray = [];
+        const sizeArray = [];
 
         const rootRadius = 0.5;
 
+        // Generate Tree Curves
         for (let i = 0; i < branchCount; i++) {
-            const center = new THREE.Vector3(0, 0, 0);
             const target = new THREE.Vector3().setFromSphericalCoords(
-                rootRadius * (1.2 + Math.random() * 0.4),
+                rootRadius * (1.1 + Math.random() * 0.4),
                 Math.random() * Math.PI,
                 Math.random() * Math.PI * 2
             );
-
-            // Control points for octopus-like wiggle
-            const mid1 = center.clone().lerp(target, 0.3).add(
-                new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius * 0.6)
+            const mid1 = new THREE.Vector3().lerpVectors(new THREE.Vector3(0,0,0), target, 0.3).add(
+                new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius * 0.5)
             );
-            const mid2 = center.clone().lerp(target, 0.7).add(
-                new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius * 0.4)
+            const mid2 = new THREE.Vector3().lerpVectors(new THREE.Vector3(0,0,0), target, 0.7).add(
+                new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius * 0.3)
             );
-
-            const mainCurve = new THREE.CatmullRomCurve3([center, mid1, mid2, target]);
+            const mainCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(0,0,0), mid1, mid2, target]);
             allCurves.push(mainCurve);
-            junctions.push(target);
 
             for (let s = 0; s < subBranchCount; s++) {
-                const splitFactor = 0.2 + Math.random() * 0.5;
-                const splitPoint = mainCurve.getPoint(splitFactor);
-                junctions.push(splitPoint);
-                
-                const subTarget = new THREE.Vector3().setFromSphericalCoords(
-                    rootRadius * 1.8,
-                    Math.random() * Math.PI,
-                    Math.random() * Math.PI * 2
-                );
-                
-                const subMid = splitPoint.clone().lerp(subTarget, 0.5).add(
-                    new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius * 0.5)
-                );
-                
-                const subCurve = new THREE.CatmullRomCurve3([splitPoint, subMid, subTarget]);
-                allCurves.push(subCurve);
-                junctions.push(subTarget);
+                const sf = 0.3 + Math.random() * 0.5;
+                const sp = mainCurve.getPoint(sf);
+                const st = new THREE.Vector3().setFromSphericalCoords(rootRadius * 1.6, Math.random()*Math.PI, Math.random()*Math.PI*2);
+                const sm = new THREE.Vector3().lerpVectors(sp, st, 0.5).add(new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(rootRadius*0.4));
+                allCurves.push(new THREE.CatmullRomCurve3([sp, sm, st]));
             }
         }
 
-        allCurves.forEach(curve => {
-            const pts = curve.getPoints(segmentsPerCurve);
-            for (let j = 0; j < pts.length - 1; j++) {
-                posArray.push(pts[j].x, pts[j].y, pts[j].z, pts[j+1].x, pts[j+1].y, pts[j+1].z);
-                const u1 = j / segmentsPerCurve;
-                const u2 = (j+1) / segmentsPerCurve;
-                // Opacity gradient for tapering effect
-                opacArray.push(Math.pow(1.0 - u1, 1.5), Math.pow(1.0 - u2, 1.5));
+        // Fill Curves with "Energy Particles" (The Cords)
+        allCurves.forEach((curve, cIdx) => {
+            for (let j = 0; j < pointsPerCord; j++) {
+                const t = j / pointsPerCord;
+                const p = curve.getPoint(t);
+                
+                // Add slight noise to each particle to create "fiber" texture
+                const noise = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(0.012);
+                posArray.push(p.x + noise.x, p.y + noise.y, p.z + noise.z);
+                
+                // Opacity/Color Tapering
+                colorArray.push(1.0, 1.0, 1.0); // Base white, will be tinted in shader
+                sizeArray.push(Math.pow(1.0 - t, 1.2)); // Tapering
             }
         });
 
         return { 
             curves: allCurves, 
-            treePositions: new Float32Array(posArray),
-            junctionPoints: new Float32Array(junctions.flatMap(p => [p.x, p.y, p.z])),
-            branchOpacities: new Float32Array(opacArray)
+            cordPositions: new Float32Array(posArray),
+            cordColors: new Float32Array(colorArray),
+            cordSizes: new Float32Array(sizeArray)
         };
     }, []);
 
-    // --- COMET SIGNALS ---
-    const TRAIL_LENGTH = 7;
-    const signals = useMemo(() => Array.from({ length: 32 }, (_, i) => ({
+    // --- COMET SYSTEM ---
+    const TRAIL_LENGTH = 8;
+    const signals = useMemo(() => Array.from({ length: 30 }, () => ({
         curveIndex: Math.floor(Math.random() * curves.length),
         progress: -Math.random() * 2.0,
-        speed: (0.2 + Math.random() * 0.3) * speed,
+        speed: (0.25 + Math.random() * 0.35) * speed,
         offset: Math.random() * Math.PI * 2
     })), [curves, speed]);
 
     const signalData = useMemo(() => {
-        const totalPoints = signals.length * TRAIL_LENGTH;
+        const total = signals.length * TRAIL_LENGTH;
         return {
-            pos: new Float32Array(totalPoints * 3),
-            colors: new Float32Array(totalPoints * 3),
-            sizes: new Float32Array(totalPoints)
+            pos: new Float32Array(total * 3),
+            colors: new Float32Array(total * 3),
+            sizes: new Float32Array(total)
         };
     }, [signals]);
 
-    // --- EXPLOSION SYSTEM (Supernova Cluster) ---
-    const particleCount = 128;
+    // --- ATMOSPHERIC NANO-DUST ---
+    const dustCount = 180;
+    const dustData = useMemo(() => {
+        const pos = new Float32Array(dustCount * 3);
+        const vel = [];
+        for (let i = 0; i < dustCount; i++) {
+            const p = new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(2.0);
+            pos[i*3]=p.x; pos[i*3+1]=p.y; pos[i*3+2]=p.z;
+            vel.push(new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(0.002));
+        }
+        return { pos, vel };
+    }, []);
+
+    // --- EXPLOSIONS ---
+    const particleCount = 120;
     const explosion = useMemo(() => {
         const particles = Array.from({ length: particleCount }, () => ({
             pos: new THREE.Vector3(0, 0, 0),
-            vel: new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize().multiplyScalar(0.05 + Math.random() * 0.1),
+            vel: new THREE.Vector3(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize().multiplyScalar(0.06 + Math.random() * 0.1),
             life: 0,
-            maxLife: 1.5 + Math.random() * 1.5,
+            maxLife: 1.2 + Math.random() * 1.5,
             colorOffset: Math.random() * Math.PI * 2,
-            size: 0.01 + Math.random() * 0.02
+            size: 0.015 + Math.random() * 0.02
         }));
         return {
             particles,
@@ -136,26 +141,48 @@ const SynapseCore = ({ config, modelY }) => {
         if (!groupRef.current) return;
         const t = state.clock.elapsedTime;
         
-        // 3D Positioning & Correction
+        // 3D Absolute Center & Correction
         groupRef.current.position.set(offsetX, modelY + heightOffset, depthOffset);
         groupRef.current.scale.setScalar(radiusFactor);
 
-        // Core Pulsation
+        // --- LAYERED NUCLEUS ---
         if (coreRef.current) {
-            const b = 1.0 + Math.sin(t * 2.0) * 0.05;
+            const b = 1.0 + Math.sin(t * 3.0) * 0.06;
             coreRef.current.scale.setScalar(nucleusScale * b);
-            const cT = t * 0.4;
-            coreRef.current.material.color.setRGB(
-                0.5+0.5*Math.cos(cT), 0.5+0.5*Math.cos(cT+2), 0.5+0.5*Math.cos(cT+4)
-            );
+            const ct = t * 0.4;
+            coreRef.current.material.color.setRGB(0.5+0.5*Math.cos(ct), 0.5+0.5*Math.cos(ct+2), 0.5+0.5*Math.cos(ct+4));
+        }
+        if (cageRef.current) {
+            cageRef.current.rotation.y = t * 0.2;
+            cageRef.current.rotation.z = t * 0.15;
+            cageRef.current.scale.setScalar(nucleusScale * 2.2);
+        }
+        if (auraRef.current) {
+            auraRef.current.scale.setScalar(nucleusScale * (5.5 + Math.sin(t*2)*0.5));
+            auraRef.current.material.opacity = 0.3 * intensity;
         }
 
-        // Wiggle the tracks (Subtle Octopus motion)
-        // Note: Real-time track regen is expensive, so we use a vertex displacement trick or just sway the group
-        groupRef.current.rotation.z = Math.sin(t * 0.5) * 0.05;
-        groupRef.current.rotation.x = Math.cos(t * 0.4) * 0.03;
+        // --- NANODUST MOTION ---
+        if (dustRef.current) {
+            const pos = dustRef.current.geometry.attributes.position;
+            for (let i = 0; i < dustCount; i++) {
+                pos.array[i*3] += dustData.vel[i].x;
+                pos.array[i*3+1] += dustData.vel[i].y;
+                pos.array[i*3+2] += dustData.vel[i].z;
+                if (Math.abs(pos.array[i*3]) > 1.2) pos.array[i*3] *= -0.9;
+                if (Math.abs(pos.array[i*3+1]) > 1.2) pos.array[i*3+1] *= -0.9;
+            }
+            pos.needsUpdate = true;
+        }
 
-        // Smart Comets
+        // --- ENERGY CORDS (The Synapses) ---
+        if (cordsRef.current) {
+            // Slight wiggle of the whole cord mesh for "octopus" look
+            cordsRef.current.rotation.y = Math.sin(t * 0.4) * 0.05;
+            cordsRef.current.rotation.z = Math.cos(t * 0.3) * 0.04;
+        }
+
+        // --- SMART COMETS ---
         if (signalsRef.current) {
             const pos = signalsRef.current.geometry.attributes.position;
             const col = signalsRef.current.geometry.attributes.color;
@@ -167,65 +194,42 @@ const SynapseCore = ({ config, modelY }) => {
                     sig.progress = -Math.random() * 1.5;
                     sig.curveIndex = Math.floor(Math.random() * curves.length);
                 }
-                const effP = sig.progress < 0 ? 0 : easeInOut(sig.progress);
+                const ep = sig.progress < 0 ? 0 : easeInOut(sig.progress);
 
                 for (let j = 0; j < TRAIL_LENGTH; j++) {
                     const idx = i * TRAIL_LENGTH + j;
-                    const trailT = Math.max(0, effP - j * 0.04);
-                    const p = curves[sig.curveIndex].getPointAt(trailT);
+                    const tt = Math.max(0, ep - j * 0.04);
+                    const p = curves[sig.curveIndex].getPointAt(tt);
                     pos.array[idx*3]=p.x; pos.array[idx*3+1]=p.y; pos.array[idx*3+2]=p.z;
 
-                    const ct = t*2 + sig.offset + trailT;
+                    const ct = t*2 + sig.offset + tt;
                     col.array[idx*3]=0.5+0.5*Math.cos(ct); col.array[idx*3+1]=0.5+0.5*Math.cos(ct+2); col.array[idx*3+2]=0.5+0.5*Math.cos(ct+4);
 
-                    const fade = Math.pow(1-(j/TRAIL_LENGTH), 2);
-                    siz.array[idx] = (0.06 * pulseSizeFactor * fade * intensity) * (effP > 0 ? 1 : 0);
+                    const fade = Math.pow(1-(j/TRAIL_LENGTH), 2.5);
+                    siz.array[idx] = (0.07 * pulseSizeFactor * fade * intensity) * (ep > 0 ? 1 : 0);
                 }
             });
             pos.needsUpdate = true; col.needsUpdate = true; siz.needsUpdate = true;
         }
 
-        // Explosion Particles (The Supernova)
+        // --- EXPLOSIONS ---
         if (explosionRef.current) {
-            const burstTrigger = Math.floor(t / 4) > Math.floor((t - 0.016) / 4);
+            const trigger = Math.floor(t / 5) > Math.floor((t - 0.016) / 5);
             const pos = explosionRef.current.geometry.attributes.position;
             const col = explosionRef.current.geometry.attributes.color;
             const siz = explosionRef.current.geometry.attributes.size;
 
             explosion.particles.forEach((p, i) => {
-                if (burstTrigger && Math.random() > 0.6) {
-                    p.pos.set(0, 0, 0);
-                    p.life = p.maxLife;
-                }
-
+                if (trigger && Math.random() > 0.6) { p.pos.set(0,0,0); p.life = p.maxLife; }
                 if (p.life > 0) {
-                    p.life -= 0.016;
-                    p.pos.add(p.vel);
-                    
+                    p.life -= 0.016; p.pos.add(p.vel);
                     pos.array[i*3]=p.pos.x; pos.array[i*3+1]=p.pos.y; pos.array[i*3+2]=p.pos.z;
-                    
-                    const ct = t*3 + p.colorOffset;
-                    const alpha = Math.max(0, p.life / p.maxLife);
-                    col.array[i*3] = (0.5+0.5*Math.cos(ct)) * alpha;
-                    col.array[i*3+1] = (0.5+0.5*Math.cos(ct+2)) * alpha;
-                    col.array[i*3+2] = (0.5+0.5*Math.cos(ct+4)) * alpha;
-                    siz.array[i] = p.size * alpha * intensity * 2.0;
-                } else {
-                    siz.array[i] = 0;
-                }
+                    const ct = t*4 + p.colorOffset; const a = Math.max(0, p.life / p.maxLife);
+                    col.array[i*3]=(0.5+0.5*Math.cos(ct))*a; col.array[i*3+1]=(0.5+0.5*Math.cos(ct+2))*a; col.array[i*3+2]=(0.5+0.5*Math.cos(ct+4))*a;
+                    siz.array[i] = p.size * a * intensity * 2.5;
+                } else { siz.array[i] = 0; }
             });
             pos.needsUpdate = true; col.needsUpdate = true; siz.needsUpdate = true;
-        }
-
-        // Junctions
-        if (junctionsRef.current) {
-            const cat = junctionsRef.current.geometry.attributes.color;
-            for (let i = 0; i < cat.count; i++) {
-                const ct = t*0.5 + i*0.1;
-                cat.array[i*3]=0.5+0.5*Math.cos(ct); cat.array[i*3+1]=0.5+0.5*Math.cos(ct+2); cat.array[i*3+2]=0.5+0.5*Math.cos(ct+4);
-            }
-            cat.needsUpdate = true;
-            junctionsRef.current.material.size = 0.015 * nodeSizeFactor * (1 + Math.sin(t*3)*0.2);
         }
 
         groupRef.current.rotation.y = t * 0.02;
@@ -235,44 +239,46 @@ const SynapseCore = ({ config, modelY }) => {
 
     return (
         <group ref={groupRef}>
-            {/* Tapered Skeleton */}
-            <lineSegments frustumCulled={false}>
+            {/* ENERGY CORDS (Fiber-optic particle system) */}
+            <points ref={cordsRef} frustumCulled={false}>
                 <bufferGeometry>
-                    <bufferAttribute attach="attributes-position" count={treePositions.length/3} array={treePositions} itemSize={3} />
-                    <bufferAttribute attach="attributes-opacity" count={branchOpacities.length} array={branchOpacities} itemSize={1} />
+                    <bufferAttribute attach="attributes-position" count={cordPositions.length/3} array={cordPositions} itemSize={3} />
+                    <bufferAttribute attach="attributes-size" count={cordSizes.length} array={cordSizes} itemSize={1} />
                 </bufferGeometry>
                 <shaderMaterial
                     transparent depthWrite={false} blending={THREE.AdditiveBlending}
                     uniforms={{ uIntensity: { value: intensity }, uWidth: { value: lineWidthFactor } }}
                     vertexShader={`
-                        attribute float opacity;
-                        varying float vOpacity;
+                        attribute float size;
+                        varying float vFade;
                         void main() {
-                            vOpacity = opacity;
-                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                            vFade = size;
+                            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                            gl_PointSize = size * uWidth * (250.0 / -mvPosition.z);
+                            gl_Position = projectionMatrix * mvPosition;
                         }
                     `}
                     fragmentShader={`
                         uniform float uIntensity;
-                        uniform float uWidth;
-                        varying float vOpacity;
+                        varying float vFade;
                         void main() {
-                            gl_FragColor = vec4(vec3(1.0), vOpacity * 0.05 * uIntensity * uWidth);
+                            float d = distance(gl_PointCoord, vec2(0.5));
+                            if (d > 0.5) discard;
+                            gl_FragColor = vec4(vec3(1.0), vFade * pow(1.0-d*2.0, 2.0) * 0.1 * uIntensity);
                         }
                     `}
                 />
-            </lineSegments>
-
-            {/* Pearlescent Junctions */}
-            <points ref={junctionsRef} frustumCulled={false}>
-                <bufferGeometry>
-                    <bufferAttribute attach="attributes-position" count={junctionPoints.length/3} array={junctionPoints} itemSize={3} />
-                    <bufferAttribute attach="attributes-color" count={junctionPoints.length/3} array={junctionPoints} itemSize={3} />
-                </bufferGeometry>
-                <pointsMaterial vertexColors transparent opacity={0.6*intensity} blending={THREE.AdditiveBlending} depthWrite={false} />
             </points>
 
-            {/* Smart Comets */}
+            {/* ATMOSPHERIC NANO-DUST */}
+            <points ref={dustRef} frustumCulled={false}>
+                <bufferGeometry>
+                    <bufferAttribute attach="attributes-position" count={dustCount} array={dustData.pos} itemSize={3} />
+                </bufferGeometry>
+                <pointsMaterial size={0.005} color="#ffffff" transparent opacity={0.15 * intensity} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </points>
+
+            {/* ARTICULATED COMETS */}
             <points ref={signalsRef} frustumCulled={false}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" count={signals.length * TRAIL_LENGTH} array={signalData.pos} itemSize={3} />
@@ -286,7 +292,7 @@ const SynapseCore = ({ config, modelY }) => {
                         void main() {
                             vColor = color;
                             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                            gl_PointSize = size * (400.0 / -mvPosition.z);
+                            gl_PointSize = size * (450.0 / -mvPosition.z);
                             gl_Position = projectionMatrix * mvPosition;
                         }
                     `}
@@ -301,7 +307,7 @@ const SynapseCore = ({ config, modelY }) => {
                 />
             </points>
 
-            {/* SUPERNOVA EXPLOSION */}
+            {/* EXPLOSIONS */}
             <points ref={explosionRef} frustumCulled={false}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" count={particleCount} array={explosion.posAttr} itemSize={3} />
@@ -330,12 +336,26 @@ const SynapseCore = ({ config, modelY }) => {
                 />
             </points>
 
+            {/* MULTI-LAYER NUCLEUS */}
             <mesh ref={coreRef}>
                 <sphereGeometry args={[0.045, 32, 32]} />
-                <meshBasicMaterial transparent opacity={0.6*intensity} blending={THREE.AdditiveBlending} depthWrite={false} />
+                <meshBasicMaterial transparent opacity={0.8*intensity} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </mesh>
+            <mesh ref={cageRef}>
+                <icosahedronGeometry args={[0.05, 1]} />
+                <meshBasicMaterial wireframe transparent opacity={0.3*intensity} blending={THREE.AdditiveBlending} depthWrite={false} />
+            </mesh>
+            
+            {/* GLOW AURA (Soft Sprite simulation) */}
+            <mesh ref={auraRef}>
+                <planeGeometry args={[0.2, 0.2]} />
+                <meshBasicMaterial 
+                    transparent opacity={0.2} blending={THREE.AdditiveBlending} depthWrite={false}
+                    map={new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/glow.png')}
+                />
             </mesh>
 
-            <pointLight intensity={0.7 * intensity} color={config.color || '#00f2ff'} distance={2.5} />
+            <pointLight intensity={0.9 * intensity} color={config.color || '#00f2ff'} distance={2.5} />
         </group>
     );
 };
