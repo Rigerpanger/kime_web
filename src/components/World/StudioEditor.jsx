@@ -303,9 +303,10 @@ const StudioEditor = () => {
                                             {renderSlider('Pulse Size', activeFX.pulseSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { pulseSize: v }))}
                                             {renderSlider('Node Size', activeFX.nodeSize ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { nodeSize: v }))}
                                             {renderSlider('Line Width', activeFX.lineWidth ?? 1.0, 0.1, 5, 0.1, (v) => updateSectionFX(activeSlug, activeFX.id, { lineWidth: v }))}
+                                            {['LogicArchitect'].includes(activeFX.type) && renderSlider('Grid Density', activeFX.variant ?? 4, 3, 6, 1, (v) => updateSectionFX(activeSlug, activeFX.id, { variant: v }))}
                                         </div>
                                     )}
-                                    {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette'].includes(activeFX.type) && (
+                                    {['NeuralAtom', 'NeuralSwarm', 'ShapeShifter', 'SoftwareSilhouette', 'LogicArchitect'].includes(activeFX.type) && (
                                         <div className="grid grid-cols-3 gap-1">
                                             {(activeFX.type === 'NeuralAtom' ? ['Orbit', 'Pulse', 'Glitch'] : activeFX.type === 'NeuralSwarm' ? ['Orbit', 'Flow', 'Chaos'] : activeFX.type === 'ShapeShifter' ? ['Pulse', 'Glitch', 'Float'] : ['Rain', 'Orbit', 'Static']).map(b => (
                                                 <button key={b} onClick={() => updateSectionFX(activeSlug, activeFX.id, { behavior: b })} className={`py-1 rounded text-[6px] font-bold border ${activeFX.behavior === b ? 'bg-[#ffcc00] text-black' : 'bg-white/5 text-white/40'}`}>{b}</button>
