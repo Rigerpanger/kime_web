@@ -29,8 +29,11 @@ const ContactOverlay = () => {
     }, [messages, isThinking]);
 
     useEffect(() => {
-        setScrollLocked(true);
-        return () => setScrollLocked(false);
+        const isMobile = window.innerWidth < 768;
+        if (!isMobile) {
+            setScrollLocked(true);
+            return () => setScrollLocked(false);
+        }
     }, [setScrollLocked]);
 
     const QUICK_ACTIONS = [
