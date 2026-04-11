@@ -8,74 +8,64 @@ const LogicArchitect = ({ config, modelY }) => {
     const pulsesRef = useRef();
     const scannerRef = useRef();
 
-    const intensity = config.intensity || 1.0;
-    const speed = config.speed || 1.0;
-    const radius = config.radius || 1.5;
-    const gridDensity = config.variant || 4; // 3 to 6
-    const scanSpeed = config.speed || 1.0;
-    const color = new THREE.Color(config.color || '#00f2ff');
+    const intensity = config.intensity ?? 1.0;
+    const speed = config.speed ?? 1.0;
+    const radius = config.radius ?? 1.5;
+    const gridDensity = config.variant ?? 4; 
+    const scanSpeed = config.speed ?? 1.0;
+    const color = useMemo(() => new THREE.Color(config.color || '#00f2ff'), [config.color]);
 
     // --- GEOMETRY: The Modular Lattice ---
-    const { cellData, boxPositions, boxIndices } = useMemo(() => {
+    const { cellData } = useMemo(() => {
         const cells = [];
-        const dim = Math.floor(gridDensity);
-        const step = (radius * 2) / (dim - 1);
+        const dim = Math.max(2, Math.floor(gridDensity));
+        const step = (radius * 1.8) / (dim - 1);
         
-        // Generate grid of cell centers
         for (let x = 0; x < dim; x++) {
             for (let y = 0; y < dim; y++) {
                 for (let z = 0; z < dim; z++) {
-                    const posX = -radius + x * step;
-                    const posY = -radius + y * step;
-                    const posZ = -radius + z * step;
+                    const posX = -radius*0.9 + x * step;
+                    const posY = -radius*0.9 + y * step;
+                    const posZ = -radius*0.9 + z * step;
                     
-                    // We only keep cells within a spherical-ish bounds for a cleaner look
-                    if (new THREE.Vector3(posX, posY, posZ).length() < radius * 1.2) {
-                        cells.push({ x: posX, y: posY, z: posZ, offset: Math.random() });
+                    // Simple radial culling for a nice shape
+                    if (new THREE.Vector3(posX, posY, posZ).length() < radius * 1.5) {
+                        cells.push({ x: posX, y: posY, z: posZ });
                     }
                 }
             }
         }
-
-        return {
-            cellData: cells,
-            totalCount: cells.length
-        };
+        return { cellData: cells };
     }, [gridDensity, radius]);
 
-    // --- PULSES (Manhattan Flows) ---
-    const pulseCount = 20;
+    const pulseCount = 30;
     const pulses = useMemo(() => Array.from({ length: pulseCount }, () => ({
-        pos: new THREE.Vector3(),
-        axis: Math.floor(Math.random() * 3), // 0:x, 1:y, 2:z
-        spd: (0.02 + Math.random() * 0.04) * speed,
+        pos: new THREE.Vector3((Math.random()-0.5)*radius, (Math.random()-0.5)*radius, (Math.random()-0.5)*radius),
+        axis: Math.floor(Math.random() * 3),
+        spd: (0.01 + Math.random() * 0.03) * speed,
         life: Math.random(),
         dir: Math.random() > 0.5 ? 1 : -1
-    })), [speed]);
+    })), [speed, radius]);
 
-    const pulseGeom = useMemo(() => {
-        return {
-            pos: new Float32Array(pulseCount * 3),
-            size: new Float32Array(pulseCount)
-        };
-    }, []);
+    const pulseGeom = useMemo(() => ({
+        pos: new Float32Array(pulseCount * 3),
+        size: new Float32Array(pulseCount)
+    }), []);
 
     const tempObj = new THREE.Object3D();
 
     useFrame((state) => {
         if (!groupRef.current) return;
         const t = state.clock.elapsedTime;
-        const scanY = Math.sin(t * 0.5 * scanSpeed) * radius * 1.2;
+        const scanY = Math.sin(t * 0.4 * scanSpeed) * radius;
 
-        groupRef.current.position.y = modelY;
+        groupRef.current.position.y = modelY - 0.5; // Lowered to head center
 
-        // --- UPDATE LATTICE INSTANCES ---
         if (latticeRef.current) {
             cellData.forEach((cell, i) => {
                 const distToScan = Math.abs(cell.y - scanY);
-                // Glow impact from the scanning laser
-                const impact = Math.exp(-distToScan * 4.0);
-                const scale = 0.02 + impact * 0.03;
+                const impact = Math.exp(-distToScan * 5.0);
+                const scale = 0.015 + impact * 0.04; // Responsive scale
                 
                 tempObj.position.set(cell.x, cell.y, cell.z);
                 tempObj.scale.setScalar(scale);
@@ -83,105 +73,88 @@ const LogicArchitect = ({ config, modelY }) => {
                 latticeRef.current.setMatrixAt(i, tempObj.matrix);
             });
             latticeRef.current.instanceMatrix.needsUpdate = true;
+            
+            // Dynamic Updates
             latticeRef.current.material.uniforms.uScanY.value = scanY;
             latticeRef.current.material.uniforms.uTime.value = t;
+            latticeRef.current.material.uniforms.uIntensity.value = intensity;
+            latticeRef.current.material.uniforms.uColor.value.copy(color);
         }
 
-        // --- UPDATE SCANNER BEAM ---
         if (scannerRef.current) {
             scannerRef.current.position.y = scanY;
-            scannerRef.current.material.opacity = (0.15 + Math.sin(t * 10) * 0.05) * intensity;
+            scannerRef.current.material.opacity = (0.2 + Math.sin(t * 8) * 0.1) * intensity;
+            scannerRef.current.material.color.copy(color);
         }
 
-        // --- UPDATE PULSES ---
         if (pulsesRef.current) {
             const posAttr = pulsesRef.current.geometry.attributes.position;
             const sizeAttr = pulsesRef.current.geometry.attributes.size;
-
             pulses.forEach((p, i) => {
-                p.life += 0.005 * speed;
+                p.life += 0.004 * speed;
                 if (p.life > 1.0) {
                     p.life = 0;
-                    p.pos.set(
-                        (Math.random()-0.5) * radius * 2,
-                        (Math.random()-0.5) * radius * 2,
-                        (Math.random()-0.5) * radius * 2
-                    );
-                    p.axis = Math.floor(Math.random() * 3);
+                    p.pos.set((Math.random()-0.5)*radius, (Math.random()-0.5)*radius, (Math.random()-0.5)*radius);
                 }
+                const v = p.spd;
+                if (p.axis === 0) p.pos.x += v * p.dir;
+                else if (p.axis === 1) p.pos.y += v * p.dir;
+                else p.pos.z += v * p.dir;
 
-                // Grid snapping movement
-                const move = p.spd;
-                if (p.axis === 0) p.pos.x += move * p.dir;
-                else if (p.axis === 1) p.pos.y += move * p.dir;
-                else p.pos.z += move * p.dir;
-
-                posAttr.array[i*3] = p.pos.x;
-                posAttr.array[i*3+1] = p.pos.y;
-                posAttr.array[i*3+2] = p.pos.z;
-                sizeAttr.array[i] = Math.sin(p.life * Math.PI) * 0.2 * intensity;
+                posAttr.array[i*3] = p.pos.x; posAttr.array[i*3+1] = p.pos.y; posAttr.array[i*3+2] = p.pos.z;
+                sizeAttr.array[i] = Math.sin(p.life * Math.PI) * 0.25 * intensity;
             });
-            posAttr.needsUpdate = true;
-            sizeAttr.needsUpdate = true;
+            posAttr.needsUpdate = true; sizeAttr.needsUpdate = true;
         }
-
-        groupRef.current.rotation.y = t * 0.1;
-
+        groupRef.current.rotation.y = t * 0.05;
     });
 
     if (!config.active) return null;
 
     return (
         <group ref={groupRef}>
-            {/* THE LATTICE CUBES */}
             <instancedMesh ref={latticeRef} args={[new THREE.BoxGeometry(1, 1, 1), null, cellData.length]}>
                 <shaderMaterial
                     transparent depthWrite={false} blending={THREE.AdditiveBlending}
                     uniforms={{
                         uTime: { value: 0 },
-                        uColor: { value: color },
+                        uColor: { value: new THREE.Color(color) },
                         uIntensity: { value: intensity },
-                        uScanY: { value: 0 },
-                        uRadius: { value: radius }
+                        uScanY: { value: 0 }
                     }}
                     vertexShader={`
-                        varying vec3 vPos;
-                        varying float vImpact;
-                        uniform float uScanY;
+                        varying vec3 vWorldPos;
                         void main() {
-                            vPos = (instanceMatrix * vec4(position, 1.0)).xyz;
-                            float dist = abs(vPos.y - uScanY);
-                            vImpact = exp(-dist * 4.0);
-                            gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+                            vec4 worldPos = instanceMatrix * vec4(position, 1.0);
+                            vWorldPos = worldPos.xyz;
+                            gl_Position = projectionMatrix * modelViewMatrix * worldPos;
                         }
                     `}
                     fragmentShader={`
                         uniform vec3 uColor;
                         uniform float uIntensity;
                         uniform float uTime;
-                        varying vec3 vPos;
-                        varying float vImpact;
+                        uniform float uScanY;
+                        varying vec3 vWorldPos;
                         void main() {
-                            float d = distance(gl_PointCoord, vec2(0.5));
+                            // Distance from scanner
+                            float dist = abs(vWorldPos.y - uScanY);
+                            float impact = exp(-dist * 6.0);
                             
-                            // Glowing Edges logic
-                            vec3 grid = abs(fract(vPos * 4.0 - 0.5) - 0.5);
-                            float edge = 1.0 - smoothstep(0.0, 0.05, min(min(grid.x, grid.y), grid.z));
+                            // Wireframe box visual
+                            vec3 grid = abs(fract(vWorldPos * 6.0) - 0.5);
+                            float edge = 1.0 - smoothstep(0.0, 0.06, min(min(grid.x, grid.y), grid.z));
                             
-                            // Micro-glitch pulse
-                            float noise = sin(vPos.x * 10.0 + uTime * 5.0) * sin(vPos.z * 10.0 + uTime * 3.0);
-                            float glitch = step(0.98, sin(uTime * 10.0 + vPos.y * 5.0)) * 0.5;
-
-                            float alpha = (0.05 + vImpact * 1.5 + glitch) * uIntensity;
-                            vec3 finalColor = mix(uColor, vec3(1.0), vImpact * 0.5 + glitch);
+                            // Static presence + Scan burst
+                            float alpha = (0.2 + impact * 3.0) * uIntensity;
+                            vec3 finalColor = mix(uColor, vec3(1.0), impact * 0.7);
                             
-                            gl_FragColor = vec4(finalColor, alpha * (edge * 0.8 + 0.1));
+                            gl_FragColor = vec4(finalColor, alpha * (edge * 0.9 + 0.1) * 0.4);
                         }
                     `}
                 />
             </instancedMesh>
 
-            {/* MANHATTAN FLOW PULSES */}
             <points ref={pulsesRef}>
                 <bufferGeometry>
                     <bufferAttribute attach="attributes-position" count={pulseCount} array={pulseGeom.pos} itemSize={3} />
@@ -189,11 +162,12 @@ const LogicArchitect = ({ config, modelY }) => {
                 </bufferGeometry>
                 <shaderMaterial
                     transparent depthWrite={false} blending={THREE.AdditiveBlending}
+                    uniforms={{ uColor: { value: color } }}
                     vertexShader={`
                         attribute float size;
                         void main() {
                             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                            gl_PointSize = size * (300.0 / -mvPosition.z);
+                            gl_PointSize = size * (400.0 / -mvPosition.z);
                             gl_Position = projectionMatrix * mvPosition;
                         }
                     `}
@@ -202,20 +176,23 @@ const LogicArchitect = ({ config, modelY }) => {
                         void main() {
                             float d = distance(gl_PointCoord, vec2(0.5));
                             if (d > 0.5) discard;
-                            gl_FragColor = vec4(vec3(1.0), pow(1.0 - d * 2.0, 2.0));
+                            gl_FragColor = vec4(uColor, pow(1.0 - d * 2.0, 2.0));
                         }
                     `}
-                    uniforms={{ uColor: { value: color } }}
                 />
             </points>
 
-            {/* SCANNER BEAM PLANE */}
+            {/* SCANNER: REFINED DIGITAL PLANE */}
             <mesh ref={scannerRef} rotation-x={-Math.PI / 2}>
-                <planeGeometry args={[radius * 2.5, radius * 2.5]} />
-                <meshBasicMaterial color={color} transparent opacity={0.2} blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.DoubleSide} />
+                <planeGeometry args={[radius * 2.2, radius * 2.2]} />
+                <meshBasicMaterial 
+                    color={color} transparent opacity={0.2} blending={THREE.AdditiveBlending} 
+                    depthWrite={false} side={THREE.DoubleSide}
+                    map={new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/glow.png')}
+                />
             </mesh>
             
-            <pointLight intensity={0.5 * intensity} color={color} distance={4} />
+            <pointLight intensity={1.5 * intensity} color={color} distance={4} />
         </group>
     );
 };
