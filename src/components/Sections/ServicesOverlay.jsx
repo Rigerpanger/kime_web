@@ -21,21 +21,21 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
     return (
         <NavLink
             to={`/services/${service.slug}`}
-            className={`group flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 border ${
+            className={`group flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 border sweep-container ${
                 isActive 
-                ? 'bg-white/5 border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.02)]' 
+                ? 'bg-white/10 border-white/30 shadow-[0_0_30px_rgba(255,170,68,0.1)] premium-active-border' 
                 : isHint 
                 ? 'neon-hint-border'
                 : 'border-transparent hover:bg-white/[0.03]'
             }`}
         >
-            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-white' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
+            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
                 {number}
             </span>
-            <div className={`p-1.5 rounded-lg transition-colors duration-500 ${isActive ? 'text-white' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/50'}`}>
-                <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
+            <div className={`p-1.5 rounded-lg transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/50'}`}>
+                <IconComponent size={18} strokeWidth={isActive || isHint ? 2 : 1} />
             </div>
-            <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-light' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/60'}`}>
+            <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/60'}`}>
                 {service.title}
                 {isHint && <span className="ml-2 text-[8px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse">следующее</span>}
             </span>
@@ -135,15 +135,22 @@ const ServicesOverlay = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="w-full p-8 md:p-10 border border-white/10 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col justify-start relative group shadow-2xl min-h-[200px]"
+                                className="w-full p-8 md:p-10 border border-white/15 bg-black/60 backdrop-blur-xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[220px]"
                             >
-                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                                <h2 className="text-xl md:text-2xl font-light text-white mb-6 leading-tight tracking-wide">
+                                {/* Animated Top Border for visual connection */}
+                                <div className="absolute top-0 left-10 right-10 h-[2px] bg-gradient-to-r from-transparent via-[#ffaa44]/50 to-transparent blur-[1px] premium-active-border opacity-50" />
+                                
+                                <h2 className="text-2xl md:text-3xl font-light text-white mb-6 leading-tight tracking-wide">
                                     {activeService.title}
                                 </h2>
-                                <p className="text-gray-200 text-base md:text-lg leading-relaxed font-light opacity-95">
+                                <p className="text-gray-300 text-base md:text-lg leading-relaxed font-light opacity-95">
                                     {activeService.description}
                                 </p>
+                                
+                                {/* Bottom decoration */}
+                                <div className="absolute bottom-4 right-8 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <IconComponent size={64} strokeWidth={0.5} />
+                                </div>
                             </motion.div>
                         )}
                     </AnimatePresence>

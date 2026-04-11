@@ -29,11 +29,8 @@ const ContactOverlay = () => {
     }, [messages, isThinking]);
 
     useEffect(() => {
-        const isMobile = window.innerWidth < 768;
-        if (!isMobile) {
-            setScrollLocked(true);
-            return () => setScrollLocked(false);
-        }
+        setScrollLocked(true);
+        return () => setScrollLocked(false);
     }, [setScrollLocked]);
 
     const QUICK_ACTIONS = [
@@ -137,7 +134,7 @@ const ContactOverlay = () => {
     };
 
     return (
-        <div className="absolute md:fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[90] bg-black/80 backdrop-blur-md pt-[100px] md:pt-[120px] pb-4 md:pb-8" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking}>
+        <div className="fixed inset-0 pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-4">
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div className="relative z-10 w-full md:w-[75vw] max-w-[800px] h-full max-h-[850px] flex flex-col justify-center">
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative">
@@ -146,12 +143,9 @@ const ContactOverlay = () => {
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
-                    <button onClick={() => navigate('/')} className="absolute right-2 md:right-0 text-white/60 hover:text-white transition-all bg-white/10 p-2 md:p-2.5 rounded-full border border-white/20 hover:bg-white/20 hover:scale-105 active:scale-95 shadow-xl md:translate-x-4">
-                        <X size={20} />
-                    </button>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking} onScroll={preventScrollLeaking}>
-                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth" onWheel={preventScrollLeaking} onTouchMove={preventScrollLeaking} onScroll={preventScrollLeaking}>
+                <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col">
+                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth">
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (

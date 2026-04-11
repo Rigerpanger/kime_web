@@ -434,7 +434,7 @@ const About = () => {
 
             <AnimatePresence>
                 {selectedFullCert && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-10 pointer-events-auto" onClick={() => setSelectedFullCert(null)}>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-xl p-10 pointer-events-auto" onClick={() => setSelectedFullCert(null)}>
                         <button className="absolute top-10 right-10 text-white/50 hover:text-white" onClick={() => setSelectedFullCert(null)}><X size={32} strokeWidth={1} /></button>
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-md overflow-hidden" onClick={(e) => e.stopPropagation()}>
                             <img src={selectedFullCert.image_url} alt="Full Certificate" className="w-full h-full object-contain" />
