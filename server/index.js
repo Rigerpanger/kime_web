@@ -367,7 +367,7 @@ app.post(['/projects', '/api/projects'], authenticateToken, async (req, res) => 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req, res) => {
+const updateProject = async (req, res) => {
     const { id } = req.params;
     const { title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order } = req.body;
     try {
@@ -391,7 +391,10 @@ app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req,
         if (rows.length === 0) return res.status(404).json({ error: 'Project not found' });
         res.json(rows[0]);
     } catch (err) { res.status(500).json({ error: err.message }); }
-});
+};
+
+app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, updateProject);
+app.put(['/projects/:id', '/api/projects/:id'], authenticateToken, updateProject);
 
 app.delete(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req, res) => {
     try {

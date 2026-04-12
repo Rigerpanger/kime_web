@@ -151,7 +151,7 @@ const ManageProjects = () => {
                 sort_order: editingProject ? editingProject.sort_order : projects.length
             };
 
-            const method = editingProject ? 'PUT' : 'POST';
+            const method = editingProject ? 'PATCH' : 'POST';
             const url = editingProject ? `${apiUrl}/projects/${editingProject.id}` : `${apiUrl}/projects`;
 
             const response = await fetch(url, {
