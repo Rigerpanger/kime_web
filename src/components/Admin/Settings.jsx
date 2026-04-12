@@ -288,13 +288,16 @@ const Settings = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <button 
-                            onClick={() => setShowStudioEditor(!showStudioEditor)} 
-                            className={`p-2.5 rounded-xl border transition-all ${showStudioEditor ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-white/10 text-white/40 hover:text-white/80'} group`}
-                            title="Включить редактор 3D модели"
-                        >
-                            <Box size={20} className={showStudioEditor ? 'animate-pulse' : ''} />
-                        </button>
+                        <div className="flex flex-col items-center">
+                            <button 
+                                onClick={() => setShowStudioEditor(!showStudioEditor)} 
+                                className={`p-2.5 rounded-xl border transition-all ${showStudioEditor ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-white/10 text-white/40 hover:text-white/80'} group`}
+                                title={showStudioEditor ? "Выключить редактор 3D модели" : "Включить редактор 3D модели"}
+                            >
+                                <Box size={20} className={showStudioEditor ? 'animate-pulse' : ''} />
+                            </button>
+                            <span className="text-[7px] uppercase font-bold tracking-widest mt-1 text-white/30">Редактор</span>
+                        </div>
                         <button onClick={() => setShowGrid(!showGrid)} className={`p-2.5 rounded-xl border transition-all ${showGrid ? 'border-indigo-500/40 text-indigo-400 bg-indigo-500/10' : 'border-white/10 text-white/20'}`}>
                             <Grid3X3 size={20} />
                         </button>

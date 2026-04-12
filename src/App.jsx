@@ -111,11 +111,14 @@ const AppLayout = () => {
         };
     }, [isScrollLocked]);
 
+    const user = useAuthStore(s => s.user);
+    const isLocalhost = window.location.hostname === 'localhost';
+
     return (
         <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
             <RouteManager />
             {!isMobile && <ScrollNavigator />}
-            {showStudioEditor && <StudioEditor />}
+            {showStudioEditor && (user?.role === 'admin' || isLocalhost) && <StudioEditor />}
 
             {/* 1. Persistent 3D Layer */}
             <div className="absolute inset-0 z-0">

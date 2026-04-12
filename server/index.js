@@ -348,14 +348,14 @@ app.post(['/upload', '/api/upload'], authenticateToken, upload.single('image'), 
 });
 
 // --- PROJECTS CRUD ---
-app.get(['/projects', '/api/projects'], async (req, res) => {
+app.get(['/api/projects'], async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM projects ORDER BY sort_order ASC, id DESC');
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post(['/projects', '/api/projects'], authenticateToken, async (req, res) => {
+app.post(['/api/projects'], authenticateToken, async (req, res) => {
     const { title, slug, challenge, solution, result, short_description, client, cover, video_url, tags, tech, sort_order } = req.body;
     try {
         const { rows } = await pool.query(
@@ -393,8 +393,8 @@ const updateProject = async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 };
 
-app.patch(['/projects/:id', '/api/projects/:id'], authenticateToken, updateProject);
-app.put(['/projects/:id', '/api/projects/:id'], authenticateToken, updateProject);
+app.patch(['/api/projects/:id'], authenticateToken, updateProject);
+app.put(['/api/projects/:id'], authenticateToken, updateProject);
 
 app.delete(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req, res) => {
     try {
@@ -404,14 +404,14 @@ app.delete(['/projects/:id', '/api/projects/:id'], authenticateToken, async (req
 });
 
 // --- PARTNERS CRUD ---
-app.get(['/partners', '/api/partners'], async (req, res) => {
+app.get(['/api/partners'], async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM partners ORDER BY order_index ASC, id DESC');
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post(['/partners', '/api/partners'], authenticateToken, async (req, res) => {
+app.post(['/api/partners'], authenticateToken, async (req, res) => {
     const { name, logo_url, width, order_index } = req.body;
     try {
         const { rows } = await pool.query(
@@ -430,14 +430,14 @@ app.delete(['/partners/:id', '/api/partners/:id'], authenticateToken, async (req
 });
 
 // --- CERTIFICATES CRUD ---
-app.get(['/certificates', '/api/certificates'], async (req, res) => {
+app.get(['/api/certificates'], async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT * FROM certificates ORDER BY order_index ASC, id DESC');
         res.json(rows);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post(['/certificates', '/api/certificates'], authenticateToken, async (req, res) => {
+app.post(['/api/certificates'], authenticateToken, async (req, res) => {
     const { company, division, position, image_url, order_index } = req.body;
     try {
         const { rows } = await pool.query(
@@ -448,7 +448,7 @@ app.post(['/certificates', '/api/certificates'], authenticateToken, async (req, 
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.put(['/certificates/:id', '/api/certificates/:id'], authenticateToken, async (req, res) => {
+app.put(['/api/certificates/:id'], authenticateToken, async (req, res) => {
     const { id } = req.params;
     const { company, division, position, image_url, order_index } = req.body;
     try {
@@ -497,7 +497,7 @@ app.post(['/api/content/save_to_git', '/content/save_to_git'], (req, res) => {
 });
 
 // --- SITE CONTENT ---
-app.get(['/content/:key', '/api/content/:key'], async (req, res) => {
+app.get(['/api/content/:key'], async (req, res) => {
     try {
         const { rows } = await pool.query('SELECT content_json FROM site_content WHERE section_key = $1', [req.params.key]);
         if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -505,7 +505,7 @@ app.get(['/content/:key', '/api/content/:key'], async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-app.post(['/content/:key', '/api/content/:key'], authenticateToken, async (req, res) => {
+app.post(['/api/content/:key'], authenticateToken, async (req, res) => {
     const { key } = req.params;
     const content = req.body;
     try {
