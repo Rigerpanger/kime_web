@@ -111,18 +111,20 @@ const AppLayout = () => {
         };
     }, [isScrollLocked]);
 
+    const user = useAuthStore(s => s.user);
     const setShowStudioEditor = useAppStore(s => s.setShowStudioEditor);
+
+    const loadingAuth = useAuthStore(s => s.loading);
 
     useEffect(() => {
         // Safety: If we're on production and not logged in as admin, force turn off the editor
         // but only after auth initialization is complete
         const isLocalhost = window.location.hostname === 'localhost';
-        const loadingAuth = useAuthStore.getState().loading;
         
         if (!isLocalhost && !loadingAuth && user?.role !== 'admin' && showStudioEditor) {
             setShowStudioEditor(false);
         }
-    }, [user, showStudioEditor, setShowStudioEditor]);
+    }, [user, loadingAuth, showStudioEditor, setShowStudioEditor]);
 
     return (
         <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
