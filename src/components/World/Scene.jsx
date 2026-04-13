@@ -203,7 +203,7 @@ const Scene = () => {
 
     return (
         <ErrorBoundary>
-            <DebugOverlay />
+            {showStudioEditor && <DebugOverlay />}
             <Canvas 
                 shadows 
                 camera={{ position: [0, 5, 18], fov: 35 }}

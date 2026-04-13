@@ -33,7 +33,9 @@ const CameraRig = () => {
         const { activeSlug: currentSlug, config: currentConfig, showStudioEditor: isEditing, isOverPanel: overPanel } = stateRef.current;
 
         // UPDATE TELEMETRY
-        setDebug({ camera: [camera.position.x, camera.position.y, camera.position.z] });
+        if (isEditing) {
+            setDebug({ camera: [camera.position.x, camera.position.y, camera.position.z] });
+        }
 
         if (!currentConfig || !currentConfig.sections) return;
 
