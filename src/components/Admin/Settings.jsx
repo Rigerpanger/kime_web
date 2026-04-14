@@ -49,7 +49,8 @@ const Settings = () => {
         projects_content_offset_desktop: 0, projects_content_offset_mobile: 0,
         projects_mobile_info_plate_offset: 0,
         contact_header_offset_desktop: 0, contact_header_offset_mobile: 0,
-        contact_content_offset_desktop: 0, contact_content_offset_mobile: 0
+        contact_content_offset_desktop: 0, contact_content_offset_mobile: 0,
+        showStudioEditor: false
     });
 
     useEffect(() => {
@@ -63,6 +64,9 @@ const Settings = () => {
             if (res.ok) {
                 const data = await res.json();
                 setLayoutSettings(prev => ({ ...prev, ...data }));
+                if (data.showStudioEditor !== undefined) {
+                    setShowStudioEditor(data.showStudioEditor);
+                }
             }
         } catch (e) { console.error(e); }
         finally { setLoading(false); }
@@ -290,11 +294,15 @@ const Settings = () => {
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center">
                             <button 
-                                onClick={() => setShowStudioEditor(!showStudioEditor)} 
-                                className={`p-2.5 rounded-xl border transition-all ${showStudioEditor ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-white/10 text-white/40 hover:text-white/80'} group`}
-                                title={showStudioEditor ? "Выключить редактор 3D модели" : "Включить редактор 3D модели"}
+                                onClick={() => {
+                                    const newVal = !layoutSettings.showStudioEditor;
+                                    setLayoutSettings(prev => ({ ...prev, showStudioEditor: newVal }));
+                                    setShowStudioEditor(newVal);
+                                }} 
+                                className={`p-2.5 rounded-xl border transition-all ${layoutSettings.showStudioEditor ? 'border-amber-500/40 text-amber-400 bg-amber-500/10' : 'border-white/10 text-white/40 hover:text-white/80'} group`}
+                                title={layoutSettings.showStudioEditor ? "Выключить редактор 3D модели" : "Включить редактор 3D модели"}
                             >
-                                <Box size={20} className={showStudioEditor ? 'animate-pulse' : ''} />
+                                <Box size={20} className={layoutSettings.showStudioEditor ? 'animate-pulse' : ''} />
                             </button>
                             <span className="text-[7px] uppercase font-bold tracking-widest mt-1 text-white/30">Редактор</span>
                         </div>
