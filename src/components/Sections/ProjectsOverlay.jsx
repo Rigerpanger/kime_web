@@ -89,11 +89,7 @@ const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange })
                     
                     <div className="absolute inset-0 flex flex-col justify-between p-6 bg-gradient-to-t from-black via-black/40 to-black/10 z-10">
                         <div className="flex flex-wrap gap-2 w-full pr-8">
-                            {project.tags?.map(t => (
-                                <span key={t} className="text-[10px] font-bold uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-3 py-1 bg-[#ffaa44]/15 backdrop-blur-md rounded-md">
-                                    {t}
-                                </span>
-                            ))}
+                            {/* Tags removed from mobile gallery as per request */}
                         </div>
 
                         <div className="flex items-end justify-between mt-auto w-full">
@@ -132,8 +128,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             className="absolute inset-0 bg-black/20 backdrop-blur-sm rounded-3xl"
             style={{ transform: "translateZ(-8px)" }}
         />
-        <div 
-            className="absolute inset-0 z-0 bg-black/40 rounded-3xl overflow-hidden group-hover:bg-black/10 transition-colors duration-1000 flex items-center justify-center opacity-90 group-hover:opacity-100 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+        <div className="absolute inset-0 z-0 bg-black/40 rounded-3xl overflow-hidden group-hover:bg-black/10 transition-colors duration-1000 flex items-center justify-center opacity-90 group-hover:opacity-100 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
             style={{ transform: "translateZ(-4px)" }}
         >
             {project.cover ? (
@@ -149,17 +144,59 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             
             <div className="absolute inset-0 bg-[#ffaa44]/0 group-hover:bg-[#ffaa44]/20 mix-blend-overlay transition-colors duration-700 pointer-events-none" />
         </div>
+
+        {/* Floating Tags Cloud - Desktop Only (Outside overflow-hidden) */}
+        <div className="absolute inset-0 pointer-events-none overflow-visible z-[100]">
+            {(project.tags || []).map((t, i) => {
+                const offsets = [
+                    { x: -70, y: 10 },   { x: 190, y: -40 }, 
+                    { x: 210, y: 100 }, { x: -80, y: 140 },
+                    { x: 20, y: -60 },   { x: 110, y: 270 }
+                ][i % 6];
+                
+                return (
+                    <motion.span 
+                        key={t}
+                        variants={{
+                            initial: { opacity: 0, scale: 0.5, x: 40, y: 80 },
+                            hover: { 
+                                opacity: 1, 
+                                scale: 1, 
+                                x: offsets.x, 
+                                y: offsets.y,
+                                transition: { 
+                                    delay: i * 0.03,
+                                    type: "spring",
+                                    stiffness: 120,
+                                    damping: 12
+                                }
+                            }
+                        }}
+                        initial="initial"
+                        whileHover={{ scale: 1.15, filter: "brightness(1.2)" }}
+                        animate="initial" // Controlled by parent group-hover normally, but let's use a class-based approach if needed
+                        className="hidden md:block absolute text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-black/80 backdrop-blur-xl rounded-sm whitespace-nowrap shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 opacity-0 group-hover:opacity-100 transition-all duration-500"
+                        style={{ 
+                            left: offsets.x, 
+                            top: offsets.y,
+                            left: '50%',
+                            top: '50%',
+                            marginLeft: offsets.x,
+                            marginTop: offsets.y
+                        }}
+                    >
+                        {t}
+                    </motion.span>
+                );
+            })}
+        </div>
         
         <div 
             className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 bg-gradient-to-t from-black/90 via-black/10 to-transparent rounded-3xl overflow-hidden transition-all duration-500"
             style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }}
         >
-            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0" style={{ transform: "translateZ(15px)" }}>
-                {(project.tags || []).map(t => (
-                    <span key={t} className="text-[7px] md:text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-[#ffaa44]/10 backdrop-blur-xl rounded-sm">
-                        {t}
-                    </span>
-                ))}
+            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0" style={{ transform: "translateZ(15px)" }}>
+                {/* Traditional tag block removed for cleaner look */}
             </div>
 
             <div className="relative z-20 w-full flex items-end justify-between mt-auto" style={{ transform: "translateZ(15px)" }}>
@@ -284,9 +321,9 @@ const ArtifactPassport = ({ project, onClose }) => {
                             </div>
                             <div className="flex flex-col justify-center">
                                 <h2 className="text-3xl md:text-5xl font-thin tracking-wide mb-6 text-white uppercase break-words hyphens-auto drop-shadow-xl" style={{ wordBreak: 'break-word', lineHeight: '1.1' }}>{project.title}</h2>
-                                <div className="flex flex-wrap gap-2 mb-8 md:mb-10">
+                                <div className="flex flex-wrap gap-1.5 mb-6 md:mb-8">
                                     {(project.tags || []).map(t => (
-                                        <span key={t} className="text-[10px] md:text-[11px] uppercase tracking-[0.2em] text-[#ffaa44] border border-[#ffaa44]/30 px-4 py-1.5 rounded-full bg-[#ffaa44]/10 backdrop-blur-sm font-bold shadow-sm">
+                                        <span key={t} className="text-[8px] md:text-[9px] uppercase tracking-[0.15em] text-[#ffaa44] border border-[#ffaa44]/20 px-3 py-1 rounded-sm bg-[#ffaa44]/5 backdrop-blur-sm font-medium">
                                             {t}
                                         </span>
                                     ))}
