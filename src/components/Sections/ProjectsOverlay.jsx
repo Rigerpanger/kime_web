@@ -116,6 +116,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
         initial="enter"
         animate="center"
         exit="exit"
+        whileHover="hover"
         onClick={() => onClick(project)}
         className="absolute cursor-pointer pointer-events-auto group w-[180px] h-[250px]"
         style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
@@ -149,40 +150,37 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
         <div className="absolute inset-0 pointer-events-none overflow-visible z-[100]">
             {(project.tags || []).map((t, i) => {
                 const offsets = [
-                    { x: -70, y: 10 },   { x: 190, y: -40 }, 
-                    { x: 210, y: 100 }, { x: -80, y: 140 },
-                    { x: 20, y: -60 },   { x: 110, y: 270 }
+                    { x: -75, y: 0 },    { x: 195, y: -45 }, 
+                    { x: 215, y: 110 }, { x: -85, y: 150 },
+                    { x: 15, y: -65 },   { x: 105, y: 275 }
                 ][i % 6];
                 
                 return (
                     <motion.span 
                         key={t}
                         variants={{
-                            initial: { opacity: 0, scale: 0.5, x: 40, y: 80 },
+                            initial: { opacity: 0, scale: 0.3, x: 0, y: 0 },
                             hover: { 
                                 opacity: 1, 
                                 scale: 1, 
                                 x: offsets.x, 
                                 y: offsets.y,
                                 transition: { 
-                                    delay: i * 0.03,
+                                    delay: i * 0.04,
                                     type: "spring",
-                                    stiffness: 120,
+                                    stiffness: 150,
                                     damping: 12
                                 }
                             }
                         }}
                         initial="initial"
-                        whileHover={{ scale: 1.15, filter: "brightness(1.2)" }}
-                        animate="initial" // Controlled by parent group-hover normally, but let's use a class-based approach if needed
-                        className="hidden md:block absolute text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-black/80 backdrop-blur-xl rounded-sm whitespace-nowrap shadow-[0_10px_30px_rgba(0,0,0,0.5)] z-50 opacity-0 group-hover:opacity-100 transition-all duration-500"
+                        whileHover={{ scale: 1.2, filter: "brightness(1.3)", zIndex: 60 }}
+                        className="hidden md:block absolute text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-black/80 backdrop-blur-xl rounded-sm whitespace-nowrap shadow-[0_10px_30px_rgba(0,0,0,0.5)] pointer-events-auto"
                         style={{ 
-                            left: offsets.x, 
-                            top: offsets.y,
                             left: '50%',
                             top: '50%',
-                            marginLeft: offsets.x,
-                            marginTop: offsets.y
+                            translateX: '-50%',
+                            translateY: '-50%'
                         }}
                     >
                         {t}
@@ -610,7 +608,7 @@ const ProjectsOverlay = () => {
             ) : (
                 <div 
                     style={{ transform: `translateY(${cOff}px)` }}
-                    className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
+                    className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none z-20"
                 >
                     <div 
                         className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"
