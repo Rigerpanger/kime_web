@@ -146,55 +146,16 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             <div className="absolute inset-0 bg-[#ffaa44]/0 group-hover:bg-[#ffaa44]/20 mix-blend-overlay transition-colors duration-700 pointer-events-none" />
         </div>
 
-        {/* Floating Tags Cloud - Desktop Only (Outside overflow-hidden) */}
-        <div className="absolute inset-0 pointer-events-none overflow-visible z-[100]">
-            {(project.tags || []).map((t, i) => {
-                const offsets = [
-                    { x: -75, y: 0 },    { x: 195, y: -45 }, 
-                    { x: 215, y: 110 }, { x: -85, y: 150 },
-                    { x: 15, y: -65 },   { x: 105, y: 275 }
-                ][i % 6];
-                
-                return (
-                    <motion.span 
-                        key={t}
-                        variants={{
-                            initial: { opacity: 0, scale: 0.3, x: 0, y: 0 },
-                            hover: { 
-                                opacity: 1, 
-                                scale: 1, 
-                                x: offsets.x, 
-                                y: offsets.y,
-                                transition: { 
-                                    delay: i * 0.04,
-                                    type: "spring",
-                                    stiffness: 150,
-                                    damping: 12
-                                }
-                            }
-                        }}
-                        initial="initial"
-                        whileHover={{ scale: 1.2, filter: "brightness(1.3)", zIndex: 60 }}
-                        className="hidden md:block absolute text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-black/80 backdrop-blur-xl rounded-sm whitespace-nowrap shadow-[0_10px_30px_rgba(0,0,0,0.5)] pointer-events-auto"
-                        style={{ 
-                            left: '50%',
-                            top: '50%',
-                            translateX: '-50%',
-                            translateY: '-50%'
-                        }}
-                    >
-                        {t}
-                    </motion.span>
-                );
-            })}
-        </div>
-        
         <div 
             className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 bg-gradient-to-t from-black/90 via-black/10 to-transparent rounded-3xl overflow-hidden transition-all duration-500"
             style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }}
         >
-            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0" style={{ transform: "translateZ(15px)" }}>
-                {/* Traditional tag block removed for cleaner look */}
+            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0" style={{ transform: "translateZ(15px)" }}>
+                {(project.tags || []).map(t => (
+                    <span key={t} className="text-[7px] md:text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-[#ffaa44]/10 backdrop-blur-xl rounded-sm">
+                        {t}
+                    </span>
+                ))}
             </div>
 
             <div className="relative z-20 w-full flex items-end justify-between mt-auto" style={{ transform: "translateZ(15px)" }}>
@@ -608,7 +569,7 @@ const ProjectsOverlay = () => {
             ) : (
                 <div 
                     style={{ transform: `translateY(${cOff}px)` }}
-                    className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none z-20"
+                    className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
                 >
                     <div 
                         className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"

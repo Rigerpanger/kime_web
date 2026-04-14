@@ -146,8 +146,8 @@ const ManageProjects = () => {
                 ...formData,
                 slug,
                 cover: finalCoverUrl,
-                tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
-                tech: formData.tech.split(',').map(t => t.trim()).filter(t => t),
+                tags: typeof formData.tags === 'string' ? formData.tags.split(',').map(t => t.trim()).filter(t => t) : (Array.isArray(formData.tags) ? formData.tags : []),
+                tech: typeof formData.tech === 'string' ? formData.tech.split(',').map(t => t.trim()).filter(t => t) : (Array.isArray(formData.tech) ? formData.tech : []),
                 sort_order: editingProject ? editingProject.sort_order : projects.length
             };
 
@@ -158,7 +158,7 @@ const ManageProjects = () => {
                 method: method,
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session?.token}` 
+                    'Authorization': `Bearer ${localStorage.getItem('kime_token')}` 
                 },
                 body: JSON.stringify(projectData)
             });
