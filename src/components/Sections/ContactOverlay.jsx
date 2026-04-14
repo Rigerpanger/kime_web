@@ -29,11 +29,9 @@ const ContactOverlay = () => {
     }, [messages, isThinking]);
 
     useEffect(() => {
-        const isMobile = window.innerWidth < 768;
-        if (!isMobile) {
-            setScrollLocked(true);
-            return () => setScrollLocked(false);
-        }
+        // Ensure scroll is unlocked when component unmounts
+        // We dynamically lock/unlock on mouse enter/leave of chat box
+        return () => setScrollLocked(false);
     }, [setScrollLocked]);
 
     const QUICK_ACTIONS = [
@@ -147,8 +145,19 @@ const ContactOverlay = () => {
                         </h2>
                     </div>
                 </motion.div>
-                <motion.div initial={{ opacity: 0, y: 30, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col">
-                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth">
+                <motion.div 
+                    initial={{ opacity: 0, y: 30, scale: 0.95 }} 
+                    animate={{ opacity: 1, y: 0, scale: 1 }} 
+                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
+                    className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.9),inset_0_1px_1px_rgba(255,255,255,0.08)] rounded-[2rem] overflow-hidden flex flex-col"
+                    onMouseEnter={() => window.innerWidth >= 768 && setScrollLocked(true)}
+                    onMouseLeave={() => window.innerWidth >= 768 && setScrollLocked(false)}
+                >
+                    <div 
+                        className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-4 no-scrollbar scroll-smooth overscroll-contain"
+                        onTouchMove={preventScrollLeaking}
+                        onWheel={preventScrollLeaking}
+                    >
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
