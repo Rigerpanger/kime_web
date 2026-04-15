@@ -274,7 +274,10 @@ const About = () => {
                 className="w-full flex flex-col justify-center"
             >
                 <h2 
-                    style={{ transform: `translateY(${getLayoutVal('about_slide1_header_offset_desktop')}px)` }}
+                    style={{ 
+                        transform: `translateY(${getLayoutVal('about_slide1_header_offset_desktop')}px)`,
+                        textShadow: '0 4px 20px rgba(0,0,0,0.6)'
+                    }}
                     className="text-3xl md:text-5xl lg:text-5xl font-thin mb-8 text-white uppercase tracking-wider text-center md:text-left"
                 >
                     {content.slide1_title}
@@ -282,12 +285,18 @@ const About = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-center w-full">
                     <div className="md:col-span-12 lg:col-span-7">
-                        <p className="text-white text-[13px] md:text-base lg:text-lg font-light leading-[1.8] md:leading-relaxed tracking-wide mb-2 opacity-90 text-center md:text-left">
+                        <p 
+                            style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                            className="text-white text-[13px] md:text-base lg:text-lg font-light leading-[1.8] md:leading-relaxed tracking-wide mb-2 opacity-95 text-center md:text-left"
+                        >
                             {content.slide1_text1}
                         </p>
                     </div>
                     <div className="md:col-span-12 lg:col-span-5 h-full flex items-center">
-                        <p className="text-gray-400 font-light leading-[1.8] md:leading-relaxed text-[11px] md:text-xs lg:text-sm border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 text-center md:text-left">
+                        <p 
+                            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}
+                            className="text-gray-200 font-light leading-[1.8] md:leading-relaxed text-[11px] md:text-xs lg:text-sm border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6 text-center md:text-left"
+                        >
                             {content.slide1_text2}
                         </p>
                     </div>
@@ -314,14 +323,20 @@ const About = () => {
                 style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }}
                 className="flex flex-col relative items-center md:items-start"
             >
-                <span className="text-white/20 text-[10px] uppercase tracking-[0.5em] mb-6">Наш подход</span>
+                <span className="text-white/40 text-[10px] uppercase tracking-[0.5em] mb-6 drop-shadow-md">Наш подход</span>
                 <h3 
-                    style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }}
-                    className="text-2xl md:text-4xl font-thin text-white/90 uppercase mb-6 leading-relaxed max-w-3xl"
+                    style={{ 
+                        transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)`,
+                        textShadow: '0 4px 20px rgba(0,0,0,0.6)'
+                    }}
+                    className="text-2xl md:text-4xl font-thin text-white uppercase mb-6 leading-relaxed max-w-3xl"
                 >
                     {content.slide2_title}
                 </h3>
-                <p className="text-gray-400 text-base md:text-lg font-light leading-relaxed max-w-2xl">
+                <p 
+                    style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}
+                    className="text-gray-100 text-base md:text-lg font-light leading-relaxed max-w-2xl opacity-90"
+                >
                     {content.slide2_text}
                 </p>
             </motion.div>
@@ -348,16 +363,19 @@ const About = () => {
                 </div>
             </motion.div>
             <div className="flex flex-col justify-center">
-                <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4">Видение и лидерство</span>
+                <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.4em] font-bold mb-4 drop-shadow-md">Видение и лидерство</span>
                 <blockquote 
-                    style={{ transform: `translateY(${getLayoutVal('about_slide3_header_offset_desktop')}px)` }}
-                    className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white/90 leading-relaxed mb-6 tracking-tight"
+                    style={{ 
+                        transform: `translateY(${getLayoutVal('about_slide3_header_offset_desktop')}px)`,
+                        textShadow: '0 4px 20px rgba(0,0,0,0.6)'
+                    }}
+                    className="text-xl md:text-2xl lg:text-[26px] font-light italic text-white leading-relaxed mb-6 tracking-tight"
                 >
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
-                    <p className="text-white uppercase tracking-widest text-xs font-semibold mb-1">{content.slide3_name}</p>
-                    <p className="text-gray-400 uppercase tracking-widest text-[9px] font-medium">{content.slide3_role}</p>
+                    <p className="text-white uppercase tracking-widest text-xs font-semibold mb-1 drop-shadow-lg">{content.slide3_name}</p>
+                    <p className="text-gray-200 uppercase tracking-widest text-[9px] font-medium opacity-80">{content.slide3_role}</p>
                 </div>
             </div>
         </motion.div>,
@@ -394,8 +412,8 @@ const About = () => {
                                 <div className="flex items-start gap-4 w-full">
                                     <span className="text-[8px] font-mono mt-1.5 text-white/20">{index + 1}</span>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm md:text-base font-light tracking-wide ${index === activeCert ? 'text-white' : 'text-white/40'}`}>{cert.company} {cert.division}</p>
-                                        <p className="text-[8px] uppercase tracking-[0.15em] mt-1 text-white/10">{cert.position}</p>
+                                        <p className={`text-sm md:text-base font-light tracking-wide ${index === activeCert ? 'text-white' : 'text-white/60'}`}>{cert.company} {cert.division}</p>
+                                        <p className="text-[8px] uppercase tracking-[0.15em] mt-1 text-white/20">{cert.position}</p>
                                     </div>
                                 </div>
                             </button>
