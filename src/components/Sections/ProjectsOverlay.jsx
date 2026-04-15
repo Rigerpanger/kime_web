@@ -57,24 +57,114 @@ const cardVariants = {
 // --- Mobile Native Gallery Components ---
 const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange }) => {
     const scrollRef = React.useRef(null);
+    const scrollTimeout = React.useRef(null);
+    const hasInitialized = React.useRef(false);
+    const activeRef = React.useRef(0);
+
+    const originalLen = projects.length;
+    const bufferCount = 3; // Number of clones on each side
+
+    const extendedProjects = React.useMemo(() => {
+        if (originalLen === 0) return [];
+        if (originalLen === 1) return projects.map(p => ({ ...p, cloneKey: 'real_0', isClone: false }));
+        
+        const endItems = [];
+        for (let i = bufferCount; i > 0; i--) {
+            const idx = (((originalLen - i) % originalLen) + originalLen) % originalLen;
+            endItems.push({ ...projects[idx], cloneKey: 'front_'+i, isClone: true });
+        }
+        
+        const startItems = [];
+        for (let i = 0; i < bufferCount; i++) {
+            const idx = i % originalLen;
+            startItems.push({ ...projects[idx], cloneKey: 'back_'+i, isClone: true });
+        }
+
+        return [
+            ...endItems,
+            ...projects.map((p, i) => ({ ...p, cloneKey: 'real_'+i, isClone: false })),
+            ...startItems
+        ];
+    }, [projects, originalLen]);
+
+    const centerScrollWithoutAnimation = React.useCallback((targetIndex) => {
+        if (!scrollRef.current) return;
+        const container = scrollRef.current;
+        const targetElement = container.children[targetIndex];
+        if (!targetElement) return;
+
+        const paddingLeft = parseFloat(window.getComputedStyle(container).paddingLeft) || 0;
+        const scrollPos = targetElement.offsetLeft - paddingLeft;
+        
+        container.style.scrollBehavior = 'auto'; 
+        container.scrollLeft = scrollPos;
+        // Force reflow
+        void container.offsetHeight; 
+        container.style.scrollBehavior = 'smooth'; 
+    }, []);
+
+    useEffect(() => {
+        if (scrollRef.current && originalLen > 1 && !hasInitialized.current) {
+            setTimeout(() => {
+                centerScrollWithoutAnimation(bufferCount);
+                hasInitialized.current = true;
+                onActiveIndexChange(0);
+                activeRef.current = 0;
+            }, 50);
+        }
+    }, [originalLen, onActiveIndexChange, centerScrollWithoutAnimation]);
 
     const handleScroll = () => {
-        if (!scrollRef.current) return;
-        const scrollLeft = scrollRef.current.scrollLeft;
-        const width = scrollRef.current.offsetWidth;
-        const index = Math.round(scrollLeft / (width * 0.85)); // 0.85 is card width in vw
-        onActiveIndexChange(index);
+        if (!scrollRef.current || originalLen <= 1) return;
+        const container = scrollRef.current;
+        
+        if (container.children.length < 2) return;
+        const itemTotalWidth = container.children[1].offsetLeft - container.children[0].offsetLeft;
+        
+        if (itemTotalWidth > 0) {
+            const currentAbsoluteIndex = Math.round(container.scrollLeft / itemTotalWidth);
+            const safeIndex = Math.max(0, Math.min(currentAbsoluteIndex, extendedProjects.length - 1));
+            
+            let realIndex = safeIndex - bufferCount;
+            realIndex = ((realIndex % originalLen) + originalLen) % originalLen;
+            
+            if (activeRef.current !== realIndex) {
+                 activeRef.current = realIndex;
+                 onActiveIndexChange(realIndex);
+            }
+
+            if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+            scrollTimeout.current = setTimeout(() => {
+                // If the user's scroll definitively settled into a clone element
+                const settledIndex = Math.round(container.scrollLeft / itemTotalWidth);
+                
+                let targetJumpIndex = -1;
+                if (settledIndex < bufferCount) {
+                    // Leap forward into real items
+                    targetJumpIndex = settledIndex + originalLen;
+                } else if (settledIndex >= bufferCount + originalLen) {
+                    // Leap backward into real items
+                    targetJumpIndex = settledIndex - originalLen;
+                }
+
+                if (targetJumpIndex !== -1) {
+                    centerScrollWithoutAnimation(targetJumpIndex);
+                }
+            }, 200); 
+        }
     };
+
+    if (originalLen === 0) return null;
 
     return (
         <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0"
+            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0 scroll-smooth"
         >
-            {projects.map((project, idx) => (
+            {extendedProjects.map((project, idx) => (
                 <div 
-                    key={project.id || idx} 
+                    key={project.cloneKey + '_' + idx} 
                     className="flex-shrink-0 w-[85vw] h-[360px] snap-center rounded-3xl relative overflow-hidden group border border-white/10 active:scale-[0.98] transition-transform shadow-2xl"
                     onClick={() => onProjectSelect(project)}
                 >
@@ -319,7 +409,8 @@ const ProjectsOverlay = () => {
     const [loading, setLoading] = useState(true);
     const [selectedProject, setSelectedProject] = useState(null);
     const [{ page, direction }, setPageData] = useState({ page: 0, direction: 0 });
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+    const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 900);
     const setIsModalOpen = useAppStore(s => s.setIsModalOpen);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     const [layout, setLayout] = useState({});
@@ -384,7 +475,10 @@ const ProjectsOverlay = () => {
     };
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+            setWindowHeight(window.innerHeight);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -465,6 +559,13 @@ const ProjectsOverlay = () => {
 
     const showNavigation = projects.length > perPage;
 
+    // --- Adaptive Scaling for Short Screens ---
+    const scaleMultiplier = windowHeight < 700 ? 0.75 : windowHeight < 850 ? 0.85 : 1;
+    const topPos = windowHeight < 700 ? '35%' : windowHeight < 850 ? '42%' : '50%';
+    const bottomPos = windowHeight < 700 ? 12 : windowHeight < 850 ? 24 : 40;
+    const headerScale = windowHeight < 700 ? 0.75 : windowHeight < 850 ? 0.85 : 1;
+    const dotsBottom = windowHeight < 700 ? 64 : windowHeight < 850 ? 96 : 128;
+
     return (
         <div className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative">
             
@@ -472,8 +573,12 @@ const ProjectsOverlay = () => {
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                style={{ transform: `translateY(${hOff}px)` }}
-                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0 transition-opacity duration-1000`}
+                style={{ 
+                    transform: `translateY(${hOff}px) scale(${isMobile ? 1 : headerScale})`, 
+                    bottom: isMobile ? undefined : bottomPos,
+                    transformOrigin: 'bottom center'
+                }}
+                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0 transition-all duration-1000`}
             >
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
@@ -494,13 +599,15 @@ const ProjectsOverlay = () => {
                 <>
                     <button 
                         onClick={() => paginate(-1)} 
-                        className="absolute left-4 md:left-12 top-1/2 -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
+                        style={{ top: topPos, transform: 'translateY(-50%)' }}
+                        className="absolute left-4 md:left-12 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronLeft size={24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
                     </button>
                     <button 
                         onClick={() => paginate(1)} 
-                        className="absolute right-4 md:right-12 top-1/2 -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
+                        style={{ top: topPos, transform: 'translateY(-50%)' }}
+                        className="absolute right-4 md:right-12 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronRight size={24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
@@ -509,7 +616,7 @@ const ProjectsOverlay = () => {
 
             {/* Pagination Dots - Desktop Only */}
             {!isMobile && showNavigation && (
-                <div className="absolute bottom-28 md:bottom-32 left-1/2 -translate-x-1/2 z-40 flex gap-2 pointer-events-auto">
+                <div style={{ bottom: dotsBottom, transform: 'translateX(-50%)' }} className="absolute left-1/2 z-40 flex gap-2 pointer-events-auto transition-all duration-700">
                     {[...Array(totalPages)].map((_, i) => (
                         <button
                             key={i}
@@ -572,7 +679,8 @@ const ProjectsOverlay = () => {
                     className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
                 >
                     <div 
-                        className="absolute top-1/2 -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10"
+                        style={{ top: topPos, transform: `translateY(-50%) scale(${scaleMultiplier})`, transformOrigin: 'center center' }}
+                        className="absolute w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}
