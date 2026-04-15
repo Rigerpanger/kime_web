@@ -556,14 +556,20 @@ const ProjectsOverlay = () => {
     const showNavigation = projects.length > perPage;
 
     return (
-        <div className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative">
+        <div 
+            style={{ '--ds': 'calc(min(1, 100vh / 850))' }}
+            className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative"
+        >
             
             {/* Header - Top on mobile, Bottom on Desktop */}
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                style={{ transform: `translateY(${hOff}px)` }}
-                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10 [@media(max-height:850px)]:bottom-6 [@media(max-height:750px)]:bottom-2'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0 transition-opacity duration-1000`}
+                style={{ 
+                    transform: `translateY(${hOff}px) ${!isMobile ? 'scale(var(--ds))' : ''}`, 
+                    transformOrigin: 'bottom center' 
+                }}
+                className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 pointer-events-auto flex flex-col items-center text-center px-12 shrink-0 transition-opacity duration-1000`}
             >
                 <div className="relative mb-2 mt-2 w-full max-w-[85vw]">
                     {/* Decorative background glow */}
@@ -584,13 +590,15 @@ const ProjectsOverlay = () => {
                 <>
                     <button 
                         onClick={() => paginate(-1)} 
-                        className="absolute left-4 md:left-12 top-1/2 [@media(max-height:850px)]:top-[42%] [@media(max-height:750px)]:top-[35%] -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
+                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
+                        className="absolute left-4 md:left-12 top-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronLeft size={24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
                     </button>
                     <button 
                         onClick={() => paginate(1)} 
-                        className="absolute right-4 md:right-12 top-1/2 [@media(max-height:850px)]:top-[42%] [@media(max-height:750px)]:top-[35%] -translate-y-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
+                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
+                        className="absolute right-4 md:right-12 top-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronRight size={24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
                     </button>
@@ -599,7 +607,10 @@ const ProjectsOverlay = () => {
 
             {/* Pagination Dots - Desktop Only */}
             {!isMobile && showNavigation && (
-                <div className="absolute bottom-28 md:bottom-32 [@media(max-height:850px)]:bottom-24 [@media(max-height:750px)]:bottom-16 left-1/2 -translate-x-1/2 z-40 flex gap-2 pointer-events-auto transition-all duration-700">
+                <div 
+                    style={{ transform: 'translateX(-50%) scale(var(--ds))', transformOrigin: 'bottom center' }} 
+                    className="absolute bottom-28 md:bottom-32 left-1/2 z-40 flex gap-2 pointer-events-auto transition-all duration-700"
+                >
                     {[...Array(totalPages)].map((_, i) => (
                         <button
                             key={i}
@@ -662,7 +673,8 @@ const ProjectsOverlay = () => {
                     className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
                 >
                     <div 
-                        className="absolute top-1/2 [@media(max-height:850px)]:top-[42%] [@media(max-height:750px)]:top-[35%] -translate-y-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
+                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
+                        className="absolute top-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}
