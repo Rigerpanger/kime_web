@@ -22,7 +22,11 @@ const cardVariants = {
         const offset = (count - 1) / 2;
         
         // On mobile, reduce spacing to show edges of neighbors
-        const spacing = isMobile ? 120 : 250;
+        // On desktop, keep spacing slightly dynamic but bounded
+        let spacing = isMobile ? 120 : 200;
+        if (!isMobile && typeof window !== 'undefined') {
+            spacing = Math.max(200, window.innerWidth * 0.14); // Adapts to prevent huge gaps on large screens
+        }
         const xPos = (custom.index - offset) * spacing;
 
         return {
@@ -405,7 +409,10 @@ const ProjectsOverlay = () => {
     const [selectedProject, setSelectedProject] = useState(null);
     const [{ page, direction }, setPageData] = useState({ page: 0, direction: 0 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [uiScale, setUiScale] = useState(1);
+    
+    // We will use standard CSS --ds to safely scale without flying out of bounds
+    // using a responsive CSS formula in the wrapper instead of state logic
+
     const setIsModalOpen = useAppStore(s => s.setIsModalOpen);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     const [layout, setLayout] = useState({});
@@ -470,29 +477,7 @@ const ProjectsOverlay = () => {
     };
 
     useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            setIsMobile(width < 768);
-            
-            if (width >= 768) {
-                // On desktop, we want large, legible cards. 
-                // We base the scale on width so it expands naturally.
-                let scale = width / 1440;
-                
-                // Boost the minimum scale for laptops so cards and UI aren't tiny
-                if (scale < 1.15) scale = 1.15;
-                
-                // Only restrict scale vertically if the window is extremely short (e.g. < 600px height)
-                const heightLimit = height / 500;
-                if (scale > heightLimit) scale = Math.max(0.7, heightLimit);
-                
-                setUiScale(scale);
-            } else {
-                setUiScale(1);
-            }
-        };
-        handleResize();
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -575,7 +560,7 @@ const ProjectsOverlay = () => {
 
     return (
         <div 
-            style={{ '--ds': uiScale }}
+            style={{ '--ds': 'calc(min(1, 100vh / 700))' }}
             className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative"
         >
             
@@ -608,14 +593,14 @@ const ProjectsOverlay = () => {
                 <>
                     <button 
                         onClick={() => paginate(-1)} 
-                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
+                        style={{ transform: `translateY(calc(-50% + ${cOff}px)) scale(var(--ds))`, transformOrigin: 'center center' }}
                         className="absolute left-4 md:left-12 top-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronLeft size={24} strokeWidth={1} className="group-hover:-translate-x-1 transition-transform duration-300" />
                     </button>
                     <button 
                         onClick={() => paginate(1)} 
-                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
+                        style={{ transform: `translateY(calc(-50% + ${cOff}px)) scale(var(--ds))`, transformOrigin: 'center center' }}
                         className="absolute right-4 md:right-12 top-1/2 z-40 pointer-events-auto flex items-center justify-center w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white hover:border-[#ffaa44]/40 hover:bg-[#ffaa44]/10 transition-all duration-500 group"
                     >
                         <ChevronRight size={24} strokeWidth={1} className="group-hover:translate-x-1 transition-transform duration-300" />
