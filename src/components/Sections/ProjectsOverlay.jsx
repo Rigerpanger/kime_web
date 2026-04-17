@@ -21,8 +21,14 @@ const cardVariants = {
         const count = custom.totalCount || ITEMS_PER_PAGE;
         const offset = (count - 1) / 2;
         
-        // On mobile, reduce spacing to show edges of neighbors
-        const spacing = isMobile ? 120 : 250;
+        // Fluid spacing for identical proportional gaps between TV and laptop
+        let spacing = 250;
+        if (isMobile) {
+            spacing = 120;
+        } else if (typeof window !== 'undefined') {
+            spacing = Math.max(180, window.innerWidth * 0.14);
+        }
+        
         const xPos = (custom.index - offset) * spacing;
 
         return {
@@ -430,8 +436,12 @@ const ProjectsOverlay = () => {
     }, []);
 
     const getOff = (key) => layout?.[key] || 0;
-    const hOff = isMobile ? getOff('projects_header_offset_mobile') : getOff('projects_header_offset_desktop');
-    const cOff = isMobile ? getOff('projects_content_offset_mobile') : getOff('projects_content_offset_desktop');
+    
+    // We strictly zero-out desktop vertical offsets. 
+    // Absolute pixel adjustments from admin on tightly-bound top/bottom elements 
+    // break responsive scaling on short laptop screens.
+    const hOff = isMobile ? getOff('projects_header_offset_mobile') : 0;
+    const cOff = isMobile ? getOff('projects_content_offset_mobile') : 0;
 
     // Clean up scroll lock on unmount
     useEffect(() => {
@@ -556,7 +566,7 @@ const ProjectsOverlay = () => {
 
     return (
         <div 
-            style={{ '--ds': 'calc(min(1, 100vh / 650))' }}
+            style={{ '--ds': 'calc(min(1.25, max(0.9, 100vw / 1700)))' }}
             className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative"
         >
             
