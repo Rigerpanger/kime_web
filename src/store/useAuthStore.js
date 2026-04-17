@@ -57,6 +57,16 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem('kime_token');
     localStorage.removeItem('kime_user');
     set({ session: null, user: null });
+  },
+
+  checkAuthError: (error) => {
+    if (error === 'Invalid token' || error === 'Access denied' || error?.includes('token')) {
+      localStorage.removeItem('kime_token');
+      localStorage.removeItem('kime_user');
+      set({ session: null, user: null });
+      return true;
+    }
+    return false;
   }
 }));
 

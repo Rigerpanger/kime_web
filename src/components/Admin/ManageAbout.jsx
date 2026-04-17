@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 const ManageAbout = () => {
-    const { session } = useAuthStore();
+    const { session, checkAuthError } = useAuthStore();
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
     const photoInputRef = useRef(null);
     
@@ -64,7 +64,12 @@ const ManageAbout = () => {
             body: data
         });
         const res = await response.json();
-        if (!response.ok) throw new Error(res.error);
+        if (!response.ok) {
+            if (checkAuthError(res.error)) {
+                throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+            }
+            throw new Error(res.error);
+        }
         return apiUrl + res.url;
     };
 
@@ -79,9 +84,19 @@ const ManageAbout = () => {
                 },
                 body: JSON.stringify(textContent)
             });
-            if (response.ok) alert('Тексты сохранены!');
+            if (response.ok) {
+                alert('Тексты сохранены!');
+            } else {
+                const errData = await response.json();
+                if (checkAuthError(errData.error)) {
+                    alert('Сессия истекла. Войдите снова.');
+                } else {
+                    alert('Ошибка при сохранении');
+                }
+            }
         } catch (error) {
-            alert('Ошибка при сохранении');
+            console.error(error);
+            alert('Ошибка при соединении с сервером');
         } finally {
             setSavingText(false);
         }
@@ -146,7 +161,12 @@ const ManageAbout = () => {
                 resetCertForm();
                 fetchData();
             } else {
-                alert('Ошибка при сохранении сертификата');
+                const errData = await response.json();
+                if (checkAuthError(errData.error)) {
+                    alert('Сессия истекла. Войдите снова.');
+                } else {
+                    alert('Ошибка при сохранении сертификата');
+                }
             }
         } catch (err) {
             alert(err.message);

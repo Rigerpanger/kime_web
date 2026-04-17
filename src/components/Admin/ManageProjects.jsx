@@ -19,7 +19,7 @@ const ManageProjects = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
-    const { session } = useAuthStore();
+    const { session, checkAuthError } = useAuthStore();
     
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
@@ -101,6 +101,7 @@ const ManageProjects = () => {
             else alert('Ошибка при удалении');
         } catch (err) {
             console.error(err);
+            if (checkAuthError(err.message)) return;
         }
     };
 
@@ -127,7 +128,12 @@ const ManageProjects = () => {
         const resData = await response.json();
         setUploading(false);
         
-        if (!response.ok) throw new Error(resData.error || 'Upload failed');
+        if (!response.ok) {
+            if (checkAuthError(resData.error)) {
+                throw new Error('Сессия истекла. Пожалуйста, войдите снова.');
+            }
+            throw new Error(resData.error || 'Upload failed');
+        }
         return apiUrl + resData.url;
     };
 
@@ -158,7 +164,7 @@ const ManageProjects = () => {
                 method: method,
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('kime_token')}` 
+                    'Authorization': `Bearer ${session?.token}` 
                 },
                 body: JSON.stringify(projectData)
             });
@@ -169,7 +175,11 @@ const ManageProjects = () => {
                 fetchProjects();
             } else {
                 const err = await response.json();
-                alert('Ошибка: ' + err.error);
+                if (checkAuthError(err.error)) {
+                    alert('Сессия истекла. Войдите снова.');
+                } else {
+                    alert('Ошибка: ' + err.error);
+                }
             }
         } catch (err) {
             alert('Ошибка: ' + err.message);

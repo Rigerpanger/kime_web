@@ -23,7 +23,7 @@ import useAppStore from '../../store/useAppStore';
 
 const Settings = () => {
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
-    const session = useAuthStore(s => s.session);
+    const { session, checkAuthError } = useAuthStore();
     const showStudioEditor = useAppStore(s => s.showStudioEditor);
     const setShowStudioEditor = useAppStore(s => s.setShowStudioEditor);
 
@@ -75,7 +75,7 @@ const Settings = () => {
     const handleSave = async () => {
         setSaving(true);
         try {
-            await fetch(`${apiUrl}/content/global_layout`, {
+            const response = await fetch(`${apiUrl}/content/global_layout`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -83,8 +83,21 @@ const Settings = () => {
                 },
                 body: JSON.stringify(layoutSettings)
             });
-            alert('Настройки композиции успешно сохранены!');
-        } catch (e) { alert('Ошибка сохранения'); }
+            
+            if (response.ok) {
+                alert('Настройки композиции успешно сохранены!');
+            } else {
+                const errData = await response.json();
+                if (checkAuthError(errData.error)) {
+                    alert('Сессия истекла. Войдите снова.');
+                } else {
+                    alert('Ошибка сохранения');
+                }
+            }
+        } catch (e) { 
+            console.error(e);
+            alert('Ошибка соединения с сервером'); 
+        }
         finally { setSaving(false); }
     };
 

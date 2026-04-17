@@ -240,13 +240,8 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
             className="absolute inset-0 flex flex-col justify-between p-5 md:p-6 bg-gradient-to-t from-black/90 via-black/10 to-transparent rounded-3xl overflow-hidden transition-all duration-500"
             style={{ transform: "translateZ(0px)", transformStyle: "preserve-3d" }}
         >
-            <div className="relative z-20 w-full flex flex-wrap gap-1.5 justify-start transform transition-all duration-500 pr-8 opacity-0 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0" style={{ transform: "translateZ(15px)" }}>
-                {(project.tags || []).map(t => (
-                    <span key={t} className="text-[7px] md:text-[8px] uppercase tracking-wider text-[#ffaa44] border border-[#ffaa44]/30 px-2 py-0.5 bg-[#ffaa44]/10 backdrop-blur-xl rounded-sm">
-                        {t}
-                    </span>
-                ))}
-            </div>
+            {/* Tags removed on hover as per request */}
+
 
             <div className="relative z-20 w-full flex items-end justify-between mt-auto" style={{ transform: "translateZ(15px)" }}>
                 <h3 className="text-sm md:text-base font-medium text-left transition-colors duration-500 ease-out leading-tight tracking-wide drop-shadow-md pr-3 uppercase text-white/90 group-hover:text-white">
@@ -647,11 +642,8 @@ const ProjectsOverlay = () => {
                         >
                             <div className="flex justify-between items-start gap-4">
                                <h4 className="text-white text-lg font-bold uppercase tracking-widest truncate">{projects[activeIndex]?.title}</h4>
-                               <div className="flex flex-wrap gap-2 shrink-0">
-                                   {(projects[activeIndex]?.tech?.slice(0, 2) || []).map(t => (
-                                       <span key={t} className="text-[8px] text-[#ffaa44] font-bold uppercase tracking-wider">{t}</span>
-                                   ))}
-                               </div>
+                               {/* Tech tags removed for consistency */}
+
                             </div>
                             <p className="text-gray-300 text-xs font-light leading-relaxed line-clamp-2">
                                 {projects[activeIndex]?.challenge}
