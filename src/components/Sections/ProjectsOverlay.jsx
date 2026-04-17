@@ -313,7 +313,7 @@ const ArtifactPassport = ({ project, onClose }) => {
                     animate={{ y: 0, opacity: 1, scale: 1 }}
                     exit={{ y: -20, opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative w-full max-w-5xl max-h-[92vh] mt-6 md:mt-0 bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
+                    className="relative w-full max-w-5xl xl:max-w-6xl 2xl:max-w-7xl max-h-[92vh] mt-6 md:mt-0 bg-zinc-900/80 backdrop-blur-2xl border border-white/10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col overflow-hidden"
                 >
                     {/* Persistent Smart Close Button */}
                     <button 
@@ -405,6 +405,7 @@ const ProjectsOverlay = () => {
     const [selectedProject, setSelectedProject] = useState(null);
     const [{ page, direction }, setPageData] = useState({ page: 0, direction: 0 });
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [uiScale, setUiScale] = useState(1);
     const setIsModalOpen = useAppStore(s => s.setIsModalOpen);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     const [layout, setLayout] = useState({});
@@ -469,7 +470,29 @@ const ProjectsOverlay = () => {
     };
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            setIsMobile(width < 768);
+            
+            if (width >= 768) {
+                // On desktop, we want large, legible cards. 
+                // We base the scale on width so it expands naturally.
+                let scale = width / 1440;
+                
+                // Boost the minimum scale for laptops so cards and UI aren't tiny
+                if (scale < 1.15) scale = 1.15;
+                
+                // Only restrict scale vertically if the window is extremely short (e.g. < 600px height)
+                const heightLimit = height / 500;
+                if (scale > heightLimit) scale = Math.max(0.7, heightLimit);
+                
+                setUiScale(scale);
+            } else {
+                setUiScale(1);
+            }
+        };
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -552,7 +575,7 @@ const ProjectsOverlay = () => {
 
     return (
         <div 
-            style={{ '--ds': 'calc(min(1, 100vh / 850))' }}
+            style={{ '--ds': uiScale }}
             className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative"
         >
             
