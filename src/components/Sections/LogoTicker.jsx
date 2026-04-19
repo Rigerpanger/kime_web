@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
-
-// Fallback assets
-import yamaguchi from '../../assets/logos/yamaguchi.svg';
-import marsMedia from '../../assets/logos/mars-media.svg';
-import vniight from '../../assets/logos/vniight.svg';
-import stalingrad from '../../assets/logos/stalingrad.svg';
-import soyuzmultfilm from '../../assets/logos/soyuzmultfilm.svg';
 
 const fallbackPartners = [
-  { name: 'yamaguchi', logo_url: yamaguchi, width: 160 },
-  { name: 'marsMedia', logo_url: marsMedia, width: 140 },
-  { name: 'vniight', logo_url: vniight, width: 150 },
-  { name: 'stalingrad', logo_url: stalingrad, width: 180 },
-  { name: 'soyuzmultfilm', logo_url: soyuzmultfilm, width: 170 }
+  { name: 'yamaguchi', logo_url: '/assets/logos/yamaguchi.svg', width: 140 },
+  { name: 'marsMedia', logo_url: '/assets/logos/mars-media.svg', width: 120 },
+  { name: 'vniight', logo_url: '/assets/logos/vniight.svg', width: 130 },
+  { name: 'stalingrad', logo_url: '/assets/logos/stalingrad.svg', width: 160 },
+  { name: 'soyuzmultfilm', logo_url: '/assets/logos/soyuzmultfilm.svg', width: 150 }
 ];
 
 const LogoTicker = () => {
@@ -48,25 +40,25 @@ const LogoTicker = () => {
         fetchPartners();
     }, []);
 
-    if (loading) return <div className="h-[110px] md:h-[200px] w-full" />;
+    if (loading) return <div className="h-[80px] w-full" />;
 
-    // Ensure we have enough items for a continuous loop
+    // Use a large enough repeat count for seamless loop
     const tickerItems = partners.length > 0 
-        ? [...partners, ...partners, ...partners, ...partners] 
+        ? [...partners, ...partners, ...partners, ...partners, ...partners, ...partners] 
         : [];
 
     return (
-        <div className="h-[110px] md:h-[200px] py-2 overflow-hidden w-full opacity-70 hover:opacity-100 transition-opacity duration-500">
+        <div className="h-[80px] py-1 overflow-hidden w-full opacity-60 hover:opacity-100 transition-opacity duration-500">
             <div className="relative flex h-full items-center overflow-x-hidden">
                 <AnimatePresence>
                     <motion.div 
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1, x: [0, -2800] }}
-                        className="flex whitespace-nowrap gap-20 md:gap-40 items-center"
+                        animate={{ opacity: 1, x: [0, -2500] }}
+                        className="flex whitespace-nowrap gap-28 items-center"
                         transition={{ 
                             x: {
                                 repeat: Infinity, 
-                                duration: 35, 
+                                duration: 30, 
                                 ease: "linear" 
                             },
                             opacity: { duration: 1 }
@@ -80,7 +72,7 @@ const LogoTicker = () => {
                                 <img 
                                     src={partner.logo_url} 
                                     alt={partner.name} 
-                                    className="object-contain w-[180px] md:w-[260px] max-h-16 md:max-h-24"
+                                    className="object-contain w-[160px] max-h-12"
                                 />
                             </div>
                         ))}

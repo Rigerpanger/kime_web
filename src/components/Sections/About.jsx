@@ -155,7 +155,7 @@ const About = () => {
                         </p>
                     </div>
                 </div>
-                <div className="w-full relative h-[120px] md:h-[150px] flex items-center justify-center overflow-hidden mt-6">
+                <div className="w-full relative h-[80px] flex items-center justify-center overflow-hidden mt-6">
                     <LogoTicker />
                 </div>
             </motion.div>
@@ -246,7 +246,7 @@ const About = () => {
                     <div 
                         style={{ 
                             position: 'absolute',
-                            top: '48%',
+                            top: '46%',
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
