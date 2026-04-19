@@ -21,13 +21,8 @@ const cardVariants = {
         const count = custom.totalCount || ITEMS_PER_PAGE;
         const offset = (count - 1) / 2;
         
-        // Fluid spacing for identical proportional gaps between TV and laptop
-        let spacing = 250;
-        if (isMobile) {
-            spacing = 120;
-        } else if (typeof window !== 'undefined') {
-            spacing = Math.max(180, window.innerWidth * 0.14);
-        }
+        // Fixed spacing with better breathing room for all screens
+        const spacing = isMobile ? 120 : Math.max(280, window.innerWidth * 0.18);
         
         const xPos = (custom.index - offset) * spacing;
 
@@ -680,7 +675,7 @@ const ProjectsOverlay = () => {
                 >
                     <div 
                         style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
-                        className="absolute top-1/2 w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
+                        className="absolute top-[44%] w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}
