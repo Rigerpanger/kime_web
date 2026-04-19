@@ -675,7 +675,7 @@ const ProjectsOverlay = () => {
                 >
                     <div 
                         style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
-                        className="absolute top-[44%] w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
+                        className="absolute top-[38%] w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}
