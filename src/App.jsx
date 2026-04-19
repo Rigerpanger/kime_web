@@ -174,12 +174,32 @@ function AppLayout() {
                 </div>
             </div>
 
-            {/* Global Resolution Sensor - Only visible for Admin in 3D Mode */}
-            {showStudioEditor && user && (
-                <div className="fixed bottom-0 right-0 z-[99999] bg-[#ffaa44] text-black text-[10px] px-2 py-1 pointer-events-none font-mono font-bold uppercase tracking-tight shadow-xl">
-                    TV: {window.innerWidth}px x {window.innerHeight}px | DPR: {window.devicePixelRatio}
-                </div>
-            )}
+import LayoutInspector from './components/UI/LayoutInspector';
+
+function AppLayout() {
+    const showStudioEditor = useAppStore(s => s.showStudioEditor);
+    const setShowStudioEditor = useAppStore(s => s.setShowStudioEditor);
+    const user = useAuthStore(s => s.user);
+    // ... existing state ...
+    
+    // ... skipping existing effects for brevity in replacement ...
+    
+    return (
+        <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
+            {isMaintenanceMode && <MaintenanceOverlay />}
+            <RouteManager />
+            {!isMobile && <ScrollNavigator />}
+            {showStudioEditor && user && <StudioEditor />}
+            {showStudioEditor && user && <LayoutInspector />}
+
+            {/* 1. Persistent 3D Layer */}
+            <div className="absolute inset-0 z-0">
+                <Scene />
+            </div>
+            {/* ... rest of the component ... */}
+        </div>
+    );
+};
         </div>
     );
 };
