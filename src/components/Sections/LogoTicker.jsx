@@ -1,12 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Fallback assets with relative paths for the build system
+import yamaguchi from '../../assets/logos/yamaguchi.svg';
+import marsMedia from '../../assets/logos/mars-media.svg';
+import vniight from '../../assets/logos/vniight.svg';
+import stalingrad from '../../assets/logos/stalingrad.svg';
+import soyuzmultfilm from '../../assets/logos/soyuzmultfilm.svg';
+
 const fallbackPartners = [
-  { name: 'yamaguchi', logo_url: '/assets/logos/yamaguchi.svg', width: 140 },
-  { name: 'marsMedia', logo_url: '/assets/logos/mars-media.svg', width: 120 },
-  { name: 'vniight', logo_url: '/assets/logos/vniight.svg', width: 130 },
-  { name: 'stalingrad', logo_url: '/assets/logos/stalingrad.svg', width: 160 },
-  { name: 'soyuzmultfilm', logo_url: '/assets/logos/soyuzmultfilm.svg', width: 150 }
+  { name: 'yamaguchi', logo_url: yamaguchi, width: 140 },
+  { name: 'marsMedia', logo_url: marsMedia, width: 120 },
+  { name: 'vniight', logo_url: vniight, width: 130 },
+  { name: 'stalingrad', logo_url: stalingrad, width: 160 },
+  { name: 'soyuzmultfilm', logo_url: soyuzmultfilm, width: 150 }
 ];
 
 const LogoTicker = () => {
@@ -42,7 +49,6 @@ const LogoTicker = () => {
 
     if (loading) return <div className="h-[80px] w-full" />;
 
-    // Use a large enough repeat count for seamless loop
     const tickerItems = partners.length > 0 
         ? [...partners, ...partners, ...partners, ...partners, ...partners, ...partners] 
         : [];
