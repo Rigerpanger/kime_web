@@ -140,6 +140,7 @@ function AppLayout() {
     // If showStudioEditor is enabled globally, we show a login overlay for non-authorized users.
     const urlParams = new URLSearchParams(window.location.search);
     const isDebugMode = urlParams.get('debug') === '1';
+    const isMaintenanceMode = showStudioEditor && !user;
     const showInspector = (showStudioEditor && user) || isDebugMode;
 
     return (
