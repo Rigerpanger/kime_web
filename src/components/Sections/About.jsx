@@ -106,12 +106,6 @@ const About = () => {
     const nextSlide = () => navigate(`/about/${SLUGS[(currentSlide + 1) % totalSlides]}`);
     const prevSlide = () => navigate(`/about/${SLUGS[(currentSlide - 1 + totalSlides) % totalSlides]}`);
 
-    const defaultCertificates = [
-        { company: "РЖД", division: "ВНИИЖТ", position: "Заместитель генерального директора А.А Пархаев", image_url: "https://images.unsplash.com/photo-1596443686812-2f45229eebc3?q=80&w=600&auto=format&fit=crop" },
-        { company: "РЖД", division: "НИИАС", position: "Заместитель исполнительного директора А.В Карабельников", image_url: "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?q=80&w=600&auto=format&fit=crop" },
-        { company: "СБЕР", division: "", position: "Первый заместитель председателя правления А.А Ведяхин", image_url: "https://images.unsplash.com/photo-1627137504443-1597a7e10815?q=80&w=600&auto=format&fit=crop" }
-    ];
-
     const displayCertificates = certificates.length > 0 ? certificates : defaultCertificates;
 
     const MobileAbout = ({ content, displayCertificates, globalLayout }) => {
@@ -137,7 +131,7 @@ const About = () => {
     };
 
     const slides = [
-        <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col max-w-5xl w-full relative">
+        <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
             <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop')}px)` }} className="w-full flex flex-col justify-center">
                 <h2 style={{ transform: `translateY(${getLayoutVal('about_slide1_header_offset_desktop')}px)`, textShadow: '0 4px 20px rgba(0,0,0,0.6)' }} className="text-4xl md:text-6xl font-thin mb-12 text-white uppercase tracking-wider text-center md:text-left">
                     {content.slide1_title}
@@ -160,7 +154,7 @@ const About = () => {
                 </div>
             </motion.div>
         </motion.div>,
-        <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col max-w-5xl w-full relative">
+        <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
             <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }} className="flex flex-col items-center md:items-start text-center md:text-left">
                 <span className="text-white/40 text-[10px] uppercase tracking-[0.5em] mb-8 font-bold">Наш подход</span>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-10 w-full">
@@ -177,7 +171,7 @@ const About = () => {
                 </div>
             </motion.div>
         </motion.div>,
-        <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center w-full max-w-6xl">
+        <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center w-full">
             <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide3_content_offset_desktop')}px)` }} className="h-[40vh] md:h-[60vh] flex justify-end">
                 <div className="w-[90%] h-full bg-zinc-900 rounded-2xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
                     <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-60" />
@@ -194,7 +188,7 @@ const About = () => {
                 </div>
             </div>
         </motion.div>,
-        <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full max-w-6xl">
+        <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-20 items-start w-full">
                 <div className="md:col-span-12 lg:col-span-6 flex flex-col pt-4 pl-6 md:pl-12">
                     <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide4_content_offset_desktop')}px)` }} className="mb-10">
@@ -232,43 +226,56 @@ const About = () => {
     ];
 
     return (
-        <section id="about" className="w-full relative flex items-center pointer-events-none h-screen overflow-hidden">
-            <button onClick={prevSlide} className="absolute left-6 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/20 hover:text-white transition-all pointer-events-auto hidden md:block"><ChevronLeft size={64} strokeWidth={0.5} /></button>
-            <button onClick={nextSlide} className="absolute right-6 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/20 hover:text-white transition-all pointer-events-auto hidden md:block"><ChevronRight size={64} strokeWidth={0.5} /></button>
+        <section id="about" className="w-full h-screen relative overflow-hidden pointer-events-none">
+            {/* NavButtons always absolute relative to viewport */}
+            {!isMobile && (
+                <>
+                    <button onClick={prevSlide} className="fixed left-6 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/20 hover:text-white transition-all pointer-events-auto"><ChevronLeft size={64} strokeWidth={0.5} /></button>
+                    <button onClick={nextSlide} className="fixed right-6 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/20 hover:text-white transition-all pointer-events-auto"><ChevronRight size={64} strokeWidth={0.5} /></button>
+                </>
+            )}
 
-            <div className="container mx-auto px-6 md:px-12 pointer-events-auto relative h-full flex items-center justify-center">
-                <div className="w-full h-full flex flex-col items-center justify-center relative transition-all duration-700">
-                    {isReady && !isMobile && (
-                        <div 
-                            style={{ 
-                                transform: `scale(${dsScale})`, 
-                                transformOrigin: 'center center',
-                                width: '100%',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center'
-                            }}
-                        >
-                            <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>
-                        </div>
-                    )}
-                    {isReady && isMobile && <MobileAbout content={content} displayCertificates={displayCertificates} globalLayout={globalLayout} />}
-                </div>
-                {!isMobile && (
-                    <div className="absolute bottom-10 flex flex-col items-center gap-6 text-white pointer-events-auto">
-                        <div className="flex gap-4 items-center">
-                            {[...Array(totalSlides)].map((_, i) => (
-                                <button key={i} onClick={() => navigate(`/about/${SLUGS[i]}`)} className={`h-[1px] transition-all duration-700 ${i === currentSlide ? 'w-16 bg-white shadow-[0_0_10px_white]' : 'w-6 bg-white/20'}`} />
-                            ))}
-                        </div>
-                        <div className="flex items-center gap-3 text-[10px] font-mono tracking-[0.4em] text-white/40">
-                             <span className="text-white">{currentSlide + 1}</span>
-                             <span className="opacity-20">/</span>
-                             <span>{totalSlides}</span>
-                        </div>
+            <div className="absolute inset-0 flex items-center justify-center">
+                {isReady && !isMobile && (
+                    <div 
+                        style={{ 
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: `translate(-50%, -50%) scale(${dsScale})`,
+                            transformOrigin: 'center center',
+                            width: '1280px',
+                            padding: '0 80px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            pointerEvents: 'auto'
+                        }}
+                    >
+                        <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>
+                    </div>
+                )}
+                {isReady && isMobile && (
+                    <div className="w-full h-full pointer-events-auto overflow-y-auto no-scrollbar pt-20">
+                        <MobileAbout content={content} displayCertificates={displayCertificates} globalLayout={globalLayout} />
                     </div>
                 )}
             </div>
+
+            {!isMobile && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 text-white pointer-events-auto z-40">
+                    <div className="flex gap-4 items-center">
+                        {[...Array(totalSlides)].map((_, i) => (
+                            <button key={i} onClick={() => navigate(`/about/${SLUGS[i]}`)} className={`h-[1px] transition-all duration-700 ${i === currentSlide ? 'w-16 bg-white shadow-[0_0_10px_white]' : 'w-6 bg-white/20'}`} />
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-3 text-[10px] font-mono tracking-[0.4em] text-white/40">
+                         <span className="text-white">{currentSlide + 1}</span>
+                         <span className="opacity-20">/</span>
+                         <span>{totalSlides}</span>
+                    </div>
+                </div>
+            )}
 
             <AnimatePresence>
                 {selectedFullCert && (
