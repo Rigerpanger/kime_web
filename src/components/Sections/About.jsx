@@ -106,6 +106,12 @@ const About = () => {
     const nextSlide = () => navigate(`/about/${SLUGS[(currentSlide + 1) % totalSlides]}`);
     const prevSlide = () => navigate(`/about/${SLUGS[(currentSlide - 1 + totalSlides) % totalSlides]}`);
 
+    const defaultCertificates = [
+        { company: "РЖД", division: "ВНИИЖТ", position: "Заместитель генерального директора А.А Пархаев", image_url: "https://images.unsplash.com/photo-1596443686812-2f45229eebc3?q=80&w=600&auto=format&fit=crop" },
+        { company: "РЖД", division: "НИИАС", position: "Заместитель исполнительного директора А.В Карабельников", image_url: "https://images.unsplash.com/photo-1576435728678-68d0fbf94e91?q=80&w=600&auto=format&fit=crop" },
+        { company: "СБЕР", division: "", position: "Первый заместитель председателя правления А.А Ведяхин", image_url: "https://images.unsplash.com/photo-1627137504443-1597a7e10815?q=80&w=600&auto=format&fit=crop" }
+    ];
+
     const displayCertificates = certificates.length > 0 ? certificates : defaultCertificates;
 
     const MobileAbout = ({ content, displayCertificates, globalLayout }) => {
