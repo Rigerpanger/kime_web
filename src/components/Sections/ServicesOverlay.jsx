@@ -109,7 +109,10 @@ const ServicesOverlay = () => {
             <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.7 }}
-                style={{ transform: `translateY(${hOff}px) scale(${dsScale})` }}
+                style={{ 
+                    transform: `translateY(${hOff - (dsScale > 1.3 ? 40 : 0)}px) scale(${dsScale})`,
+                    transformOrigin: 'center center'
+                }}
                 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
             >
                 Наши направления
@@ -121,11 +124,12 @@ const ServicesOverlay = () => {
                 style={{ 
                     transform: `translateY(${cOff}px) scale(${dsScale})`,
                     transformOrigin: 'center center',
-                    maxWidth: dsScale > 1.3 ? '95%' : '90%'
+                    width: dsScale > 1.3 ? '95%' : '100%',
+                    maxWidth: '1800px'
                 }}
-                className="container max-w-6xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto overflow-y-auto no-scrollbar py-10"
+                className={`flex flex-col md:flex-row ${dsScale > 1.3 ? 'justify-between' : 'justify-center md:gap-16'} items-start mx-auto overflow-y-auto no-scrollbar py-10`}
             >
-                <div className="w-full md:w-[45%] space-y-1 pl-4 md:pl-8">
+                <div className={`${dsScale > 1.3 ? 'md:w-[35%]' : 'md:w-[45%]'} space-y-1 pl-4 md:pl-8`}>
                     {servicesData.map((service, index) => (
                         <ServiceListItem 
                             key={service.id} 
@@ -137,7 +141,10 @@ const ServicesOverlay = () => {
                     ))}
                 </div>
 
-                <div className="w-full md:w-[55%] min-h-[320px] md:min-h-[350px] flex items-start pr-4 md:pr-12">
+                {/* Statue Safety Gap */}
+                {dsScale > 1.3 && <div className="hidden md:block w-[30%] shrink-0" />}
+
+                <div className={`${dsScale > 1.3 ? 'md:w-[35%]' : 'md:w-[50%]'} min-h-[320px] md:min-h-[350px] flex items-start pr-4 md:pr-12`}>
                     <AnimatePresence mode="wait">
                         {activeService && (
                             <motion.div 
