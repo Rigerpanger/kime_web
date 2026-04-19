@@ -22,7 +22,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
     return (
         <NavLink
             to={`/services/${service.slug}`}
-            className={`group flex items-center gap-6 px-6 py-3.5 rounded-2xl transition-all duration-500 border sweep-container ${
+            className={`group flex items-center gap-6 px-6 py-3 rounded-2xl transition-all duration-500 border sweep-container ${
                 isActive 
                 ? 'bg-white/10 border-white/20 shadow-[0_0_40px_rgba(255,170,68,0.1)] premium-active-border' 
                 : isHint 
@@ -36,7 +36,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
             <div className={`p-1.5 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
                 <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
             </div>
-            <span className={`text-[11px] md:text-xs tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/25 group-hover:text-white/60'}`}>
+            <span className={`text-[11px] md:text-xs tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/20 group-hover:text-white/50'}`}>
                 {service.title}
                 {isHint && <span className="ml-3 text-[9px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal font-light">следующее</span>}
             </span>
@@ -112,9 +112,9 @@ const ServicesOverlay = () => {
                     <div 
                         style={{ 
                             position: 'absolute',
-                            top: '50%',
+                            top: '48%',
                             left: '50%',
-                            transform: `translate(-50%, -55%) scale(${dsScale})`,
+                            transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
                             width: '1280px',
                             display: 'flex',
@@ -131,7 +131,7 @@ const ServicesOverlay = () => {
                                 transform: `translateY(${hOff}px)`,
                                 transformOrigin: 'center center'
                             }}
-                            className="text-xl md:text-2xl font-thin text-white tracking-[1.2em] uppercase mb-16 md:mb-20 opacity-80 text-center shrink-0"
+                            className="text-xl md:text-2xl font-thin text-white tracking-[1.2em] uppercase mb-10 md:mb-14 opacity-80 text-center shrink-0"
                         >
                             Наши направления
                         </motion.h1>
@@ -143,9 +143,9 @@ const ServicesOverlay = () => {
                                 transform: `translateY(${cOff}px)`,
                                 width: '100%'
                             }}
-                            className="flex flex-col md:flex-row justify-center md:gap-20 items-start mx-auto"
+                            className="flex flex-col md:flex-row justify-center md:gap-16 items-start mx-auto"
                         >
-                            <div className="md:w-[42%] space-y-2 pl-4 md:pl-10">
+                            <div className="md:w-[40%] space-y-1.5 pl-4 md:pl-10">
                                 {servicesData.map((service, index) => (
                                     <ServiceListItem 
                                         key={service.id} 
@@ -157,7 +157,7 @@ const ServicesOverlay = () => {
                                 ))}
                             </div>
 
-                            <div className="md:w-[58%] min-h-[350px] md:min-h-[400px] flex items-start pr-4 md:pr-16">
+                            <div className="md:w-[60%] min-h-[300px] md:min-h-[350px] flex items-start pr-4 md:pr-16">
                                 <AnimatePresence mode="wait">
                                     {activeService && (
                                         <motion.div 
@@ -166,17 +166,17 @@ const ServicesOverlay = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -10 }}
                                             transition={{ duration: 0.4, ease: "easeOut" }}
-                                            className="w-full p-12 md:p-14 border border-white/10 bg-black/40 backdrop-blur-3xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
+                                            className="w-full p-10 md:p-12 border border-white/10 bg-black/40 backdrop-blur-3xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
                                         >
                                             <div className="absolute top-0 left-12 right-12 h-[1px] bg-gradient-to-r from-transparent via-[#ffaa44]/40 to-transparent opacity-40" />
-                                            <h2 className="text-2xl md:text-3xl font-light text-white mb-8 leading-tight tracking-wide">
+                                            <h2 className="text-xl md:text-2xl font-light text-white mb-6 leading-tight tracking-wide">
                                                 {activeService.title}
                                             </h2>
-                                            <p className="text-gray-200 text-base md:text-lg lg:text-xl leading-relaxed font-light opacity-90">
+                                            <p className="text-gray-200 text-sm md:text-base lg:text-lg leading-relaxed font-light opacity-80">
                                                 {activeService.description}
                                             </p>
-                                            <div className="absolute bottom-8 right-10 opacity-5 group-hover:opacity-10 transition-all duration-700">
-                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 72, strokeWidth: 0.2 })}
+                                            <div className="absolute bottom-6 right-8 opacity-5 group-hover:opacity-10 transition-all duration-700">
+                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 64, strokeWidth: 0.2 })}
                                             </div>
                                         </motion.div>
                                     )}

@@ -138,54 +138,54 @@ const About = () => {
 
     const slides = [
         <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop') - 20}px)` }} className="w-full flex flex-col justify-center">
-                <h2 style={{ transform: `translateY(${getLayoutVal('about_slide1_header_offset_desktop')}px)`, textShadow: '0 4px 20px rgba(0,0,0,0.6)' }} className="text-4xl md:text-5xl font-thin mb-10 text-white uppercase tracking-wider text-center md:text-left">
+            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop') - 10}px)` }} className="w-full flex flex-col justify-center">
+                <h2 style={{ transform: `translateY(${getLayoutVal('about_slide1_header_offset_desktop')}px)`, textShadow: '0 4px 20px rgba(0,0,0,0.6)' }} className="text-4xl md:text-5xl font-thin mb-6 text-white uppercase tracking-wider text-center md:text-left">
                     {content.slide1_title}
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-start w-full">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
                     <div className="md:col-span-6">
-                        <p className="text-white text-[14px] md:text-base lg:text-lg font-light leading-relaxed tracking-wide mb-2 opacity-95 text-center md:text-left">
+                        <p className="text-white text-[13px] md:text-base lg:text-lg font-light leading-relaxed tracking-wide mb-2 opacity-95 text-center md:text-left">
                             {content.slide1_text1}
                         </p>
                     </div>
                     <div className="md:col-span-1 hidden md:block" /> { /* Spacer */ }
-                    <div className="md:col-span-5 md:pt-10 border-l border-white/10 pl-10 hidden md:block">
-                        <p className="text-gray-400 font-light text-[12px] md:text-xs lg:text-sm leading-relaxed opacity-80">
+                    <div className="md:col-span-5 md:pt-8 border-l border-white/10 pl-10 hidden md:block">
+                        <p className="text-gray-400 font-light text-[11px] md:text-xs lg:text-sm leading-relaxed opacity-80">
                             {content.slide1_text2}
                         </p>
                     </div>
                 </div>
-                <div className="w-full relative h-[140px] md:h-[180px] flex items-center justify-center overflow-hidden mt-12">
+                <div className="w-full relative h-[120px] md:h-[150px] flex items-center justify-center overflow-hidden mt-6">
                     <LogoTicker />
                 </div>
             </motion.div>
         </motion.div>,
         <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
             <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }} className="flex flex-col items-center md:items-start text-center md:text-left">
-                <span className="text-white/40 text-[9px] uppercase tracking-[0.6em] mb-10 font-bold">Наш подход</span>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-12 w-full">
+                <span className="text-white/40 text-[9px] uppercase tracking-[0.5em] mb-8 font-bold">Наш подход</span>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 w-full">
                     <div className="md:col-span-7">
-                        <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-3xl md:text-5xl font-thin text-white uppercase mb-10 leading-tight tracking-tight">
+                        <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-3xl md:text-4xl font-thin text-white uppercase mb-6 leading-tight tracking-tight">
                             {content.slide2_title}
                         </h3>
                     </div>
-                    <div className="md:col-span-5 md:pt-6 border-l border-white/10 pl-12">
-                        <p className="text-gray-200 text-base md:text-lg font-light leading-relaxed opacity-90">
+                    <div className="md:col-span-5 md:pt-4 border-l border-white/10 pl-10">
+                        <p className="text-gray-200 text-sm md:text-base font-light leading-relaxed opacity-90">
                             {content.slide2_text}
                         </p>
                     </div>
                 </div>
             </motion.div>
         </motion.div>,
-        <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center w-full">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide3_content_offset_desktop')}px)` }} className="h-[40vh] md:h-[55vh] flex justify-end">
+        <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center w-full">
+            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide3_content_offset_desktop')}px)` }} className="h-[35vh] md:h-[50vh] flex justify-end">
                 <div className="w-[85%] h-full bg-zinc-900 rounded-2xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
                     <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-60" />
                 </div>
             </motion.div>
             <div className="flex flex-col">
-                <span className="text-[#ffaa44] text-[9px] uppercase tracking-[0.5em] font-bold mb-8">Видение и лидерство</span>
-                <blockquote style={{ transform: `translateY(${getLayoutVal('about_slide3_header_offset_desktop')}px)` }} className="text-xl md:text-2xl lg:text-[28px] font-thin italic text-white leading-tight mb-10 tracking-tight">
+                <span className="text-[#ffaa44] text-[9px] uppercase tracking-[0.4em] font-bold mb-6">Видение и лидерство</span>
+                <blockquote style={{ transform: `translateY(${getLayoutVal('about_slide3_header_offset_desktop')}px)` }} className="text-lg md:text-2xl italic text-white leading-tight mb-8 tracking-tight">
                     "{content.slide3_quote}"
                 </blockquote>
                 <div>
@@ -195,29 +195,29 @@ const About = () => {
             </div>
         </motion.div>,
         <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-24 items-start w-full">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-20 items-start w-full">
                 <div className="md:col-span-12 lg:col-span-6 flex flex-col pt-4 pl-6 md:pl-12">
-                    <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide4_content_offset_desktop')}px)` }} className="mb-12">
-                        <h2 style={{ transform: `translateY(${getLayoutVal('about_slide4_header_offset_desktop')}px)` }} className="text-2xl md:text-3xl font-thin tracking-[0.4em] uppercase mb-4 text-white">
+                    <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide4_content_offset_desktop')}px)` }} className="mb-8">
+                        <h2 style={{ transform: `translateY(${getLayoutVal('about_slide4_header_offset_desktop')}px)` }} className="text-xl md:text-2xl font-thin tracking-[0.3em] uppercase mb-4 text-white">
                             Нам доверяют
                         </h2>
-                        <div className="h-[1px] w-20 bg-white/30" />
+                        <div className="h-[1px] w-16 bg-white/20" />
                     </motion.div>
-                    <div className="space-y-1.5 max-h-[45vh] overflow-y-auto pr-6 no-scrollbar">
+                    <div className="space-y-1 max-h-[40vh] overflow-y-auto pr-6 no-scrollbar">
                         {displayCertificates.map((cert, index) => (
-                            <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-3 px-6 rounded-2xl transition-all border-l-2 ${index === activeCert ? 'bg-white/5 border-[#ffaa44] shadow-lg' : 'border-transparent hover:bg-white/[0.03]'}`}>
+                            <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-2.5 px-6 rounded-2xl transition-all border-l-2 ${index === activeCert ? 'bg-white/5 border-[#ffaa44] shadow-lg' : 'border-transparent hover:bg-white/[0.03]'}`}>
                                 <div className="flex items-start gap-6">
-                                    <span className={`text-[10px] font-mono mt-1.5 transition-colors ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/20'}`}>{(index + 1).toString().padStart(2, '0')}</span>
+                                    <span className={`text-[10px] font-mono mt-1 transition-colors ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/20'}`}>{(index + 1).toString().padStart(2, '0')}</span>
                                     <div className="flex-1">
                                         <p className={`text-base md:text-lg font-light tracking-wide ${index === activeCert ? 'text-white font-normal' : 'text-white/60'}`}>{cert.company} {cert.division}</p>
-                                        <p className="text-[9px] uppercase tracking-[0.2em] mt-1 text-white/30 font-medium">{cert.position}</p>
+                                        <p className="text-[9px] uppercase tracking-[0.2em] mt-0.5 text-white/30 font-medium">{cert.position}</p>
                                     </div>
                                 </div>
                             </button>
                         ))}
                     </div>
                 </div>
-                <div className="hidden lg:flex lg:col-span-6 h-[60vh] justify-center items-center">
+                <div className="hidden lg:flex lg:col-span-6 h-[55vh] justify-center items-center">
                     <AnimatePresence mode="wait">
                         <motion.div key={activeCert} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.4 }} className="relative h-full aspect-[210/297] p-6">
                             <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10 shadow-2xl" />
@@ -236,8 +236,8 @@ const About = () => {
             {/* NavButtons always absolute relative to viewport */}
             {!isMobile && (
                 <>
-                    <button onClick={prevSlide} className="fixed left-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronLeft size={72} strokeWidth={0.3} /></button>
-                    <button onClick={nextSlide} className="fixed right-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronRight size={72} strokeWidth={0.3} /></button>
+                    <button onClick={prevSlide} className="fixed left-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronLeft size={64} strokeWidth={0.3} /></button>
+                    <button onClick={nextSlide} className="fixed right-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronRight size={64} strokeWidth={0.3} /></button>
                 </>
             )}
 
@@ -246,7 +246,7 @@ const About = () => {
                     <div 
                         style={{ 
                             position: 'absolute',
-                            top: '50%',
+                            top: '48%',
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
