@@ -22,23 +22,23 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
     return (
         <NavLink
             to={`/services/${service.slug}`}
-            className={`group flex items-center gap-4 px-5 py-3 rounded-xl transition-all duration-500 border sweep-container ${
+            className={`group flex items-center gap-6 px-6 py-4 rounded-2xl transition-all duration-500 border sweep-container ${
                 isActive 
-                ? 'bg-white/10 border-white/30 shadow-[0_0_30px_rgba(255,170,68,0.1)] premium-active-border' 
+                ? 'bg-white/10 border-white/30 shadow-[0_0_40px_rgba(255,170,68,0.1)] premium-active-border' 
                 : isHint 
                 ? 'neon-hint-border'
-                : 'border-transparent hover:bg-white/[0.03]'
+                : 'border-transparent hover:bg-white/[0.05]'
             }`}
         >
-            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
+            <span className={`text-[11px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
                 {number}
             </span>
-            <div className={`p-1.5 rounded-lg transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/50'}`}>
-                <IconComponent size={18} strokeWidth={isActive || isHint ? 2 : 1} />
+            <div className={`p-2 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
+                <IconComponent size={20} strokeWidth={isActive || isHint ? 2 : 1} />
             </div>
-            <span className={`text-[11px] md:text-xs tracking-widest uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/60'}`}>
+            <span className={`text-[12px] md:text-sm tracking-[0.2em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/70'}`}>
                 {service.title}
-                {isHint && <span className="ml-2 text-[8px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse">следующее</span>}
+                {isHint && <span className="ml-3 text-[10px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal">следующее</span>}
             </span>
         </NavLink>
     );
@@ -105,15 +105,15 @@ const ServicesOverlay = () => {
     if (!isReady) return null;
 
     return (
-        <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative">
+        <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-28 pb-10 px-10 md:px-20 animate-fade-in md:overflow-y-auto no-scrollbar relative">
             <motion.h1 
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.7 }}
+                animate={{ opacity: 0.8 }}
                 style={{ 
-                    transform: `translateY(${hOff - (dsScale > 1.3 ? 40 : 0)}px) scale(${dsScale})`,
+                    transform: `translateY(${hOff}px) scale(${dsScale})`,
                     transformOrigin: 'center center'
                 }}
-                className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
+                className="text-2xl md:text-3xl font-thin text-white tracking-[1em] uppercase mb-12 md:mb-16 opacity-80 text-center shrink-0"
             >
                 Наши направления
             </motion.h1>
@@ -124,12 +124,12 @@ const ServicesOverlay = () => {
                 style={{ 
                     transform: `translateY(${cOff}px) scale(${dsScale})`,
                     transformOrigin: 'center center',
-                    width: dsScale > 1.3 ? '95%' : '100%',
-                    maxWidth: '1800px'
+                    width: '100%',
+                    maxWidth: '1400px'
                 }}
-                className={`flex flex-col md:flex-row ${dsScale > 1.3 ? 'justify-between' : 'justify-center md:gap-16'} items-start mx-auto overflow-y-auto no-scrollbar py-10`}
+                className="flex flex-col md:flex-row justify-center md:gap-24 items-start mx-auto overflow-y-auto no-scrollbar py-6"
             >
-                <div className={`${dsScale > 1.3 ? 'md:w-[35%]' : 'md:w-[45%]'} space-y-1 pl-4 md:pl-8`}>
+                <div className="md:w-[45%] space-y-2 pl-4 md:pl-10">
                     {servicesData.map((service, index) => (
                         <ServiceListItem 
                             key={service.id} 
@@ -141,10 +141,7 @@ const ServicesOverlay = () => {
                     ))}
                 </div>
 
-                {/* Statue Safety Gap */}
-                {dsScale > 1.3 && <div className="hidden md:block w-[30%] shrink-0" />}
-
-                <div className={`${dsScale > 1.3 ? 'md:w-[35%]' : 'md:w-[50%]'} min-h-[320px] md:min-h-[350px] flex items-start pr-4 md:pr-12`}>
+                <div className="md:w-[55%] min-h-[350px] md:min-h-[400px] flex items-start pr-4 md:pr-16">
                     <AnimatePresence mode="wait">
                         {activeService && (
                             <motion.div 
@@ -153,17 +150,17 @@ const ServicesOverlay = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.4, ease: "easeOut" }}
-                                className="w-full p-8 md:p-10 border border-white/15 bg-black/60 backdrop-blur-xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[220px]"
+                                className="w-full p-10 md:p-14 border border-white/10 bg-black/50 backdrop-blur-2xl rounded-[3rem] flex flex-col justify-start relative group shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
                             >
-                                <div className="absolute top-0 left-10 right-10 h-[2px] bg-gradient-to-r from-transparent via-[#ffaa44]/50 to-transparent blur-[1px] premium-active-border opacity-50" />
-                                <h2 className="text-2xl md:text-3xl font-light text-white mb-6 leading-tight tracking-wide">
+                                <div className="absolute top-0 left-12 right-12 h-[2px] bg-gradient-to-r from-transparent via-[#ffaa44]/60 to-transparent blur-[1px] opacity-60" />
+                                <h2 className="text-3xl md:text-4xl font-light text-white mb-8 leading-tight tracking-wide">
                                     {activeService.title}
                                 </h2>
-                                <p className="text-gray-300 text-base md:text-lg leading-relaxed font-light opacity-95">
+                                <p className="text-gray-200 text-lg md:text-2xl leading-relaxed font-light opacity-90">
                                     {activeService.description}
                                 </p>
-                                <div className="absolute bottom-4 right-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 64, strokeWidth: 0.5 })}
+                                <div className="absolute bottom-6 right-10 opacity-10 group-hover:opacity-20 transition-all duration-700 hover:scale-110">
+                                    {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 80, strokeWidth: 0.3 })}
                                 </div>
                             </motion.div>
                         )}
