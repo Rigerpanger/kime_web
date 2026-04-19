@@ -22,7 +22,7 @@ const cardVariants = {
         const offset = (count - 1) / 2;
         
         // Pure JS scaling based on your 1280px reference
-        const dsScale = typeof window !== 'undefined' ? Math.min(1.8, window.innerWidth / 1280) : 1;
+        const dsScale = typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1;
         // Spacing clamped to prevent ultra-wide separation
         const spacing = isMobile ? 120 : Math.min(450, Math.max(300, window.innerWidth * 0.22));
         
@@ -677,7 +677,7 @@ const ProjectsOverlay = () => {
                 >
                     <div 
                         style={{ 
-                            transform: `translateY(-50%) scale(${typeof window !== 'undefined' ? Math.min(1.8, window.innerWidth / 1280) : 1})`, 
+                            transform: `translateY(-50%) scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`, 
                             transformOrigin: 'center center' 
                         }}
                         className="absolute top-1/2 w-full h-[400px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"

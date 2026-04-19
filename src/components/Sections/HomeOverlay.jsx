@@ -7,7 +7,7 @@ const HomeOverlay = () => {
             
             <div 
                 style={{ 
-                    transform: `scale(${typeof window !== 'undefined' ? Math.min(1.4, window.innerWidth / 1280) : 1})`, 
+                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`, 
                     transformOrigin: 'bottom center' 
                 }}
                 className="w-full px-8 flex flex-col items-center justify-center pointer-events-auto relative z-10"

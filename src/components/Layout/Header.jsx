@@ -65,8 +65,15 @@ const Header = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 w-full z-[120] flex justify-center pointer-events-none px-4 pt-4 md:pt-6 transition-all duration-700">
-                <div className={`pointer-events-auto relative z-20 rounded-[2rem] md:w-auto border border-white/10 bg-black/40 backdrop-blur-xl px-6 md:px-12 py-3 md:py-4 flex justify-between items-center md:gap-16 shadow-2xl shadow-black/50 transition-all duration-700 ${isModalOpen ? 'w-[60%] md:max-w-none opacity-80 scale-95' : 'w-full scale-100 opacity-100'}`}>
+            <header 
+                style={{ 
+                    '--ds': typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1,
+                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`,
+                    transformOrigin: 'top center'
+                }}
+                className="fixed top-0 left-0 w-full z-[120] flex justify-center pointer-events-none px-4 pt-4 md:pt-6 transition-all duration-700"
+            >
+                <div className={`pointer-events-auto relative z-20 rounded-[2rem] md:w-auto border border-white/10 bg-black/40 backdrop-blur-xl px-4 md:px-12 py-3 md:py-4 flex justify-between items-center md:gap-16 shadow-2xl shadow-black/50 transition-all duration-700 ${isModalOpen ? 'w-[60%] md:max-w-none opacity-80 scale-95' : 'w-full scale-100 opacity-100'}`}>
                     
                     {/* Logo */}
                     <NavLink to="/" onClick={() => setIsMenuOpen(false)} className="group flex items-center shrink-0">

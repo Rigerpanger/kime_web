@@ -141,9 +141,9 @@ const ContactOverlay = () => {
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
                 style={{ 
-                    transform: `scale(${typeof window !== 'undefined' ? Math.min(1.4, window.innerWidth / 1280) : 1})`, 
+                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`, 
                     transformOrigin: 'center center',
-                    width: `calc(800px * ${typeof window !== 'undefined' ? Math.min(1.4, window.innerWidth / 1280) : 1})`
+                    width: `calc(800px * ${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`
                 }}
                 className="relative z-10 w-full max-w-[90%] h-full max-h-[85vh] flex flex-col justify-center"
             >

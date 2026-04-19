@@ -101,7 +101,7 @@ const ServicesOverlay = () => {
             <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.7 }}
-                style={{ transform: `translateY(${hOff}px) scale(${typeof window !== 'undefined' ? Math.min(1.6, window.innerWidth / 1280) : 1})` }}
+                style={{ transform: `translateY(${hOff}px) scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})` }}
                 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
             >
                 Наши направления
@@ -111,7 +111,7 @@ const ServicesOverlay = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 style={{ 
-                    transform: `translateY(${cOff}px) scale(${typeof window !== 'undefined' ? Math.min(1.6, window.innerWidth / 1280) : 1})`,
+                    transform: `translateY(${cOff}px) scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`,
                     transformOrigin: 'center center'
                 }}
                 className="container max-w-[90%] md:max-w-6xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
