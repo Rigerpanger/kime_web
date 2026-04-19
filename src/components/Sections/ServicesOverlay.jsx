@@ -22,23 +22,23 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
     return (
         <NavLink
             to={`/services/${service.slug}`}
-            className={`group flex items-center gap-6 px-6 py-4 rounded-2xl transition-all duration-500 border sweep-container ${
+            className={`group flex items-center gap-6 px-6 py-3.5 rounded-2xl transition-all duration-500 border sweep-container ${
                 isActive 
-                ? 'bg-white/10 border-white/30 shadow-[0_0_40px_rgba(255,170,68,0.1)] premium-active-border' 
+                ? 'bg-white/10 border-white/20 shadow-[0_0_40px_rgba(255,170,68,0.1)] premium-active-border' 
                 : isHint 
                 ? 'neon-hint-border'
                 : 'border-transparent hover:bg-white/[0.05]'
             }`}
         >
-            <span className={`text-[11px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
+            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
                 {number}
             </span>
-            <div className={`p-2 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
-                <IconComponent size={20} strokeWidth={isActive || isHint ? 2 : 1} />
+            <div className={`p-1.5 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
+                <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
             </div>
-            <span className={`text-[12px] md:text-sm tracking-[0.2em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/30 group-hover:text-white/70'}`}>
+            <span className={`text-[11px] md:text-xs tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/25 group-hover:text-white/60'}`}>
                 {service.title}
-                {isHint && <span className="ml-3 text-[10px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal">следующее</span>}
+                {isHint && <span className="ml-3 text-[9px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal font-light">следующее</span>}
             </span>
         </NavLink>
     );
@@ -114,14 +114,14 @@ const ServicesOverlay = () => {
                             position: 'absolute',
                             top: '50%',
                             left: '50%',
-                            transform: `translate(-50%, -50%) scale(${dsScale})`,
+                            transform: `translate(-50%, -55%) scale(${dsScale})`,
                             transformOrigin: 'center center',
                             width: '1280px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             pointerEvents: 'auto',
-                            padding: '0 40px'
+                            padding: '0 80px'
                         }}
                     >
                         <motion.h1 
@@ -131,7 +131,7 @@ const ServicesOverlay = () => {
                                 transform: `translateY(${hOff}px)`,
                                 transformOrigin: 'center center'
                             }}
-                            className="text-2xl md:text-3xl font-thin text-white tracking-[1em] uppercase mb-12 md:mb-16 opacity-80 text-center shrink-0"
+                            className="text-xl md:text-2xl font-thin text-white tracking-[1.2em] uppercase mb-16 md:mb-20 opacity-80 text-center shrink-0"
                         >
                             Наши направления
                         </motion.h1>
@@ -145,7 +145,7 @@ const ServicesOverlay = () => {
                             }}
                             className="flex flex-col md:flex-row justify-center md:gap-20 items-start mx-auto"
                         >
-                            <div className="md:w-[45%] space-y-2 pl-4 md:pl-8">
+                            <div className="md:w-[42%] space-y-2 pl-4 md:pl-10">
                                 {servicesData.map((service, index) => (
                                     <ServiceListItem 
                                         key={service.id} 
@@ -157,7 +157,7 @@ const ServicesOverlay = () => {
                                 ))}
                             </div>
 
-                            <div className="md:w-[55%] min-h-[350px] md:min-h-[400px] flex items-start pr-4 md:pr-12">
+                            <div className="md:w-[58%] min-h-[350px] md:min-h-[400px] flex items-start pr-4 md:pr-16">
                                 <AnimatePresence mode="wait">
                                     {activeService && (
                                         <motion.div 
@@ -166,17 +166,17 @@ const ServicesOverlay = () => {
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -10 }}
                                             transition={{ duration: 0.4, ease: "easeOut" }}
-                                            className="w-full p-10 md:p-14 border border-white/10 bg-black/50 backdrop-blur-2xl rounded-[3rem] flex flex-col justify-start relative group shadow-[0_30px_60px_rgba(0,0,0,0.6)]"
+                                            className="w-full p-12 md:p-14 border border-white/10 bg-black/40 backdrop-blur-3xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
                                         >
-                                            <div className="absolute top-0 left-12 right-12 h-[2px] bg-gradient-to-r from-transparent via-[#ffaa44]/60 to-transparent blur-[1px] opacity-60" />
-                                            <h2 className="text-3xl md:text-4xl font-light text-white mb-8 leading-tight tracking-wide">
+                                            <div className="absolute top-0 left-12 right-12 h-[1px] bg-gradient-to-r from-transparent via-[#ffaa44]/40 to-transparent opacity-40" />
+                                            <h2 className="text-2xl md:text-3xl font-light text-white mb-8 leading-tight tracking-wide">
                                                 {activeService.title}
                                             </h2>
-                                            <p className="text-gray-200 text-lg md:text-2xl leading-relaxed font-light opacity-90">
+                                            <p className="text-gray-200 text-base md:text-lg lg:text-xl leading-relaxed font-light opacity-90">
                                                 {activeService.description}
                                             </p>
-                                            <div className="absolute bottom-6 right-10 opacity-10 group-hover:opacity-20 transition-all duration-700 hover:scale-110">
-                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 80, strokeWidth: 0.3 })}
+                                            <div className="absolute bottom-8 right-10 opacity-5 group-hover:opacity-10 transition-all duration-700">
+                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 72, strokeWidth: 0.2 })}
                                             </div>
                                         </motion.div>
                                     )}
@@ -189,7 +189,7 @@ const ServicesOverlay = () => {
                 {isMobile && (
                     <div className="w-full h-full pointer-events-auto overflow-y-auto no-scrollbar pt-28 px-6 pb-20">
                          <motion.h1 
-                            className="text-2xl font-thin text-white tracking-[0.6em] uppercase mb-10 opacity-80 text-center"
+                            className="text-xl font-thin text-white tracking-[0.6em] uppercase mb-10 opacity-80 text-center"
                         >
                             Наши направления
                         </motion.h1>
