@@ -3,14 +3,11 @@ import { ChevronDown } from 'lucide-react';
 
 const HomeOverlay = () => {
     return (
-        <div 
-            style={{ '--ds': 'calc(100vw / 1280)' }}
-            className="w-full h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32"
-        >
+        <div className="w-full h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32">
             
             <div 
                 style={{ 
-                    transform: 'scale(var(--ds))', 
+                    transform: `scale(${typeof window !== 'undefined' ? Math.min(1.4, window.innerWidth / 1280) : 1})`, 
                     transformOrigin: 'bottom center' 
                 }}
                 className="w-full px-8 flex flex-col items-center justify-center pointer-events-auto relative z-10"

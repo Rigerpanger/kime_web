@@ -450,13 +450,10 @@ const About = () => {
                     {isMobile ? (
                         <MobileAbout content={content} displayCertificates={displayCertificates} layout={globalLayout} />
                     ) : (
-                        <div 
-                            style={{ '--ds': 'calc(100vw / 1280)' }}
-                            className="w-full h-full flex flex-col items-center justify-center relative transition-all duration-700"
-                        >
+                        <div className="w-full h-full flex flex-col items-center justify-center relative transition-all duration-700">
                             <div 
                                 style={{ 
-                                    transform: 'scale(var(--ds))', 
+                                    transform: `scale(${typeof window !== 'undefined' ? Math.min(1.5, window.innerWidth / 1280) : 1})`, 
                                     transformOrigin: 'center center',
                                     width: '100%',
                                     display: 'flex',
