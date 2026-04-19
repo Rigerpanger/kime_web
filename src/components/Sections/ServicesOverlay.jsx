@@ -5,6 +5,7 @@ import { Box, Gamepad2, Glasses, Cpu, Code } from 'lucide-react';
 import useAppStore from '../../store/useAppStore';
 import servicesData from '../../data/services.json';
 import useActiveSlug from '../../hooks/useActiveSlug';
+import { useFluidScale } from '../../hooks/useFluidScale';
 
 const ICON_MAP = {
     Box: Box,
@@ -44,6 +45,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
 };
 
 const ServicesOverlay = () => {
+    const dsScale = useFluidScale();
     const activeSlug = useActiveSlug();
     const [interactionCount, setInteractionCount] = React.useState(0);
     
@@ -56,19 +58,11 @@ const ServicesOverlay = () => {
         return servicesData.findIndex(s => s.id === activeService?.id);
     }, [activeService]);
 
-    // Only show hint for the first 2 interactions
     const hintIndex = interactionCount < 2 ? (activeIndex + 1) % servicesData.length : -1;
 
     const [layout, setLayout] = React.useState({});
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
     const [isReady, setIsReady] = React.useState(false);
-
-    React.useEffect(() => {
-        // Increment interaction when activeService changes (but not on first load)
-        if (activeService) {
-            setInteractionCount(prev => prev + 1);
-        }
-    }, [activeService?.id]);
 
     React.useEffect(() => {
         const fetchLayout = async () => {
@@ -93,13 +87,12 @@ const ServicesOverlay = () => {
     const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
     const cOff = isMobile ? getOff('services_content_offset_mobile') : getOff('services_content_offset_desktop');
 
-    // Send metrics to LayoutInspector
     React.useEffect(() => {
         const interval = setInterval(() => {
             const detail = {
                 section: 'SERVICES',
                 data: {
-                    ds_scale: (window.innerWidth / 1280).toFixed(2),
+                    ds_scale: dsScale.toFixed(2),
                     header_y: hOff + 'px',
                     content_y: cOff + 'px'
                 }
@@ -107,17 +100,16 @@ const ServicesOverlay = () => {
             window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
         }, 1000);
         return () => clearInterval(interval);
-    }, [hOff, cOff]);
+    }, [hOff, cOff, dsScale]);
 
     if (!isReady) return null;
 
     return (
         <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative">
-            {/* Title */}
             <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.7 }}
-                style={{ transform: `translateY(${hOff}px) scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})` }}
+                style={{ transform: `translateY(${hOff}px) scale(${dsScale})` }}
                 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
             >
                 Наши направления
@@ -127,12 +119,12 @@ const ServicesOverlay = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 style={{ 
-                    transform: `translateY(${cOff}px) scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`,
-                    transformOrigin: 'center center'
+                    transform: `translateY(${cOff}px) scale(${dsScale})`,
+                    transformOrigin: 'center center',
+                    maxWidth: dsScale > 1.3 ? '95%' : '90%'
                 }}
-                className="container max-w-[90%] md:max-w-6xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
+                className="container max-w-6xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto overflow-y-auto no-scrollbar py-10"
             >
-                {/* Left Column: List */}
                 <div className="w-full md:w-[45%] space-y-1 pl-4 md:pl-8">
                     {servicesData.map((service, index) => (
                         <ServiceListItem 
@@ -156,17 +148,13 @@ const ServicesOverlay = () => {
                                 transition={{ duration: 0.4, ease: "easeOut" }}
                                 className="w-full p-8 md:p-10 border border-white/15 bg-black/60 backdrop-blur-xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_20px_50px_rgba(0,0,0,0.5)] min-h-[220px]"
                             >
-                                {/* Animated Top Border for visual connection */}
                                 <div className="absolute top-0 left-10 right-10 h-[2px] bg-gradient-to-r from-transparent via-[#ffaa44]/50 to-transparent blur-[1px] premium-active-border opacity-50" />
-                                
                                 <h2 className="text-2xl md:text-3xl font-light text-white mb-6 leading-tight tracking-wide">
                                     {activeService.title}
                                 </h2>
                                 <p className="text-gray-300 text-base md:text-lg leading-relaxed font-light opacity-95">
                                     {activeService.description}
                                 </p>
-                                
-                                {/* Bottom decoration */}
                                 <div className="absolute bottom-4 right-8 opacity-10 group-hover:opacity-20 transition-opacity">
                                     {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 64, strokeWidth: 0.5 })}
                                 </div>

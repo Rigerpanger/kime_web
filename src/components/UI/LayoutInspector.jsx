@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import useAppStore from '../../store/useAppStore';
+import { useFluidScale } from '../../hooks/useFluidScale';
 
 const LayoutInspector = () => {
+    const dsScale = useFluidScale();
     const [metrics, setMetrics] = useState({
         width: window.innerWidth,
         height: window.innerHeight,
-        dpr: window.devicePixelRatio,
-        ds: 0
+        dpr: window.devicePixelRatio
     });
 
     useEffect(() => {
@@ -34,10 +35,10 @@ const LayoutInspector = () => {
         return () => window.removeEventListener('kime-metric-update', handleMetricUpdate);
     }, []);
 
-    const ds = (metrics.width / 1280).toFixed(3);
+    const ds = dsScale.toFixed(3);
 
     return (
-        <div className="fixed top-24 right-6 z-[999999] w-72 bg-black/90 backdrop-blur-2xl border border-[#ffaa44]/50 rounded-2xl p-5 shadow-2xl pointer-events-auto font-mono text-white selection:bg-[#ffaa44]/30">
+        <div className="fixed top-24 left-6 z-[999999] w-72 bg-black/90 backdrop-blur-2xl border border-[#ffaa44]/50 rounded-2xl p-5 shadow-2xl pointer-events-auto font-mono text-white selection:bg-[#ffaa44]/30">
             <div className="flex items-center gap-2 mb-4 border-b border-white/10 pb-2">
                 <div className="w-2 h-2 rounded-full bg-[#ffaa44] animate-pulse" />
                 <span className="text-[11px] font-black uppercase tracking-widest text-[#ffaa44]">TV Benchmarker</span>

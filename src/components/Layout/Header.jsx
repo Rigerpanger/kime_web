@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useAppStore from '../../store/useAppStore';
+import { useFluidScale } from '../../hooks/useFluidScale';
 
 const NavBarItem = ({ to, children, onClick }) => (
     <NavLink
@@ -37,6 +38,7 @@ const ROUTES = [
 ];
 
 const Header = () => {
+    const dsScale = useFluidScale();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
     const isModalOpen = useAppStore(s => s.isModalOpen);
@@ -67,8 +69,8 @@ const Header = () => {
         <>
             <header 
                 style={{ 
-                    '--ds': typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1,
-                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`,
+                    '--ds': dsScale,
+                    transform: `scale(${dsScale})`,
                     transformOrigin: 'top center'
                 }}
                 className="fixed top-0 left-0 w-full z-[120] flex justify-center pointer-events-none px-4 pt-4 md:pt-6 transition-all duration-700"

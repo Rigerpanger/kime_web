@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
+import { useFluidScale } from '../../hooks/useFluidScale';
 
 const HomeOverlay = () => {
+    const dsScale = useFluidScale();
+    
     return (
         <div className="w-full h-[100dvh] pointer-events-none relative flex flex-col justify-end items-center pb-12 md:pb-32">
             
             <div 
                 style={{ 
-                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`, 
+                    transform: `scale(${dsScale})`, 
                     transformOrigin: 'bottom center' 
                 }}
                 className="w-full px-8 flex flex-col items-center justify-center pointer-events-auto relative z-10"

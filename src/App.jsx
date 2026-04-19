@@ -138,7 +138,9 @@ function AppLayout() {
 
     // Maintenance Mode Logic:
     // If showStudioEditor is enabled globally, we show a login overlay for non-authorized users.
-    const isMaintenanceMode = showStudioEditor && !user && !loadingAuth;
+    const urlParams = new URLSearchParams(window.location.search);
+    const isDebugMode = urlParams.get('debug') === '1';
+    const showInspector = (showStudioEditor && user) || isDebugMode;
 
     return (
         <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
@@ -146,6 +148,7 @@ function AppLayout() {
             <RouteManager />
             {!isMobile && <ScrollNavigator />}
             {showStudioEditor && user && <StudioEditor />}
+            {showInspector && <LayoutInspector />}
 
             {/* 1. Persistent 3D Layer */}
             <div className="absolute inset-0 z-0">
@@ -174,8 +177,6 @@ function AppLayout() {
                     <Header />
                 </div>
             </div>
-
-            {showStudioEditor && user && <LayoutInspector />}
         </div>
     );
 };
