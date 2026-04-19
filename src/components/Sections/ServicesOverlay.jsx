@@ -93,6 +93,22 @@ const ServicesOverlay = () => {
     const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
     const cOff = isMobile ? getOff('services_content_offset_mobile') : getOff('services_content_offset_desktop');
 
+    // Send metrics to LayoutInspector
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            const detail = {
+                section: 'SERVICES',
+                data: {
+                    ds_scale: (window.innerWidth / 1280).toFixed(2),
+                    header_y: hOff + 'px',
+                    content_y: cOff + 'px'
+                }
+            };
+            window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [hOff, cOff]);
+
     if (!isReady) return null;
 
     return (

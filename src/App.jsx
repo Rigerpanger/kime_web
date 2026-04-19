@@ -22,6 +22,7 @@ import ManageProjects from './components/Admin/ManageProjects';
 import ManageAbout from './components/Admin/ManageAbout';
 import Settings from './components/Admin/Settings';
 import ProtectedRoute from './components/Admin/ProtectedRoute';
+import LayoutInspector from './components/UI/LayoutInspector';
 
 
 import useAppStore from './store/useAppStore';
@@ -174,32 +175,7 @@ function AppLayout() {
                 </div>
             </div>
 
-import LayoutInspector from './components/UI/LayoutInspector';
-
-function AppLayout() {
-    const showStudioEditor = useAppStore(s => s.showStudioEditor);
-    const setShowStudioEditor = useAppStore(s => s.setShowStudioEditor);
-    const user = useAuthStore(s => s.user);
-    // ... existing state ...
-    
-    // ... skipping existing effects for brevity in replacement ...
-    
-    return (
-        <div className="relative w-full min-h-screen bg-black font-sans selection:bg-white/20">
-            {isMaintenanceMode && <MaintenanceOverlay />}
-            <RouteManager />
-            {!isMobile && <ScrollNavigator />}
-            {showStudioEditor && user && <StudioEditor />}
             {showStudioEditor && user && <LayoutInspector />}
-
-            {/* 1. Persistent 3D Layer */}
-            <div className="absolute inset-0 z-0">
-                <Scene />
-            </div>
-            {/* ... rest of the component ... */}
-        </div>
-    );
-};
         </div>
     );
 };

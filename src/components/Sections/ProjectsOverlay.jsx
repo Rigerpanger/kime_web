@@ -520,6 +520,25 @@ const ProjectsOverlay = () => {
 
     const [activeIndex, setActiveIndex] = useState(0);
 
+    // Send metrics to LayoutInspector
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const dsScale = typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1;
+            const spacing = isMobile ? 120 : Math.min(450, Math.max(300, window.innerWidth * 0.22));
+            
+            const detail = {
+                section: 'PROJECTS',
+                data: {
+                    ds_scale: dsScale.toFixed(2),
+                    card_spacing: spacing.toFixed(0) + 'px',
+                    active_index: activeIndex
+                }
+            };
+            window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [activeIndex, isMobile]);
+
     const handleProjectSelect = (project) => {
         setSelectedProject(project);
         setScrollLocked(true); // Explicitly lock scroll on background

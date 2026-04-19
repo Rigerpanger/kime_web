@@ -97,6 +97,23 @@ const About = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Send metrics to LayoutInspector
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const detail = {
+                section: 'ABOUT',
+                data: {
+                    slide: SLUGS[currentSlide],
+                    scale: (window.innerWidth / 1280).toFixed(2),
+                    title_y: getLayoutVal('about_slide1_header_offset_desktop'),
+                    content_y: getLayoutVal('about_slide1_content_offset_desktop')
+                }
+            };
+            window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [currentSlide, globalLayout]);
+
     const nextSlide = () => {
         const nextIdx = (currentSlide + 1) % totalSlides;
         navigate(`/about/${SLUGS[nextIdx]}`);
