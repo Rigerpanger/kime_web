@@ -450,8 +450,22 @@ const About = () => {
                     {isMobile ? (
                         <MobileAbout content={content} displayCertificates={displayCertificates} layout={globalLayout} />
                     ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center relative">
-                            {isReady && <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>}
+                        <div 
+                            style={{ '--ds': 'calc(100vw / 1280)' }}
+                            className="w-full h-full flex flex-col items-center justify-center relative transition-all duration-700"
+                        >
+                            <div 
+                                style={{ 
+                                    transform: 'scale(var(--ds))', 
+                                    transformOrigin: 'center center',
+                                    width: '100%',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center'
+                                }}
+                            >
+                                {isReady && <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>}
+                            </div>
                         </div>
                     )}
                 </div>

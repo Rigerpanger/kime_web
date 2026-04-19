@@ -21,8 +21,9 @@ const cardVariants = {
         const count = custom.totalCount || ITEMS_PER_PAGE;
         const offset = (count - 1) / 2;
         
-        // Fixed spacing with better breathing room for all screens
-        const spacing = isMobile ? 120 : Math.max(280, window.innerWidth * 0.18);
+        // Proportional spacing based on the target 1280px reference
+        const dsScale = typeof window !== 'undefined' ? window.innerWidth / 1280 : 1;
+        const spacing = isMobile ? 120 : Math.max(300, window.innerWidth * 0.22);
         
         const xPos = (custom.index - offset) * spacing;
 
@@ -674,8 +675,12 @@ const ProjectsOverlay = () => {
                     className="absolute inset-0 w-full h-full flex items-center justify-center perspective-[1200px] pointer-events-none overflow-hidden z-20"
                 >
                     <div 
-                        style={{ transform: 'translateY(-50%) scale(var(--ds))', transformOrigin: 'center center' }}
-                        className="absolute top-[20%] w-full h-[320px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
+                        style={{ 
+                            '--ds': 'calc(100vw / 1280)',
+                            transform: 'translateY(-50%) scale(var(--ds))', 
+                            transformOrigin: 'center center' 
+                        }}
+                        className="absolute top-[48%] w-full h-[400px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}

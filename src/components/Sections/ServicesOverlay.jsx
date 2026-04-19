@@ -96,12 +96,15 @@ const ServicesOverlay = () => {
     if (!isReady) return null;
 
     return (
-        <div className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative">
+        <div 
+            style={{ '--ds': 'calc(100vw / 1280)' }}
+            className="w-full h-[100dvh] md:h-full flex flex-col items-center justify-center pt-24 md:pt-20 pb-6 px-8 md:px-16 animate-fade-in md:overflow-y-auto no-scrollbar relative"
+        >
             {/* Title */}
             <motion.h1 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 0.7 }}
-                style={{ transform: `translateY(${hOff}px)` }}
+                style={{ transform: `translateY(${hOff}px) scale(var(--ds))` }}
                 className="text-xl md:text-2xl font-thin text-white tracking-[0.8em] uppercase mb-6 md:mb-10 opacity-70 text-center shrink-0"
             >
                 Наши направления
@@ -110,8 +113,11 @@ const ServicesOverlay = () => {
             <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                style={{ transform: `translateY(${cOff}px)` }}
-                className="container max-w-5xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
+                style={{ 
+                    transform: `translateY(${cOff}px) scale(var(--ds))`,
+                    transformOrigin: 'center center'
+                }}
+                className="container max-w-[90%] md:max-w-6xl flex flex-col md:flex-row gap-8 md:gap-16 items-start mx-auto"
             >
                 {/* Left Column: List */}
                 <div className="w-full md:w-[45%] space-y-1 pl-4 md:pl-8">

@@ -174,10 +174,12 @@ function AppLayout() {
                 </div>
             </div>
 
-            {/* Global Resolution Sensor - for TV verification */}
-            <div className="fixed bottom-0 right-0 z-[99999] bg-[#ffaa44] text-black text-[10px] px-2 py-1 pointer-events-none font-mono font-bold uppercase tracking-tight shadow-xl">
-                TV: {window.innerWidth}px x {window.innerHeight}px | DPR: {window.devicePixelRatio}
-            </div>
+            {/* Global Resolution Sensor - Only visible for Admin in 3D Mode */}
+            {showStudioEditor && user && (
+                <div className="fixed bottom-0 right-0 z-[99999] bg-[#ffaa44] text-black text-[10px] px-2 py-1 pointer-events-none font-mono font-bold uppercase tracking-tight shadow-xl">
+                    TV: {window.innerWidth}px x {window.innerHeight}px | DPR: {window.devicePixelRatio}
+                </div>
+            )}
         </div>
     );
 };
