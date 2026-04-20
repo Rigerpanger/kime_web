@@ -145,7 +145,7 @@ const About = () => {
         </motion.div>,
         <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center w-full px-4">
             <div className="flex justify-center md:justify-end">
-                <div className="w-[300px] md:w-[350px] aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
+                <div className="w-[300px] md:w-[320px] max-h-[40vh] aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
                     <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-60" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 </div>
