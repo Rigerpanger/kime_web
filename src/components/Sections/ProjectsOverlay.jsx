@@ -27,7 +27,7 @@ const cardVariants = {
         const heightScale = typeof window !== 'undefined' ? (window.innerHeight / 800) * 1.3 : 1;
         const dsScale = Math.min(1.8, Math.min(widthScale, heightScale));
         
-        const spacing = isMobile ? 120 : Math.min(450, Math.max(300, window.innerWidth * 0.22));
+        const spacing = isMobile ? 120 : Math.min(400, Math.max(260, window.innerWidth * 0.18));
         const xPos = (custom.index - offset) * spacing;
 
         return {
@@ -203,7 +203,7 @@ const ProjectCard = ({ project, custom, onClick, isMobile }) => (
         exit="exit"
         whileHover="hover"
         onClick={() => onClick(project)}
-        className="absolute cursor-pointer pointer-events-auto group w-[180px] h-[250px]"
+        className="absolute cursor-pointer pointer-events-auto group w-[235px] h-[330px]"
         style={{ transformStyle: "preserve-3d", transformOrigin: "center center" }}
     >
         <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-white/5 backdrop-blur-md border border-white/20 rounded-3xl group-hover:border-white/40 transition-colors duration-500" style={{ transform: "translateZ(-15px)" }} />
@@ -334,10 +334,10 @@ const ProjectsOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global Balance Anchor: 50% for Laptop centering, 54% for TV balance
+    // Global Balance Anchor: 50% for Laptop centering, 48% for TV clearance (lifted)
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        const base = ar > 1.8 ? 54 : 50; 
+        const base = ar > 1.8 ? 48 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 12);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
@@ -401,9 +401,9 @@ const ProjectsOverlay = () => {
     return (
         <div style={{ '--ds': 'calc(min(1.25, max(0.9, 100vw / 1700)))' }} className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative overflow-hidden">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ transform: `translateY(${hOff}px) ${!isMobile ? 'scale(var(--ds))' : ''}`, transformOrigin: 'bottom center' }} className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 flex flex-col items-center px-12 transition-opacity duration-1000`}>
-                <div className={`relative ${aspectRatio > 1.8 ? 'mb-4' : 'mb-8'} mt-2 w-full max-w-[85vw]`}>
+                <div className={`relative ${aspectRatio > 1.8 ? 'mb-8' : 'mb-12'} mt-2 w-full max-w-[85vw]`}>
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[80px] rounded-full scale-[2.5] md:scale-100" />
-                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-8 uppercase tracking-[0.2em] md:tracking-[0.4em] drop-shadow-xl leading-none text-center whitespace-nowrap">НАШИ РАБОТЫ</h1>
+                    <h1 className="relative text-2xl md:text-5xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-8 uppercase tracking-[0.2em] md:tracking-[0.4em] drop-shadow-xl leading-none text-center whitespace-nowrap">НАШИ РАБОТЫ</h1>
                     <div className="flex items-center justify-center gap-3 opacity-95">
                         <div className="h-[1px] w-8 md:w-20 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
                         <p className="text-[12px] md:text-[10px] tracking-[0.4em] md:tracking-[0.6em] text-[#ffaa44] uppercase font-bold">То, что вправе показать</p>
@@ -414,8 +414,8 @@ const ProjectsOverlay = () => {
 
             {!isMobile && projects.length > perPage && (
                 <>
-                    <button onClick={() => paginate(-1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute left-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white transition-all"><ChevronLeft size={24} /></button>
-                    <button onClick={() => paginate(1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute right-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/10 bg-black/40 backdrop-blur-2xl text-white/50 hover:text-white transition-all"><ChevronRight size={24} /></button>
+                    <button onClick={() => paginate(-1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute left-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all shadow-xl"><ChevronLeft size={24} /></button>
+                    <button onClick={() => paginate(1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute right-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all shadow-xl"><ChevronRight size={24} /></button>
                 </>
             )}
 
