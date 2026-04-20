@@ -87,12 +87,12 @@ const ServicesOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // AspectSync: Synchronized with About.jsx logic
+    // AspectSync: Synchronized with About.jsx logic, but lowered to 70% as requested
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '54%'; 
+        if (aspectRatio > 1.8) return '70%'; 
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(8, diff * 15);
-        return `${54 - correction}%`;
+        const correction = Math.min(8, diff * 12);
+        return `${70 - correction}%`;
     }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
