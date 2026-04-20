@@ -175,14 +175,14 @@ const About = () => {
             </motion.div>
         </motion.div>,
         <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }} className="w-full flex flex-col justify-center">
-                <span className="text-white/30 text-[8px] uppercase tracking-[0.5em] mb-4 font-bold text-center md:text-left">Наш подход</span>
-                <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-2xl md:text-3xl font-thin text-white uppercase mb-6 leading-tight tracking-widest text-center md:text-left">
+            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop') + 10}px)` }} className="w-full flex flex-col justify-center">
+                <span className="text-white/20 text-[7px] uppercase tracking-[0.5em] mb-4 font-bold text-center md:text-left">Наш подход</span>
+                <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-xl md:text-2xl font-thin text-white uppercase mb-4 leading-tight tracking-[0.3em] text-center md:text-left opacity-90">
                     {content.slide2_title}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
-                    <div className="md:col-span-6">
-                        <p className="text-gray-300 text-[12px] md:text-sm lg:text-base font-light leading-relaxed opacity-80 text-center md:text-left">
+                    <div className="md:col-span-9 lg:col-span-8">
+                        <p className="text-gray-400 text-[11px] md:text-xs lg:text-sm font-light leading-relaxed opacity-70 text-center md:text-left">
                             {content.slide2_text}
                         </p>
                     </div>
