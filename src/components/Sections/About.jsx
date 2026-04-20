@@ -175,16 +175,14 @@ const About = () => {
             </motion.div>
         </motion.div>,
         <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }} className="flex flex-col items-center md:items-start text-center md:text-left">
-                <span className="text-white/30 text-[8px] uppercase tracking-[0.5em] mb-6 font-bold">Наш подход</span>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 w-full">
-                    <div className="md:col-span-7">
-                        <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-2xl md:text-3xl font-thin text-white uppercase mb-4 leading-tight tracking-widest">
-                            {content.slide2_title}
-                        </h3>
-                    </div>
-                    <div className="md:col-span-5 md:pt-2 border-l border-white/5 pl-10">
-                        <p className="text-gray-300 text-xs md:text-sm font-light leading-relaxed opacity-80">
+            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop')}px)` }} className="w-full flex flex-col justify-center">
+                <span className="text-white/30 text-[8px] uppercase tracking-[0.5em] mb-4 font-bold text-center md:text-left">Наш подход</span>
+                <h3 style={{ transform: `translateY(${getLayoutVal('about_slide2_header_offset_desktop')}px)` }} className="text-2xl md:text-3xl font-thin text-white uppercase mb-6 leading-tight tracking-widest text-center md:text-left">
+                    {content.slide2_title}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
+                    <div className="md:col-span-6">
+                        <p className="text-gray-300 text-[12px] md:text-sm lg:text-base font-light leading-relaxed opacity-80 text-center md:text-left">
                             {content.slide2_text}
                         </p>
                     </div>
