@@ -102,8 +102,8 @@ const ServicesOverlay = () => {
     if (!isReady) return null;
 
     return (
-        <div className="w-full h-full relative pointer-events-auto">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <section id="services-overlay" className="w-full h-screen relative overflow-hidden pointer-events-none">
+            <div className="absolute inset-0 flex items-center justify-center">
                 {!isMobile && (
                     <div 
                         style={{ 
@@ -131,7 +131,7 @@ const ServicesOverlay = () => {
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col md:flex-row justify-center md:gap-20 items-start mx-auto w-full"
+                            className="flex flex-col md:flex-row justify-center md:gap-14 items-start mx-auto w-full"
                         >
                             <div className="md:w-[45%] space-y-2">
                                 {servicesData.map((service, index) => (
@@ -204,7 +204,7 @@ const ServicesOverlay = () => {
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     );
 };
 
