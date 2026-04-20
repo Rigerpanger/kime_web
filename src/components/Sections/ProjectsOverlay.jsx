@@ -334,10 +334,10 @@ const ProjectsOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global Balance Anchor: 50% for Laptop centering, 58% for TV clearance
+    // Global Balance Anchor: 50% for Laptop centering, 54% for TV balance
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        const base = ar > 1.8 ? 58 : 50; 
+        const base = ar > 1.8 ? 54 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 12);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
