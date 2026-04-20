@@ -21,9 +21,10 @@ export const useFluidScale = () => {
             const rawScale = Math.min(widthScale, (h / 800));
             const aspectRatio = w / h;
             
-            // Global Balance: Ultra-compact 1.0 for TV, Fully-filled 2.9 for Laptop
-            const maxAllowedScale = aspectRatio > 1.8 ? 1.0 : 2.9;
-            const cappedScale = Math.min(maxAllowedScale, Math.max(1, rawScale));
+            // Global Balance: Ultra-neat 0.7 for TV, Fully-filled 2.9 for Laptop
+            // We allow scale below 1.0 for large displays to maintain 'neat' appearance.
+            const maxAllowedScale = aspectRatio > 1.8 ? 0.7 : 2.9;
+            const cappedScale = Math.min(maxAllowedScale, rawScale);
             
             // Final safety check: never set NaN
             setScale(Number.isFinite(cappedScale) ? cappedScale : 1);

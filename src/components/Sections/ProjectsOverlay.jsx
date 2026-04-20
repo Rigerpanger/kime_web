@@ -334,12 +334,12 @@ const ProjectsOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global Balance Anchor: Unified to 50% for site-wide consistency
+    // Global Balance Anchor: 50% for Laptop centering, 58% for TV clearance
     const dynamicTop = useMemo(() => {
-        const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7;
-        const base = 50;  // Target centered anchor
-        if (ar > 1.8) return `${base}%`;
-        const correction = Math.min(8, (1.8 - ar) * 12);
+        const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
+        const base = ar > 1.8 ? 58 : 50; 
+        const diff = 1.8 - ar;
+        const correction = Math.min(8, diff * 12);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
 
@@ -401,7 +401,7 @@ const ProjectsOverlay = () => {
     return (
         <div style={{ '--ds': 'calc(min(1.25, max(0.9, 100vw / 1700)))' }} className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative overflow-hidden">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ transform: `translateY(${hOff}px) ${!isMobile ? 'scale(var(--ds))' : ''}`, transformOrigin: 'bottom center' }} className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 flex flex-col items-center px-12 transition-opacity duration-1000`}>
-                <div className="relative mb-4 mt-2 w-full max-w-[85vw]">
+                <div className={`relative ${aspectRatio > 1.8 ? 'mb-4' : 'mb-8'} mt-2 w-full max-w-[85vw]`}>
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[80px] rounded-full scale-[2.5] md:scale-100" />
                     <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-8 uppercase tracking-[0.2em] md:tracking-[0.4em] drop-shadow-xl leading-none text-center whitespace-nowrap">НАШИ РАБОТЫ</h1>
                     <div className="flex items-center justify-center gap-3 opacity-95">

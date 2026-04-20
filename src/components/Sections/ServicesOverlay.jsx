@@ -87,13 +87,13 @@ const ServicesOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global Balance Anchor: Lifted to 50% for high-end centered geometry
+    // Global Balance Anchor: 50% for Laptop centering, 58% for TV clearance
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7;
-        if (ar > 1.8) return '50%'; 
+        const base = ar > 1.8 ? 58 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 10);
-        return `${50 - (Number.isFinite(correction) ? correction : 0)}%`;
+        return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
     const getOff = (key) => layout?.[key] || 0;
     const hOff = isMobile ? getOff('services_header_offset_mobile') : 0;
@@ -123,7 +123,7 @@ const ServicesOverlay = () => {
                         <motion.h1 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 0.5 }}
-                            className="text-xl md:text-3xl font-thin text-white tracking-[1.0em] uppercase mb-24 opacity-80 text-center shrink-0 drop-shadow-2xl"
+                            className={`text-xl md:text-3xl font-thin text-white tracking-[1.0em] uppercase ${aspectRatio > 1.8 ? 'mb-12' : 'mb-24'} opacity-80 text-center shrink-0 drop-shadow-2xl`}
                         >
                             Наши направления
                         </motion.h1>
