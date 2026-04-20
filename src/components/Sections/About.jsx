@@ -89,13 +89,13 @@ const About = () => {
     }, []);
 
     // Calculate dynamic top offset based on aspect ratio
-    // Global Balance Anchor: Lifted to 50% for consistent site-wide horizon
+    // Global Balance Anchor: 50% for Laptop centering, 54% for TV balance
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        if (ar > 1.8) return '50%'; 
+        const base = ar > 1.8 ? 54 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 12);
-        return `${50 - (Number.isFinite(correction) ? correction : 0)}%`;
+        return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
 
     const getLayoutVal = (key) => globalLayout[key] || 0;
