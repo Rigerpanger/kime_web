@@ -17,6 +17,7 @@ export const useFluidScale = () => {
             
             // Final factor: don't let width scale blow out height
             const rawScale = Math.min(widthScale, (window.innerHeight / 800));
+            const aspectRatio = window.innerWidth / window.innerHeight;
             
             // Global Balance: Limit scale to 1.6 for TV (wide) to reduce composition by ~30%
             // Keep 2.3 for laptops to preserve richness.
