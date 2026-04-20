@@ -12,19 +12,22 @@ export const useFluidScale = () => {
         const calculateScale = () => {
             if (typeof window === 'undefined') return 1;
             
-            // Width-based scale
-            const widthScale = window.innerWidth / 1280;
+            // Safely calculate dimensions
+            const w = window.innerWidth || 1280;
+            const h = window.innerHeight || 800;
             
-            // Final factor: don't let width scale blow out height
-            const rawScale = Math.min(widthScale, (window.innerHeight / 800));
-            const aspectRatio = window.innerWidth / window.innerHeight;
+            // Width-based scale vs Height-based limit
+            const widthScale = w / 1280;
+            const rawScale = Math.min(widthScale, (h / 800));
+            const aspectRatio = w / h;
             
             // Global Balance: Limit scale to 1.6 for TV (wide) to reduce composition by ~30%
             // Keep 2.3 for laptops to preserve richness.
             const maxAllowedScale = aspectRatio > 1.8 ? 1.6 : 2.3;
             const cappedScale = Math.min(maxAllowedScale, Math.max(1, rawScale));
             
-            setScale(cappedScale);
+            // Final safety check: never set NaN
+            setScale(Number.isFinite(cappedScale) ? cappedScale : 1);
         };
 
         calculateScale();

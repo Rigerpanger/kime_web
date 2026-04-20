@@ -89,12 +89,12 @@ const ServicesOverlay = () => {
 
     // Global Balance Anchor: Lifted to 60% for laptop elegance and TV clearance
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '60%'; 
-        const diff = 1.8 - aspectRatio;
+        const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
+        if (ar > 1.8) return '60%'; 
+        const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 10);
-        return `${60 - correction}%`;
+        return `${60 - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
-
     const getOff = (key) => layout?.[key] || 0;
     const hOff = isMobile ? getOff('services_header_offset_mobile') : 0;
     const cOff = isMobile ? getOff('services_content_offset_mobile') : 0;

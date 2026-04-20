@@ -484,11 +484,13 @@ const ProjectsOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Global Balance Anchor: Unified to 60% for site-wide consistency
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '54%';
-        const diff = 1.8 - aspectRatio;
-        const correction = Math.min(8, diff * 15);
-        return `${54 - correction}%`;
+        const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7;
+        if (ar > 1.8) return '60%';
+        const diff = 1.8 - ar;
+        const correction = Math.min(8, diff * 12);
+        return `${60 - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
 
 
