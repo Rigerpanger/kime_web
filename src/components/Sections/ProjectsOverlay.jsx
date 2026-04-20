@@ -334,9 +334,10 @@ const ProjectsOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
+    // Global Balance Anchor: Unified to 50% for site-wide consistency
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7;
-        const base = 53;  // Target lifted anchor
+        const base = 50;  // Target centered anchor
         if (ar > 1.8) return `${base}%`;
         const correction = Math.min(8, (1.8 - ar) * 12);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
@@ -402,7 +403,7 @@ const ProjectsOverlay = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ transform: `translateY(${hOff}px) ${!isMobile ? 'scale(var(--ds))' : ''}`, transformOrigin: 'bottom center' }} className={`${isMobile ? 'relative pt-20 pb-4' : 'absolute bottom-10'} w-full z-40 flex flex-col items-center px-12 transition-opacity duration-1000`}>
                 <div className="relative mb-4 mt-2 w-full max-w-[85vw]">
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[80px] rounded-full scale-[2.5] md:scale-100" />
-                    <h1 className="relative text-3xl md:text-6xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-6 uppercase tracking-[0.4em] md:tracking-[0.8em] drop-shadow-xl leading-none text-center whitespace-nowrap">НАШИ РАБОТЫ</h1>
+                    <h1 className="relative text-2xl md:text-3xl font-thin text-white md:text-transparent md:bg-clip-text md:bg-gradient-to-r md:from-white md:via-gray-100 md:to-gray-500 mb-8 uppercase tracking-[0.2em] md:tracking-[0.4em] drop-shadow-xl leading-none text-center whitespace-nowrap">НАШИ РАБОТЫ</h1>
                     <div className="flex items-center justify-center gap-3 opacity-95">
                         <div className="h-[1px] w-8 md:w-20 bg-gradient-to-r from-transparent to-[#ffaa44]/50" />
                         <p className="text-[12px] md:text-[10px] tracking-[0.4em] md:tracking-[0.6em] text-[#ffaa44] uppercase font-bold">То, что вправе показать</p>
