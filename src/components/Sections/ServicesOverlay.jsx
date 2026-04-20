@@ -88,12 +88,12 @@ const ServicesOverlay = () => {
     }, []);
 
     // AspectSync: Synchronized with About.jsx logic
-    // Baseline 52% (lowered) with subtle lift for tall screens
+    // Baseline 54% (Final Precision) with subtle lift for tall screens
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '52%'; 
+        if (aspectRatio > 1.8) return '54%'; 
         const diff = 1.8 - aspectRatio;
         const correction = Math.min(8, diff * 15);
-        return `${52 - correction}%`;
+        return `${54 - correction}%`;
     }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
