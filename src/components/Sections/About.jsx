@@ -18,6 +18,7 @@ const About = () => {
     const [activeCert, setActiveCert] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
     const [selectedFullCert, setSelectedFullCert] = useState(null);
+    const [aspectRatio, setAspectRatio] = useState(window.innerWidth / window.innerHeight);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
     const setActiveSlug = useAppStore(s => s.setActiveSlug);
 
@@ -79,10 +80,23 @@ const About = () => {
         };
         fetchData();
 
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+            setAspectRatio(window.innerWidth / window.innerHeight);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Calculate dynamic top offset based on aspect ratio
+    // Ultra-wide (TV ~2.3) -> 44%
+    // Tall (Mac ~1.5) -> 38%
+    const dynamicTop = useMemo(() => {
+        if (aspectRatio > 1.8) return '44%';
+        const diff = 1.8 - aspectRatio;
+        const correction = Math.min(6, diff * 20); // Max 6% lift
+        return `${44 - correction}%`;
+    }, [aspectRatio]);
 
     const getLayoutVal = (key) => globalLayout[key] || 0;
 
@@ -94,14 +108,14 @@ const About = () => {
                 data: {
                     slide: SLUGS[currentSlide],
                     scale: dsScale.toFixed(2),
-                    title_y: getLayoutVal('about_slide1_header_offset_desktop'),
-                    content_y: getLayoutVal('about_slide1_content_offset_desktop')
+                    aspect: aspectRatio.toFixed(2),
+                    dynamic_top: dynamicTop
                 }
             };
             window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
         }, 1000);
         return () => clearInterval(interval);
-    }, [currentSlide, globalLayout, dsScale]);
+    }, [currentSlide, globalLayout, dsScale, aspectRatio, dynamicTop]);
 
     const nextSlide = () => navigate(`/about/${SLUGS[(currentSlide + 1) % totalSlides]}`);
     const prevSlide = () => navigate(`/about/${SLUGS[(currentSlide - 1 + totalSlides) % totalSlides]}`);
@@ -246,7 +260,7 @@ const About = () => {
                     <div 
                         style={{ 
                             position: 'absolute',
-                            top: '44%',
+                            top: dynamicTop,
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',

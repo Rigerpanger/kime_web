@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Box, Gamepad2, Glasses, Cpu, Code } from 'lucide-react';
@@ -48,6 +48,7 @@ const ServicesOverlay = () => {
     const dsScale = useFluidScale();
     const activeSlug = useActiveSlug();
     const [interactionCount, setInteractionCount] = React.useState(0);
+    const [aspectRatio, setAspectRatio] = useState(window.innerWidth / window.innerHeight);
     
     const activeService = useMemo(() => {
         const found = servicesData.find(s => s.slug === activeSlug);
@@ -78,10 +79,22 @@ const ServicesOverlay = () => {
         };
         fetchLayout();
 
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+            setAspectRatio(window.innerWidth / window.innerHeight);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    // Calculate dynamic top offset based on aspect ratio
+    // Same logic as in About.jsx for visual parity
+    const dynamicTop = useMemo(() => {
+        if (aspectRatio > 1.8) return '44%';
+        const diff = 1.8 - aspectRatio;
+        const correction = Math.min(6, diff * 20); // Max 6% lift
+        return `${44 - correction}%`;
+    }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
     const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
@@ -94,13 +107,14 @@ const ServicesOverlay = () => {
                 data: {
                     ds_scale: dsScale.toFixed(2),
                     header_y: hOff + 'px',
-                    content_y: cOff + 'px'
+                    content_y: cOff + 'px',
+                    dynamic_top: dynamicTop
                 }
             };
             window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
         }, 1000);
         return () => clearInterval(interval);
-    }, [hOff, cOff, dsScale]);
+    }, [hOff, cOff, dsScale, dynamicTop]);
 
     if (!isReady) return null;
 
@@ -112,7 +126,7 @@ const ServicesOverlay = () => {
                     <div 
                         style={{ 
                             position: 'absolute',
-                            top: '44%',
+                            top: dynamicTop,
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
