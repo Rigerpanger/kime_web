@@ -161,16 +161,16 @@ const About = () => {
                 </div>
             </div>
         </motion.div>,
-        <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full px-4">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-20 items-start w-full">
+        <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full px-4" style={{ transform: aspectRatio > 1.8 ? 'scale(0.95)' : 'scale(1)' }}>
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
                 <div className="md:col-span-12 lg:col-span-6 flex flex-col pt-2 pl-4 md:pl-10">
                     <div className="mb-6">
-                        <h2 className="text-base md:text-lg font-thin tracking-[0.3em] uppercase mb-4 text-white/40">
+                        <h2 className="text-sm md:text-base font-thin tracking-[0.3em] uppercase mb-4 text-white/40">
                             На Нас полагаются
                         </h2>
                         <div className="h-[1px] w-12 bg-[#ffaa44]/30" />
                     </div>
-                    <div className="space-y-1 max-h-[300px] overflow-y-auto pr-6 no-scrollbar border-l border-white/5">
+                    <div className="space-y-1 max-h-[250px] md:max-h-[280px] overflow-y-auto pr-6 no-scrollbar border-l border-white/5">
                         {displayCertificates.map((cert, index) => (
                             <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-3 px-6 rounded-2xl transition-all ${index === activeCert ? 'bg-white/5 shadow-lg' : 'hover:bg-white/[0.02]'}`}>
                                 <div className="flex items-start gap-6">
@@ -184,7 +184,7 @@ const About = () => {
                         ))}
                     </div>
                 </div>
-                <div className="hidden lg:flex lg:col-span-6 h-[400px] justify-center items-center">
+                <div className="hidden lg:flex lg:col-span-6 h-[360px] justify-center items-center">
                     <AnimatePresence mode="wait">
                         <motion.div key={activeCert} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="relative h-full aspect-[210/297] p-2">
                             <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-3xl rounded-3xl border border-white/5 shadow-2xl" />
