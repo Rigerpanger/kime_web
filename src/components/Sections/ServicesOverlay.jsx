@@ -88,11 +88,12 @@ const ServicesOverlay = () => {
     }, []);
 
     // AspectSync: Synchronized with About.jsx logic
+    // Baseline 52% (lowered) with subtle lift for tall screens
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '48%'; // TV: Lowered to fill bottom gap
+        if (aspectRatio > 1.8) return '52%'; 
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(10, diff * 25);
-        return `${48 - correction}%`;
+        const correction = Math.min(8, diff * 15);
+        return `${52 - correction}%`;
     }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
@@ -112,12 +113,12 @@ const ServicesOverlay = () => {
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
-                            width: '1440px',
+                            width: '1280px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             pointerEvents: 'auto',
-                            padding: '0 150px'
+                            padding: '0 120px'
                         }}
                     >
                         <motion.h1 

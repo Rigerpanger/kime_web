@@ -485,11 +485,12 @@ const ProjectsOverlay = () => {
     }, []);
 
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '48%';
+        if (aspectRatio > 1.8) return '52%';
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(10, diff * 25);
-        return `${48 - correction}%`;
+        const correction = Math.min(8, diff * 15);
+        return `${52 - correction}%`;
     }, [aspectRatio]);
+
 
     useEffect(() => {
         const fetchProjects = async () => {

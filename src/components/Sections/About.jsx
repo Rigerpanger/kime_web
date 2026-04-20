@@ -89,13 +89,12 @@ const About = () => {
     }, []);
 
     // Calculate dynamic top offset based on aspect ratio
-    // Ultra-wide (TV ~2.3) -> 48% (push down to fill the bottom hole)
-    // Tall (Mac ~1.5) -> 38% (lift up to stay on camera level)
+    // Baseline lowered to 52% to keep content away from header on laptops.
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '48%'; // More breathing room for wide screens
+        if (aspectRatio > 1.8) return '52%'; 
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(10, diff * 25); // Lift based on verticality
-        return `${48 - correction}%`;
+        const correction = Math.min(8, diff * 15); 
+        return `${52 - correction}%`;
     }, [aspectRatio]);
 
     const getLayoutVal = (key) => globalLayout[key] || 0;
@@ -217,8 +216,8 @@ const About = () => {
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
-                            width: '1440px', // Wider base for professional spacing
-                            padding: '0 150px',
+                            width: '1280px', 
+                            padding: '0 120px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',

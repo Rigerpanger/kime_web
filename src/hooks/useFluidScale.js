@@ -15,13 +15,9 @@ export const useFluidScale = () => {
             // Width-based scale
             const widthScale = window.innerWidth / 1280;
             
-            // Height-based protection: standard height 800px. 
-            // We allow it to be a bit more flexible (1.5x taller content relative to width)
-            const heightScale = (window.innerHeight / 800) * 1.5;
-            
-            // Final factor: don't let width scale blow out height, and cap at 2.2
-            const rawScale = Math.min(widthScale, heightScale);
-            const cappedScale = Math.min(2.2, Math.max(1, rawScale));
+            // Final factor: don't let width scale blow out height, and cap at 1.8
+            const rawScale = Math.min(widthScale, (window.innerHeight / 800) * 1.25);
+            const cappedScale = Math.min(1.8, Math.max(1, rawScale));
             
             setScale(cappedScale);
         };
