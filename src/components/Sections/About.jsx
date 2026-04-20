@@ -145,7 +145,7 @@ const About = () => {
         </motion.div>,
         <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center w-full px-4">
             <div className="flex justify-center md:justify-end">
-                <div className="w-[300px] md:w-[320px] max-h-[40vh] aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
+                <div className={`w-[300px] md:w-[350px] max-h-[45vh] ${aspectRatio > 1.8 ? 'aspect-[3/2]' : 'aspect-[4/5]'} bg-zinc-900 rounded-3xl overflow-hidden grayscale border border-white/5 relative shadow-2xl transition-all duration-700`}>
                     <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-60" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                 </div>
@@ -164,27 +164,27 @@ const About = () => {
         <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full px-4">
             <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-20 items-start w-full">
                 <div className="md:col-span-12 lg:col-span-6 flex flex-col pt-2 pl-4 md:pl-10">
-                    <div className="mb-10">
-                        <h2 className="text-lg md:text-xl font-thin tracking-[0.3em] uppercase mb-4 text-white/40">
+                    <div className="mb-6">
+                        <h2 className="text-base md:text-lg font-thin tracking-[0.3em] uppercase mb-4 text-white/40">
                             На Нас полагаются
                         </h2>
                         <div className="h-[1px] w-12 bg-[#ffaa44]/30" />
                     </div>
-                    <div className="space-y-1 max-h-[350px] overflow-y-auto pr-6 no-scrollbar">
+                    <div className="space-y-1 max-h-[300px] overflow-y-auto pr-6 no-scrollbar border-l border-white/5">
                         {displayCertificates.map((cert, index) => (
-                            <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-3 px-8 rounded-2xl transition-all border-l ${index === activeCert ? 'bg-white/5 border-[#ffaa44] shadow-lg' : 'border-transparent hover:bg-white/[0.02]'}`}>
-                                <div className="flex items-start gap-8">
-                                    <span className={`text-[10px] font-mono mt-1 transition-colors ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/10'}`}>{(index + 1).toString().padStart(2, '0')}</span>
+                            <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-3 px-6 rounded-2xl transition-all ${index === activeCert ? 'bg-white/5 shadow-lg' : 'hover:bg-white/[0.02]'}`}>
+                                <div className="flex items-start gap-6">
+                                    <span className={`text-[9px] font-mono mt-1 transition-colors ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/10'}`}>{(index + 1).toString().padStart(2, '0')}</span>
                                     <div className="flex-1">
-                                        <p className={`text-base md:text-lg font-light tracking-wide ${index === activeCert ? 'text-white' : 'text-white/30'}`}>{cert.company} {cert.division}</p>
-                                        <p className="text-[9px] uppercase tracking-[0.2em] mt-1 text-white/10 font-medium">{cert.position}</p>
+                                        <p className={`text-sm md:text-base font-light tracking-wide ${index === activeCert ? 'text-white' : 'text-white/30'}`}>{cert.company} {cert.division}</p>
+                                        <p className="text-[8px] uppercase tracking-[0.2em] mt-1 text-white/10 font-medium">{cert.position}</p>
                                     </div>
                                 </div>
                             </button>
                         ))}
                     </div>
                 </div>
-                <div className="hidden lg:flex lg:col-span-6 h-[450px] justify-center items-center">
+                <div className="hidden lg:flex lg:col-span-6 h-[400px] justify-center items-center">
                     <AnimatePresence mode="wait">
                         <motion.div key={activeCert} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="relative h-full aspect-[210/297] p-2">
                             <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-3xl rounded-3xl border border-white/5 shadow-2xl" />
@@ -202,8 +202,12 @@ const About = () => {
         <section id="about" className="w-full h-screen relative overflow-hidden pointer-events-none">
             {!isMobile && (
                 <>
-                    <button onClick={prevSlide} className="fixed left-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronLeft size={64} strokeWidth={0.1} /></button>
-                    <button onClick={nextSlide} className="fixed right-8 top-1/2 -translate-y-1/2 z-[40] p-6 text-white/10 hover:text-white transition-all pointer-events-auto hover:scale-110"><ChevronRight size={64} strokeWidth={0.1} /></button>
+                    <button onClick={prevSlide} className="fixed left-8 top-1/2 -translate-y-1/2 z-[40] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all pointer-events-auto hover:scale-110 shadow-2xl">
+                        <ChevronLeft size={32} strokeWidth={1.5} />
+                    </button>
+                    <button onClick={nextSlide} className="fixed right-8 top-1/2 -translate-y-1/2 z-[40] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all pointer-events-auto hover:scale-110 shadow-2xl">
+                        <ChevronRight size={32} strokeWidth={1.5} />
+                    </button>
                 </>
             )}
 
