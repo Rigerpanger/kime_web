@@ -89,13 +89,13 @@ const About = () => {
     }, []);
 
     // Calculate dynamic top offset based on aspect ratio
-    // Global Balance Anchor: Lifted to 60% for consistent site-wide horizon
+    // Global Balance Anchor: Lifted to 53% for consistent site-wide horizon
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        if (ar > 1.8) return '60%'; 
+        if (ar > 1.8) return '53%'; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 12);
-        return `${60 - (Number.isFinite(correction) ? correction : 0)}%`;
+        return `${53 - (Number.isFinite(correction) ? correction : 0)}%`;
     }, [aspectRatio]);
 
     const getLayoutVal = (key) => globalLayout[key] || 0;
@@ -108,7 +108,7 @@ const About = () => {
     const slides = [
         <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
             <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop') - 5}px)` }} className="w-full flex flex-col justify-center">
-                <h2 className="text-3xl md:text-4xl font-thin mb-6 text-white uppercase tracking-[0.2em] text-center md:text-left drop-shadow-2xl">
+                <h2 className="text-3xl md:text-5xl font-thin mb-10 text-white uppercase tracking-[0.4em] text-center md:text-left drop-shadow-2xl">
                     {content.slide1_title}
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">

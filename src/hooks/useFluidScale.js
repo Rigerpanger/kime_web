@@ -21,9 +21,8 @@ export const useFluidScale = () => {
             const rawScale = Math.min(widthScale, (h / 800));
             const aspectRatio = w / h;
             
-            // Global Balance: Limit scale to 1.6 for TV (wide) to reduce composition by ~30%
-            // Keep 2.3 for laptops to preserve richness.
-            const maxAllowedScale = aspectRatio > 1.8 ? 1.6 : 2.3;
+            // Global Balance: Compact 1.3 for TV, Rich 2.6 for Laptop
+            const maxAllowedScale = aspectRatio > 1.8 ? 1.3 : 2.6;
             const cappedScale = Math.min(maxAllowedScale, Math.max(1, rawScale));
             
             // Final safety check: never set NaN
