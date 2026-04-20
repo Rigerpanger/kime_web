@@ -88,7 +88,6 @@ const ServicesOverlay = () => {
     }, []);
 
     // AspectSync: Synchronized with About.jsx logic
-    // Baseline 54% (Final Precision) with subtle lift for tall screens
     const dynamicTop = useMemo(() => {
         if (aspectRatio > 1.8) return '54%'; 
         const diff = 1.8 - aspectRatio;
@@ -103,8 +102,8 @@ const ServicesOverlay = () => {
     if (!isReady) return null;
 
     return (
-        <div className="w-full h-full relative pointer-events-none">
-            <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-full h-full relative pointer-events-auto">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 {!isMobile && (
                     <div 
                         style={{ 
