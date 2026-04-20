@@ -89,12 +89,12 @@ const About = () => {
     }, []);
 
     // Calculate dynamic top offset based on aspect ratio
-    // Baseline lowered to 54% (Final Precision)
+    // Global Balance Anchor: Lifted to 60% for consistent site-wide horizon
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '54%'; 
+        if (aspectRatio > 1.8) return '60%'; 
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(8, diff * 15); 
-        return `${54 - correction}%`;
+        const correction = Math.min(8, diff * 12);
+        return `${60 - correction}%`;
     }, [aspectRatio]);
 
     const getLayoutVal = (key) => globalLayout[key] || 0;

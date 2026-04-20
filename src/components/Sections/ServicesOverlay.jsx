@@ -87,12 +87,12 @@ const ServicesOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // AspectSync: Synchronized with About.jsx logic, but lowered to 70% as requested
+    // Global Balance Anchor: Lifted to 60% for laptop elegance and TV clearance
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '70%'; 
+        if (aspectRatio > 1.8) return '60%'; 
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(8, diff * 12);
-        return `${70 - correction}%`;
+        const correction = Math.min(8, diff * 10);
+        return `${60 - correction}%`;
     }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
@@ -123,7 +123,7 @@ const ServicesOverlay = () => {
                         <motion.h1 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 0.5 }}
-                            className="text-lg md:text-xl font-thin text-white tracking-[1.2em] uppercase mb-16 opacity-80 text-center shrink-0 drop-shadow-2xl"
+                            className="text-lg md:text-xl font-thin text-white tracking-[1.2em] uppercase mb-12 opacity-80 text-center shrink-0 drop-shadow-2xl"
                         >
                             Наши направления
                         </motion.h1>
@@ -131,7 +131,7 @@ const ServicesOverlay = () => {
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col md:flex-row justify-center md:gap-14 items-start mx-auto w-full"
+                            className="flex flex-col md:flex-row justify-center md:gap-10 items-start mx-auto w-full"
                         >
                             <div className="md:w-[45%] space-y-2">
                                 {servicesData.map((service, index) => (
