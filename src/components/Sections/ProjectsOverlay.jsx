@@ -379,14 +379,14 @@ const ArtifactPassport = ({ project, onClose }) => {
                                         </span>
                                     ))}
                                 </div>
-                                <div className="space-y-8 md:space-y-10 text-gray-200 font-light leading-relaxed text-sm md:text-base">
-                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">ЗАДАЧА</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.challenge}</p></div>
-                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">РЕШЕНИЕ</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.solution}</p></div>
-                                    <div><h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-[#ffaa44]/60 mb-2 md:mb-3">ОПИСАНИЕ</h4><p className="opacity-100 text-white font-normal break-words hyphens-auto leading-relaxed">{project.short_description || project.result}</p></div>
-                                    <div className="border-t border-white/10 pt-8 md:pt-10 mt-8 md:mt-10">
-                                        <h4 className="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-3 md:mb-4">ТЕХНОЛОГИИ</h4>
-                                        <div className="flex flex-wrap gap-4 md:gap-6 text-xs md:text-sm tracking-[0.2em] text-white/70 uppercase">
-                                            {(project.tech || []).map(t => <span key={t} className="bg-white/5 px-3 py-1 rounded-sm border border-white/5">{t}</span>)}
+                                <div className="space-y-8 md:space-y-10 text-gray-200 font-light leading-relaxed text-base">
+                                    <div><h4 className="text-[11px] md:text-[12px] font-bold uppercase tracking-[0.4em] text-[#ffaa44]/60 mb-3 md:mb-4">ЗАДАЧА</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.challenge}</p></div>
+                                    <div><h4 className="text-[11px] md:text-[12px] font-bold uppercase tracking-[0.4em] text-[#ffaa44]/60 mb-3 md:mb-4">РЕШЕНИЕ</h4><p className="opacity-90 break-words hyphens-auto leading-relaxed">{project.solution}</p></div>
+                                    <div><h4 className="text-[11px] md:text-[12px] font-bold uppercase tracking-[0.4em] text-[#ffaa44]/60 mb-3 md:mb-4">ОПИСАНИЕ</h4><p className="opacity-100 text-white font-normal break-words hyphens-auto leading-relaxed">{project.short_description || project.result}</p></div>
+                                    <div className="border-t border-white/10 pt-10 mt-10">
+                                        <h4 className="text-[11px] md:text-[12px] font-bold uppercase tracking-[0.4em] text-gray-500 mb-4 md:mb-6">ТЕХНОЛОГИИ</h4>
+                                        <div className="flex flex-wrap gap-4 md:gap-6 text-xs md:text-sm tracking-[0.2em] text-white/50 uppercase">
+                                            {(project.tech || []).map(t => <span key={t} className="bg-white/5 px-4 py-1.5 rounded-sm border border-white/5">{t}</span>)}
                                         </div>
                                     </div>
                                 </div>
@@ -453,18 +453,11 @@ const ProjectsOverlay = () => {
     const accumulatedDelta = React.useRef(0);
 
     const handleWheel = (e) => {
-        // Stop bubbling to prevent other components from reacting
         e.stopPropagation();
-        
         if (selectedProject) return;
-
         const now = Date.now();
-        if (now - lastScroll.current < 300) return; // Faster response (300ms instead of 400ms)
-
-        // Accumulate delta for smoother experience on touchpads/slow scrolling
+        if (now - lastScroll.current < 300) return; 
         accumulatedDelta.current += e.deltaY;
-
-        // If total accumulation exceeds threshold (roughly 50-80 for a full "click" feel)
         const threshold = 50; 
         
         if (Math.abs(accumulatedDelta.current) >= threshold) {
@@ -473,22 +466,30 @@ const ProjectsOverlay = () => {
             } else {
                 paginate(-1);
             }
-            // Reset both timer and accumulator
             lastScroll.current = now;
             accumulatedDelta.current = 0;
-        } else {
-            // Optional: reset accumulator if scrolling direction changes
-            if (e.deltaY * accumulatedDelta.current < 0) {
-                accumulatedDelta.current = e.deltaY;
-            }
+        } else if (e.deltaY * accumulatedDelta.current < 0) {
+            accumulatedDelta.current = e.deltaY;
         }
     };
 
+    const [aspectRatio, setAspectRatio] = useState(window.innerWidth / window.innerHeight);
+
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const handleResize = () => {
+            setIsMobile(window.innerWidth < 768);
+            setAspectRatio(window.innerWidth / window.innerHeight);
+        };
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
+
+    const dynamicTop = useMemo(() => {
+        if (aspectRatio > 1.8) return '48%';
+        const diff = 1.8 - aspectRatio;
+        const correction = Math.min(10, diff * 25);
+        return `${48 - correction}%`;
+    }, [aspectRatio]);
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -701,10 +702,20 @@ const ProjectsOverlay = () => {
                 >
                     <div 
                         style={{ 
-                            transform: `translateY(-50%) scale(${dsScale})`, 
-                            transformOrigin: 'center center' 
+                            position: 'absolute',
+                            top: dynamicTop, 
+                            left: '50%',
+                            transform: `translate(-50%, -50%) scale(${dsScale})`, 
+                            transformOrigin: 'center center',
+                            width: '100%',
+                            height: '400px', 
+                            pointerEvents: 'auto',
+                            display: 'flex',
+                            itemsCenter: 'center',
+                            justifyContent: 'center',
+                            zIndex: 10,
+                            transition: 'all 0.7s'
                         }}
-                        className="absolute top-1/2 w-full h-[400px] pointer-events-auto flex items-center justify-center z-10 transition-all duration-700"
                         onWheel={handleWheel}
                         onMouseEnter={() => setScrollLocked(true)}
                         onMouseLeave={() => setScrollLocked(false)}

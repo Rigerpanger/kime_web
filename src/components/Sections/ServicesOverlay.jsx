@@ -22,21 +22,21 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
     return (
         <NavLink
             to={`/services/${service.slug}`}
-            className={`group flex items-center gap-6 px-6 py-2.5 rounded-2xl transition-all duration-500 border sweep-container ${
+            className={`group flex items-center gap-6 px-10 py-3 rounded-2xl transition-all duration-500 border sweep-container ${
                 isActive 
-                ? 'bg-white/10 border-white/20 shadow-[0_0_40px_rgba(255,170,68,0.1)] premium-active-border' 
+                ? 'bg-white/10 border-white/20 shadow-[0_0_50px_rgba(255,170,68,0.15)] premium-active-border' 
                 : isHint 
                 ? 'neon-hint-border'
                 : 'border-transparent hover:bg-white/[0.05]'
             }`}
         >
-            <span className={`text-[9px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
+            <span className={`text-[10px] font-mono transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-white/10 group-hover:text-white/30'}`}>
                 {number}
             </span>
-            <div className={`p-1 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
-                <IconComponent size={16} strokeWidth={isActive || isHint ? 1.5 : 1} />
+            <div className={`p-1.5 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
+                <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
             </div>
-            <span className={`text-[10px] md:text-[11px] tracking-[0.2em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/15 group-hover:text-white/40'}`}>
+            <span className={`text-[11px] md:text-[12px] tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/15 group-hover:text-white/40'}`}>
                 {service.title}
                 {isHint && <span className="ml-3 text-[8px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal font-light">следующее</span>}
             </span>
@@ -87,40 +87,22 @@ const ServicesOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Calculate dynamic top offset based on aspect ratio
-    // Same logic as in About.jsx for visual parity
+    // AspectSync: Synchronized with About.jsx logic
     const dynamicTop = useMemo(() => {
-        if (aspectRatio > 1.8) return '44%';
+        if (aspectRatio > 1.8) return '48%'; // TV: Lowered to fill bottom gap
         const diff = 1.8 - aspectRatio;
-        const correction = Math.min(6, diff * 20); // Max 6% lift
-        return `${44 - correction}%`;
+        const correction = Math.min(10, diff * 25);
+        return `${48 - correction}%`;
     }, [aspectRatio]);
 
     const getOff = (key) => layout?.[key] || 0;
-    const hOff = isMobile ? getOff('services_header_offset_mobile') : getOff('services_header_offset_desktop');
-    const cOff = isMobile ? getOff('services_content_offset_mobile') : getOff('services_content_offset_desktop');
-
-    React.useEffect(() => {
-        const interval = setInterval(() => {
-            const detail = {
-                section: 'SERVICES',
-                data: {
-                    ds_scale: dsScale.toFixed(2),
-                    header_y: hOff + 'px',
-                    content_y: cOff + 'px',
-                    dynamic_top: dynamicTop
-                }
-            };
-            window.dispatchEvent(new CustomEvent('kime-metric-update', { detail }));
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [hOff, cOff, dsScale, dynamicTop]);
+    const hOff = isMobile ? getOff('services_header_offset_mobile') : 0;
+    const cOff = isMobile ? getOff('services_content_offset_mobile') : 0;
 
     if (!isReady) return null;
 
     return (
         <div className="w-full h-full relative pointer-events-none">
-            {/* Main Content centered via absolute translate, scaled */}
             <div className="absolute inset-0 flex items-center justify-center">
                 {!isMobile && (
                     <div 
@@ -130,22 +112,18 @@ const ServicesOverlay = () => {
                             left: '50%',
                             transform: `translate(-50%, -50%) scale(${dsScale})`,
                             transformOrigin: 'center center',
-                            width: '1280px',
+                            width: '1440px',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             pointerEvents: 'auto',
-                            padding: '0 120px'
+                            padding: '0 150px'
                         }}
                     >
                         <motion.h1 
                             initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.7 }}
-                            style={{ 
-                                transform: `translateY(${hOff}px)`,
-                                transformOrigin: 'center center'
-                            }}
-                            className="text-lg md:text-xl font-thin text-white tracking-[1em] uppercase mb-10 md:mb-12 opacity-80 text-center shrink-0"
+                            animate={{ opacity: 0.5 }}
+                            className="text-lg md:text-xl font-thin text-white tracking-[1.2em] uppercase mb-16 opacity-80 text-center shrink-0 drop-shadow-2xl"
                         >
                             Наши направления
                         </motion.h1>
@@ -153,13 +131,9 @@ const ServicesOverlay = () => {
                         <motion.div 
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            style={{ 
-                                transform: `translateY(${cOff}px)`,
-                                width: '100%'
-                            }}
-                            className="flex flex-col md:flex-row justify-center md:gap-14 items-start mx-auto"
+                            className="flex flex-col md:flex-row justify-center md:gap-20 items-start mx-auto w-full"
                         >
-                            <div className="md:w-[40%] space-y-1 pl-4 md:pl-10">
+                            <div className="md:w-[45%] space-y-2">
                                 {servicesData.map((service, index) => (
                                     <ServiceListItem 
                                         key={service.id} 
@@ -171,26 +145,26 @@ const ServicesOverlay = () => {
                                 ))}
                             </div>
 
-                            <div className="md:w-[60%] min-h-[300px] md:min-h-[320px] flex items-start pr-4 md:pr-16">
+                            <div className="md:w-[55%] min-h-[350px] flex items-start">
                                 <AnimatePresence mode="wait">
                                     {activeService && (
                                         <motion.div 
                                             key={activeService.id}
-                                            initial={{ opacity: 0, x: 20 }}
+                                            initial={{ opacity: 0, x: 30 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             exit={{ opacity: 0, x: -10 }}
-                                            transition={{ duration: 0.4, ease: "easeOut" }}
-                                            className="w-full p-8 md:p-10 border border-white/[0.08] bg-black/40 backdrop-blur-3xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
+                                            transition={{ duration: 0.5, ease: "easeOut" }}
+                                            className="w-full p-10 md:p-14 border border-white/[0.05] bg-black/40 backdrop-blur-3xl rounded-[2.5rem] flex flex-col justify-start relative group shadow-[0_40px_80px_rgba(0,0,0,0.4)]"
                                         >
-                                            <div className="absolute top-0 left-12 right-12 h-[1px] bg-gradient-to-r from-transparent via-[#ffaa44]/30 to-transparent opacity-30" />
-                                            <h2 className="text-xl md:text-2xl font-light text-white mb-4 leading-tight tracking-wide">
+                                            <div className="absolute top-0 left-16 right-16 h-[1px] bg-gradient-to-r from-transparent via-[#ffaa44]/20 to-transparent opacity-30" />
+                                            <h2 className="text-xl md:text-2xl font-light text-white mb-6 leading-tight tracking-[0.1em] opacity-95">
                                                 {activeService.title}
                                             </h2>
-                                            <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light opacity-75">
+                                            <p className="text-gray-300 text-sm md:text-base leading-relaxed font-light opacity-80">
                                                 {activeService.description}
                                             </p>
-                                            <div className="absolute bottom-6 right-8 opacity-[0.03] group-hover:opacity-[0.07] transition-all duration-700">
-                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 54, strokeWidth: 0.2 })}
+                                            <div className="absolute bottom-10 right-12 opacity-[0.05] group-hover:opacity-[0.1] transition-all duration-1000">
+                                                {React.createElement(ICON_MAP[activeService.icon] || Box, { size: 60, strokeWidth: 0.1 })}
                                             </div>
                                         </motion.div>
                                     )}
