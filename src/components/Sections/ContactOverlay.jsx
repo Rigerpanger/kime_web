@@ -134,6 +134,9 @@ const ContactOverlay = () => {
         e.stopPropagation();
     };
 
+    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
+    const baseScale = isMobile ? 1 : Math.min(2.5, window.innerWidth / 1280);
+
     return (
         <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-4">
             {/* Mobile overscroll "rubber-band" gap filler to hide 3D canvas */}
@@ -141,11 +144,10 @@ const ContactOverlay = () => {
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
                 style={{ 
-                    transform: `scale(${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`, 
+                    transform: isMobile ? 'none' : `scale(${baseScale})`, 
                     transformOrigin: 'center center',
-                    width: `calc(800px * ${typeof window !== 'undefined' ? Math.min(2.5, window.innerWidth / 1280) : 1})`
                 }}
-                className="relative z-10 w-full max-w-[90%] h-full max-h-[85vh] flex flex-col justify-center"
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[800px] h-full max-h-[85vh]'} flex flex-col justify-center`}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">

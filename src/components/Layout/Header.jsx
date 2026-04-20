@@ -120,32 +120,32 @@ const Header = () => {
                         {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
-
-                {/* Mobile Menu Overlay - Moved inside header for consistent z-stacking */}
-                <AnimatePresence>
-                    {isMenuOpen && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3 }}
-                                className="fixed inset-0 z-[150] bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
-                            >
-                            <nav className="flex flex-col items-center gap-8 text-center">
-                                <MobileNavItem to="/about" onClick={() => setIsMenuOpen(false)}>О СТУДИИ</MobileNavItem>
-                                <MobileNavItem to="/services" onClick={() => setIsMenuOpen(false)}>НАПРАВЛЕНИЯ</MobileNavItem>
-                                <MobileNavItem to="/projects" onClick={() => setIsMenuOpen(false)}>ПРАКТИКА</MobileNavItem>
-                                <MobileNavItem to="/contact" onClick={() => setIsMenuOpen(false)}>ОБСУДИТЬ</MobileNavItem>
-                            </nav>
-                            
-                            <div className="mt-20 flex gap-8 border-t border-white/10 pt-8 w-64 justify-center">
-                                <a href="mailto:hello@kime.xyz" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Почта</a>
-                                <a href="https://t.me/kime_bot" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Телеграм</a>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </header>
+
+            {/* Mobile Menu Overlay - Outside header to escape scale/transform context */}
+            <AnimatePresence>
+                {isMenuOpen && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 z-[150] bg-[#050505]/95 backdrop-blur-3xl flex flex-col justify-center items-center pointer-events-auto"
+                        >
+                        <nav className="flex flex-col items-center gap-8 text-center">
+                            <MobileNavItem to="/about" onClick={() => setIsMenuOpen(false)}>О СТУДИИ</MobileNavItem>
+                            <MobileNavItem to="/services" onClick={() => setIsMenuOpen(false)}>НАПРАВЛЕНИЯ</MobileNavItem>
+                            <MobileNavItem to="/projects" onClick={() => setIsMenuOpen(false)}>ПРАКТИКА</MobileNavItem>
+                            <MobileNavItem to="/contact" onClick={() => setIsMenuOpen(false)}>ОБСУДИТЬ</MobileNavItem>
+                        </nav>
+                        
+                        <div className="mt-20 flex gap-8 border-t border-white/10 pt-8 w-64 justify-center">
+                            <a href="mailto:hello@kime.xyz" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Почта</a>
+                            <a href="https://t.me/kime_bot" className="text-white/50 hover:text-white text-[10px] tracking-[0.3em] uppercase">Телеграм</a>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };
