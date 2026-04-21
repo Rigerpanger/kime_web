@@ -151,10 +151,10 @@ const ContactOverlay = () => {
             
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[95vw] min-h-[400px] max-h-[85vh] h-fit'} flex flex-col transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: isTV ? '520px' : (isMobile ? 'none' : '720px') }}
+                style={{ maxWidth: isTV ? '520px' : (isMobile ? 'none' : '1200px') }}
             >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-6 md:mb-8'} flex items-center justify-center w-full relative`}>
-                    <h2 className="font-thin text-white uppercase tracking-[0.4em] leading-tight" style={{ fontSize: (isMobile || isTV) ? '16px' : '20px' }}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-8 md:mb-14'} flex items-center justify-center w-full relative`}>
+                    <h2 className="font-thin text-white uppercase tracking-[0.4em] leading-tight" style={{ fontSize: (isMobile || isTV) ? '16px' : '32px' }}>
                         Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                     </h2>
                 </motion.div>
@@ -173,31 +173,30 @@ const ContactOverlay = () => {
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 <div 
-                                    className={`max-w-[90%] rounded-[1.2rem] md:rounded-[1.8rem] border font-normal leading-relaxed ${
+                                    className={`max-w-[90%] rounded-[1.2rem] md:rounded-[2.5rem] border font-normal leading-relaxed ${
                                         msg.role === 'user' ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-none' : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-none'
                                     }`}
                                     style={{ 
-                                        padding: (isMobile || isTV) ? '0.6rem 1rem' : '0.8rem 1.4rem',
-                                        fontSize: (isMobile || isTV) ? '13px' : '15px'
+                                        padding: (isMobile || isTV) ? '0.6rem 1rem' : '1.2rem 2rem',
+                                        fontSize: (isMobile || isTV) ? '13px' : '18px'
                                     }}
                                 >
                                     {msg.content}
                                 </div>
                             </motion.div>
                         ))}
-                        
-                        {messages.length === 1 && !isThinking && (
-                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 mt-6 mb-4`}>
+                                                {messages.length === 1 && !isThinking && (
+                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 mt-6 mb-4 md:px-10`}>
                                 {QUICK_ACTIONS.map((act) => (
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-[#ffaa44]/50 hover:bg-[#ffaa44]/5 transition-all text-left group"
+                                        className="flex items-center gap-3 md:gap-5 p-3 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/10 hover:border-[#ffaa44]/50 hover:bg-[#ffaa44]/5 transition-all text-left group"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center shrink-0 border border-white/10">
-                                            {React.cloneElement(act.icon, { size: 14 })}
+                                        <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-black flex items-center justify-center shrink-0 border border-white/10">
+                                            {React.cloneElement(act.icon, { size: (isMobile || isTV) ? 14 : 22 })}
                                         </div>
-                                        <span className="text-white font-bold tracking-wider uppercase text-[10px] md:text-[11px] group-hover:text-[#ffaa44]">{act.label}</span>
+                                        <span className="text-white font-bold tracking-wider uppercase text-[10px] md:text-[14px] group-hover:text-[#ffaa44]">{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -227,13 +226,13 @@ const ContactOverlay = () => {
                                     <button type="submit" className="w-10 h-10 rounded-full bg-[#ffaa44] text-black flex items-center justify-center transition-transform hover:scale-105"><Send size={16} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className="flex gap-2 items-center px-2">
+                                <form onSubmit={(e) => handleGptEstimate(e)} className="flex gap-2 md:gap-4 items-center px-2 md:px-10">
                                     <input 
                                         type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} 
                                         placeholder="Опишите задачу..." 
-                                        className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-2.5 text-white outline-none text-sm md:text-base focus:border-white/30" 
+                                        className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-2.5 md:py-4 text-white outline-none text-sm md:text-xl focus:border-white/30" 
                                     />
-                                    <button type="submit" className="w-10 h-10 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all"><Send size={16} /></button>
+                                    <button type="submit" className="w-10 h-10 md:w-16 md:h-16 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/10 hover:bg-white/20 transition-all"><Send size={(isMobile || isTV) ? 16 : 24} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
