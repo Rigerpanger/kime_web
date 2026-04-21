@@ -26,9 +26,8 @@ const ContactOverlay = () => {
     
     useEffect(() => {
         const checkResolution = () => {
-            // Threshold set to 1200px as per diagnostic findings (TV reports 1280px)
             const w = window.innerWidth;
-            setIsTV(w > 1200); 
+            setIsTV(w > 1200 && w < 1600); // 1280px logical falls here
         };
         checkResolution();
         window.addEventListener('resize', checkResolution);
@@ -70,9 +69,9 @@ const ContactOverlay = () => {
     }, [setScrollLocked, apiUrl]);
 
     const QUICK_ACTIONS = [
-        { id: 'tz', icon: <MessageSquare size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
-        { id: 'price', icon: <DollarSign size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
-        { id: 'fast', icon: <ArrowRight size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
+        { id: 'tz', icon: <MessageSquare className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
+        { id: 'price', icon: <DollarSign className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
+        { id: 'fast', icon: <ArrowRight className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
     ];
 
     const handleGptEstimate = async (e, directText = null) => {
@@ -156,21 +155,20 @@ const ContactOverlay = () => {
 
     return (
         <div 
-           className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
-           style={{ paddingTop: isTV ? '150px' : (isMobile ? '80px' : '240px') }}
+           className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
         >
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: isTV ? '800px' : (isMobile ? 'none' : '1600px') }}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[85vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                style={{ maxWidth: isTV ? '700px' : (isMobile ? 'none' : '1700px') }}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '22px' : 'clamp(24px, 5vw, 42px)' }}
+                           style={{ fontSize: isTV ? '18px' : 'clamp(44px, 8vw, 110px)' }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -183,21 +181,21 @@ const ContactOverlay = () => {
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
                     className="flex-1 min-h-[250px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
                 >
-                    <div className={`flex-1 overflow-y-auto ${isTV ? 'px-8 py-8 space-y-5' : 'px-4 md:px-10 py-8 space-y-6'} no-scrollbar scroll-smooth overscroll-contain`}>
+                    <div className={`flex-1 overflow-y-auto ${isTV ? 'px-6 py-4 space-y-4' : 'px-4 md:px-14 py-12 space-y-8'} no-scrollbar scroll-smooth overscroll-contain`}>
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className={`hidden md:flex ${isTV ? 'w-10 h-10 mr-6' : 'w-20 h-20 mr-10'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
-                                        <Sparkles size={isTV ? 20 : 32} className="text-[#ffaa44]" />
+                                    <div className={`hidden md:flex ${isTV ? 'w-8 h-8 mr-4' : 'w-24 h-24 mr-12'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
+                                        <Sparkles size={isTV ? 16 : 48} className="text-[#ffaa44]" />
                                     </div>
                                 )}
                                 <div 
-                                    className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] border font-normal leading-relaxed shadow-lg ${
+                                    className={`max-w-[95%] md:max-w-[85%] rounded-[3.5rem] border font-normal leading-relaxed shadow-lg ${
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '1.5rem 2.5rem' : (isMobile ? '2rem' : '3rem'),
-                                        fontSize: isTV ? '14px' : 'clamp(16px, 1.8vw, 22px)'
+                                        padding: isTV ? '1.25rem 2rem' : (isMobile ? '2rem' : '3.5rem'),
+                                        fontSize: isTV ? '13px' : 'clamp(18px, 2.5vw, 38px)'
                                     }}
                                 >
                                     {msg.content}
@@ -206,17 +204,17 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'flex flex-col gap-2.5 mt-8 px-10' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'flex flex-col gap-2.5 mt-4 px-10' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-4 p-4 rounded-[1.5rem]' : 'gap-10 md:gap-8 p-10 md:p-6 rounded-[2.5rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-2.5 rounded-[1rem]' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-8 h-8' : 'w-20 h-20 md:w-14 md:h-14'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
-                                            {React.cloneElement(act.icon, { size: isTV ? 16 : 28 })}
+                                        <div className={`${isTV ? 'w-6 h-6' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 10 : 36 })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[11px]' : 'text-[16px] md:text-[clamp(14px,1vw,20px)]'}`}>{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[9px]' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -233,50 +231,50 @@ const ContactOverlay = () => {
                         <div ref={chatEndRef} className="h-4" />
                     </div>
                     
-                    <div className={`${isTV ? 'p-4' : 'p-5 md:p-6'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
+                    <div className={`${isTV ? 'p-3' : 'p-6 md:p-10'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-3 p-4' : 'gap-8 p-14'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
-                                    <CheckCircle2 size={isTV ? 20 : 50} className="text-green-400" />
+                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-3 p-4' : 'gap-10 p-16'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
+                                    <CheckCircle2 size={isTV ? 16 : 60} className="text-green-400" />
                                     <span 
                                         className={`text-green-300 font-medium`}
-                                        style={{ fontSize: isTV ? '14px' : '30px' }}
+                                        style={{ fontSize: isTV ? '13px' : '40px' }}
                                     >
                                         Заявка успешно отправлена!
                                     </span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
+                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                        type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" 
                                        className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} 
                                        autoFocus 
                                        style={{ 
-                                           padding: isTV ? '1rem 2rem' : (isMobile ? '2rem 3rem' : '1.5rem 3rem'),
-                                           fontSize: isTV ? '15px' : '20px'
+                                           padding: isTV ? '0.75rem 1.5rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
+                                           fontSize: isTV ? '13px' : '30px'
                                        }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-12 h-12' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 18 : 24} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 14 : 32} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                         type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." 
                                         className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} 
                                         style={{ 
-                                            padding: isTV ? '1rem 2rem' : '1.5rem 3rem',
-                                            fontSize: isTV ? '15px' : '20px'
+                                            padding: isTV ? '0.75rem 1.5rem' : '2.5rem 4rem',
+                                            fontSize: isTV ? '13px' : '30px'
                                         }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-12 h-12' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 18 : 24} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 14 : 32} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
 
-                <div className={`shrink-0 ${isTV ? 'mt-8 mb-6' : 'mt-16 mb-10'} flex flex-col items-center justify-center gap-2.5 relative z-10`}>
-                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6 text-[10px]' : 'gap-x-10 text-[12px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
+                <div className={`shrink-0 ${isTV ? 'mt-6 mb-4' : 'mt-16 mb-12'} flex flex-col items-center justify-center gap-3 relative z-10`}>
+                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6 text-[10px]' : 'gap-x-14 text-[14px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
                         <div className={`hidden md:block w-1.5 h-1.5 rounded-full bg-[#ffaa44]/40`} />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
