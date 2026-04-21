@@ -824,7 +824,14 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         if (isScanRequest) {
             if (dbUser && dbUser.role === 'admin' && global.emailWatcher) {
                 console.log(`📡 [TENDER_SYNC] Triggered by @${user}`);
-                global.emailWatcher.analyzeHistory(3);
+                // Run in background with safety wrapper
+                (async () => {
+                   try {
+                       await global.emailWatcher.analyzeHistory(3);
+                   } catch (e) {
+                       console.error('⚠️ [TENDER_SYNC] Background error:', e.message);
+                   }
+                })();
                 await sendTelegramMessage(chatId, `🫡 Принято. Обновляю данные из агрегатора. Как закончу — сможем обсудить последние поступления или заглянуть в историю.`);
                 return res.sendStatus(200);
             } else if (isScanRequest && (isPrivate || lowerText.includes('тумб'))) {

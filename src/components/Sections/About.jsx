@@ -6,40 +6,28 @@ import LogoTicker from './LogoTicker';
 import useAppStore from '../../store/useAppStore';
 import { useFluidScale } from '../../hooks/useFluidScale';
 
-const SLUGS = ['studio', 'approach', 'founder', 'certificates'];
+const GlassCard = ({ children, className = "" }) => (
+    <motion.div 
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className={`w-full bg-white/[0.03] backdrop-blur-[40px] border border-white/10 rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 shadow-2xl relative overflow-hidden ${className}`}
+    >
+        {/* Subtle Inner Glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent pointer-events-none" />
+        {children}
+    </motion.div>
+);
 
 const About = () => {
     const dsScale = useFluidScale();
     const { slug } = useParams();
     const navigate = useNavigate();
-    const currentSlide = Math.max(0, SLUGS.indexOf(slug || 'studio'));
-    const totalSlides = 4;
     
-    const [activeCert, setActiveCert] = useState(0);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-    const [selectedFullCert, setSelectedFullCert] = useState(null);
     const [aspectRatio, setAspectRatio] = useState(window.innerWidth / window.innerHeight);
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
-    const setActiveSlug = useAppStore(s => s.setActiveSlug);
-
-    useEffect(() => {
-        if (!isMobile) {
-            setActiveSlug(`about-${SLUGS[currentSlide]}`);
-        }
-    }, [currentSlide, isMobile, setActiveSlug]);
-
-    useEffect(() => {
-        if (selectedFullCert) {
-            setScrollLocked(true);
-        } else {
-            setScrollLocked(false);
-        }
-        return () => setScrollLocked(false);
-    }, [selectedFullCert, setScrollLocked]);
-
-    useEffect(() => {
-        setSelectedFullCert(null);
-    }, [slug]);
 
     const [content, setContent] = useState({
         slide1_title: 'О СТУДИИ',
@@ -54,15 +42,14 @@ const About = () => {
 
     const [certificates, setCertificates] = useState([]);
     const [isReady, setIsReady] = useState(false);
-    const [globalLayout, setGlobalLayout] = useState({});
+    const [activeCert, setActiveCert] = useState(0);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const apiUrl = import.meta.env.VITE_API_URL || '/api';
-                const [contentRes, layoutRes, certsRes] = await Promise.all([
+                const [contentRes, certsRes] = await Promise.all([
                     fetch(`${apiUrl}/content/about_page`),
-                    fetch(`${apiUrl}/content/global_layout`),
                     fetch(`${apiUrl}/certificates`)
                 ]);
 
@@ -70,7 +57,6 @@ const About = () => {
                     const contentData = await contentRes.json();
                     setContent(prev => ({ ...prev, ...contentData }));
                 }
-                if (layoutRes.ok) setGlobalLayout(await layoutRes.json());
                 if (certsRes.ok) setCertificates(await certsRes.json());
             } catch (error) {
                 console.error('Error fetching about data:', error);
@@ -88,193 +74,131 @@ const About = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Calculate dynamic top offset based on aspect ratio
-    // Global Balance Anchor: 50% for Laptop centering, 44% for TV balance (lifted)
-    const dynamicTop = useMemo(() => {
-        const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        const base = ar > 1.8 ? 44 : 50; 
-        const diff = 1.8 - ar;
-        const correction = Math.min(8, diff * 12);
-        return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
-    }, [aspectRatio]);
-
-    const getLayoutVal = (key) => globalLayout[key] || 0;
-
-    const nextSlide = () => navigate(`/about/${SLUGS[(currentSlide + 1) % totalSlides]}`);
-    const prevSlide = () => navigate(`/about/${SLUGS[(currentSlide - 1 + totalSlides) % totalSlides]}`);
-
     const displayCertificates = certificates.length > 0 ? certificates : [];
 
-    const slides = [
-        <motion.div key="studio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide1_content_offset_desktop') - 5}px)` }} className="w-full flex flex-col justify-center">
-                <h2 className="text-2xl md:text-3xl font-thin mb-12 text-white uppercase tracking-[0.4em] text-center md:text-left drop-shadow-2xl">
-                    {content.slide1_title}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
-                    <div className="md:col-span-6">
-                        <p className="text-white/95 text-[13px] md:text-sm lg:text-base font-light leading-relaxed tracking-wide mb-2 text-center md:text-left">
-                            {content.slide1_text1}
-                        </p>
+    return (
+        <section id="about" className="w-full relative bg-transparent scroll-smooth overflow-y-auto no-scrollbar pointer-events-auto h-screen">
+            {/* Main Content Stack */}
+            <div className="w-full flex flex-col items-center gap-12 md:gap-32 pt-32 pb-60 px-4 md:px-12 max-w-[1440px] mx-auto">
+                
+                {/* 1. О СТУДИИ */}
+                <GlassCard className="max-w-5xl">
+                    <h2 className="text-2xl md:text-5xl font-thin mb-10 md:mb-16 text-white uppercase tracking-[0.4em] text-center drop-shadow-2xl">
+                        {content.slide1_title}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-20 items-start w-full">
+                        <div className="md:col-span-12 lg:col-span-7">
+                            <p className="text-white/90 text-sm md:text-lg lg:text-xl font-light leading-relaxed tracking-wide mb-6 text-center md:text-left">
+                                {content.slide1_text1}
+                            </p>
+                        </div>
+                        <div className="md:col-span-12 lg:col-span-5 pt-4 border-t lg:border-t-0 lg:border-l border-white/10 lg:pl-12 opacity-80">
+                            <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-light text-center lg:text-left">
+                                {content.slide1_text2}
+                            </p>
+                        </div>
                     </div>
-                    <div className="md:col-span-1 hidden md:block" />
-                    <div className="md:col-span-5 md:pt-4 border-l border-white/5 pl-10 hidden md:block">
-                        <p className="text-gray-400 text-[10px] md:text-[11px] lg:text-xs leading-relaxed font-light">
-                            {content.slide1_text2}
-                        </p>
+                    {/* LogoTicker Integration */}
+                    <div className="w-full relative h-[40px] md:h-[100px] flex items-center justify-center overflow-hidden mt-12 md:mt-20 border-t border-white/5 pt-10">
+                        <LogoTicker />
                     </div>
-                </div>
-                <div className="w-full relative h-[70px] flex items-center justify-center overflow-hidden mt-6">
-                    <LogoTicker />
-                </div>
-            </motion.div>
-        </motion.div>,
-        <motion.div key="approach" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col w-full relative">
-            <motion.div style={{ transform: `translateY(${getLayoutVal('about_slide2_content_offset_desktop') + 20}px)` }} className="w-full flex flex-col justify-center">
-                <span className="text-[#ffaa44]/40 text-[7px] uppercase tracking-[0.5em] mb-4 font-bold text-center md:text-left">Наш подход</span>
-                <h3 className="text-xl md:text-2xl font-thin text-white uppercase mb-4 leading-tight tracking-[0.4em] text-center md:text-left opacity-90">
-                    {content.slide2_title}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start w-full">
-                    <div className="md:col-span-8 lg:col-span-7">
-                        <p className="text-gray-300 text-[11px] md:text-sm lg:text-base font-light leading-relaxed opacity-80 text-center md:text-left">
+                </GlassCard>
+
+                {/* 2. НАШ ПОДХОД */}
+                <GlassCard className="max-w-4xl">
+                    <div className="flex flex-col items-center md:items-start">
+                        <span className="text-[#ffaa44] text-[9px] md:text-[11px] uppercase tracking-[0.6em] mb-6 font-bold">Наш подход</span>
+                        <h3 className="text-xl md:text-3xl lg:text-4xl font-thin text-white uppercase mb-8 leading-tight tracking-[0.3em] text-center md:text-left">
+                            {content.slide2_title}
+                        </h3>
+                        <p className="text-gray-300 text-sm md:text-lg lg:text-xl font-light leading-relaxed opacity-90 text-center md:text-left max-w-3xl">
                             {content.slide2_text}
                         </p>
                     </div>
-                </div>
-            </motion.div>
-        </motion.div>,
-        <motion.div key="founder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center w-full px-4">
-            <div className="flex justify-center md:justify-end">
-                <div className="w-[300px] md:w-[400px] max-h-[60vh] aspect-[4/5] bg-zinc-900 rounded-3xl overflow-hidden grayscale border border-white/5 relative shadow-2xl">
-                    <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                </div>
-            </div>
-            <div className="flex flex-col items-center md:items-start text-center md:text-left max-w-[480px]">
-                <span className="text-[#ffaa44]/60 text-[7px] uppercase tracking-[0.4em] font-bold mb-8">Видение и лидерство</span>
-                <blockquote className="text-base md:text-xl lg:text-2xl italic text-white/95 leading-relaxed mb-10 tracking-tight font-light">
-                    "{content.slide3_quote}"
-                </blockquote>
-                <div className="opacity-70">
-                    <p className="text-white uppercase tracking-[0.3em] text-[10px] font-semibold mb-2">{content.slide3_name}</p>
-                    <p className="text-gray-400 uppercase tracking-[0.2em] text-[8px] font-medium">{content.slide3_role}</p>
-                </div>
-            </div>
-        </motion.div>,
-        <motion.div key="certificates" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center w-full px-4" style={{ transform: aspectRatio > 1.8 ? 'scale(0.95)' : 'scale(1)' }}>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-14 items-start w-full">
-                <div className="md:col-span-12 lg:col-span-6 flex flex-col pt-2 pl-4 md:pl-10">
-                    <div className="mb-6">
-                        <h2 className="text-sm md:text-base font-thin tracking-[0.3em] uppercase mb-4 text-white/40">
-                            На Нас полагаются
-                        </h2>
-                        <div className="h-[1px] w-12 bg-[#ffaa44]/30" />
-                    </div>
-                    <div className="space-y-1 max-h-[250px] md:max-h-[280px] overflow-y-auto pr-6 no-scrollbar border-l border-white/5">
-                        {displayCertificates.map((cert, index) => (
-                            <button key={index} onMouseEnter={() => setActiveCert(index)} className={`w-full text-left p-3 px-6 rounded-2xl transition-all ${index === activeCert ? 'bg-white/5 shadow-lg' : 'hover:bg-white/[0.02]'}`}>
-                                <div className="flex items-start gap-6">
-                                    <span className={`text-[9px] font-mono mt-1 transition-colors ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/10'}`}>{(index + 1).toString().padStart(2, '0')}</span>
-                                    <div className="flex-1">
-                                        <p className={`text-sm md:text-base font-light tracking-wide ${index === activeCert ? 'text-white' : 'text-white/30'}`}>{cert.company} {cert.division}</p>
-                                        <p className="text-[8px] uppercase tracking-[0.2em] mt-1 text-white/10 font-medium">{cert.position}</p>
-                                    </div>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="hidden lg:flex lg:col-span-6 h-[360px] justify-center items-center">
-                    <AnimatePresence mode="wait">
-                        <motion.div key={activeCert} initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="relative h-full aspect-[210/297] p-2">
-                            <div className="absolute inset-0 bg-white/[0.02] backdrop-blur-3xl rounded-3xl border border-white/5 shadow-2xl" />
-                            <div className="h-full w-full relative z-10 rounded-2xl overflow-hidden shadow-2xl grayscale cursor-zoom-in" onClick={() => setSelectedFullCert(displayCertificates[activeCert])}>
-                                <img src={displayCertificates[activeCert]?.image_url} alt="Certificate" className="w-full h-full object-cover opacity-70 transition-opacity hover:opacity-100" />
-                            </div>
-                        </motion.div>
-                    </AnimatePresence>
-                </div>
-            </div>
-        </motion.div>
-    ];
+                </GlassCard>
 
-    return (
-        <section id="about" className="w-full h-screen relative overflow-hidden pointer-events-none">
-            {!isMobile && (
-                <>
-                    <button onClick={prevSlide} className="fixed left-8 top-1/2 -translate-y-1/2 z-[40] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all pointer-events-auto hover:scale-110 shadow-2xl">
-                        <ChevronLeft size={32} strokeWidth={1.5} />
-                    </button>
-                    <button onClick={nextSlide} className="fixed right-8 top-1/2 -translate-y-1/2 z-[40] p-4 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-full text-white/30 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all pointer-events-auto hover:scale-110 shadow-2xl">
-                        <ChevronRight size={32} strokeWidth={1.5} />
-                    </button>
-                </>
-            )}
-
-            <div className={`absolute inset-0 flex items-center justify-center ${isMobile ? 'overflow-y-auto no-scrollbar pointer-events-auto' : ''}`}>
-                {!isMobile ? (
-                    <div 
-                        style={{ 
-                            position: 'absolute',
-                            top: dynamicTop,
-                            left: '50%',
-                            transform: `translate(-50%, -50%) scale(${dsScale})`,
-                            transformOrigin: 'center center',
-                            width: '1280px', 
-                            padding: '0 120px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            pointerEvents: 'auto'
-                        }}
+                {/* 3. ОСНОВАТЕЛЬ (QUOTE) */}
+                <div className="w-full flex flex-col lg:grid lg:grid-cols-12 gap-10 md:gap-20 items-center max-w-[1240px]">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="lg:col-span-5 w-full flex justify-center"
                     >
-                        <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>
-                    </div>
-                ) : (
-                    <div className="w-full flex flex-col items-center gap-24 pt-32 pb-40 px-6">
-                         {slides.map((slide, idx) => (
-                             <motion.div 
-                                key={idx} 
-                                initial={{ opacity: 0, y: 30 }} 
-                                whileInView={{ opacity: 1, y: 0 }} 
-                                viewport={{ once: true, margin: "-100px" }}
-                                className="w-full shrink-0 flex items-center justify-center min-h-[50vh]"
-                             >
-                                 {slide}
-                             </motion.div>
-                         ))}
-                    </div>
-                )}
-            </div>
-
-            {!isMobile && (
-                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 text-white pointer-events-auto z-40">
-                    <div className="flex gap-4 items-center">
-                        {[...Array(totalSlides)].map((_, i) => (
-                            <button key={i} onClick={() => navigate(`/about/${SLUGS[i]}`)} className={`h-[1px] transition-all duration-700 ${i === currentSlide ? 'w-20 bg-white shadow-[0_0_15px_rgba(255,255,255,0.9)]' : 'w-8 bg-white/10'}`} />
-                        ))}
-                    </div>
-                    <div className="flex items-center gap-3 text-[10px] font-mono tracking-[0.5em] text-white/20">
-                         <span className="text-white/60">{currentSlide + 1}</span>
-                         <span className="opacity-10">/</span>
-                         <span>{totalSlides}</span>
-                    </div>
+                        <div className="w-full max-w-[450px] aspect-[4/5] bg-white/5 rounded-[3rem] overflow-hidden grayscale border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
+                            <img src={content.slide3_photo || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"} alt="Director" className="w-full h-full object-cover opacity-80" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                        </div>
+                    </motion.div>
+                    
+                    <motion.div 
+                        initial={{ opacity: 0, x: 30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="lg:col-span-7"
+                    >
+                        <GlassCard className="p-10 md:p-20">
+                            <span className="text-[#ffaa44]/60 text-[9px] uppercase tracking-[0.5em] font-bold mb-10 block text-center md:text-left">Видение и лидерство</span>
+                            <blockquote className="text-lg md:text-2xl lg:text-3xl italic text-white leading-snug mb-12 tracking-tight font-light text-center md:text-left">
+                                "{content.slide3_quote}"
+                            </blockquote>
+                            <div className="text-center md:text-left">
+                                <p className="text-[#ffaa44] uppercase tracking-[0.4em] text-xs md:text-sm font-black mb-2">{content.slide3_name}</p>
+                                <p className="text-gray-400 uppercase tracking-[0.2em] text-[10px] font-medium opacity-60">{content.slide3_role}</p>
+                            </div>
+                        </GlassCard>
+                    </motion.div>
                 </div>
-            )}
 
-            <AnimatePresence>
-                {selectedFullCert && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/98 backdrop-blur-2xl p-10 pointer-events-auto" onClick={() => setSelectedFullCert(null)}>
-                        <button className="absolute top-10 right-10 text-white/70 hover:text-white bg-white/10 p-4 rounded-full border border-white/20 z-[210] transition-all hover:scale-110" onClick={(e) => { e.stopPropagation(); setSelectedFullCert(null); }}>
-                            <X size={24} strokeWidth={1} />
-                        </button>
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                            <img src={selectedFullCert.image_url} alt="Full Certificate" className="w-full h-full object-contain" />
-                        </motion.div>
+                {/* 4. НАГРАДЫ / СЕРТИФИКАТЫ */}
+                <GlassCard className="max-w-6xl">
+                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-20">
+                        <div className="lg:col-span-6 flex flex-col">
+                            <div className="mb-12">
+                                <span className="text-[#ffaa44] text-[10px] uppercase tracking-[0.5em] font-bold mb-4 block">Экспертиза</span>
+                                <h2 className="text-2xl md:text-3xl font-thin tracking-[0.2em] uppercase text-white">
+                                    На Нас полагаются
+                                </h2>
+                            </div>
+                            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-6 no-scrollbar">
+                                {displayCertificates.map((cert, index) => (
+                                    <button 
+                                        key={index} 
+                                        onMouseEnter={() => !isMobile && setActiveCert(index)}
+                                        onClick={() => isMobile && setActiveCert(index)}
+                                        className={`w-full text-left p-6 rounded-3xl transition-all border ${index === activeCert ? 'bg-white/10 border-white/20 shadow-2xl scale-[1.02]' : 'bg-transparent border-transparent opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <div className="flex items-start gap-6">
+                                            <span className={`text-xs font-mono mt-1 ${index === activeCert ? 'text-[#ffaa44]' : 'text-white/20'}`}>{(index + 1).toString().padStart(2, '0')}</span>
+                                            <div>
+                                                <p className="text-lg md:text-xl font-light tracking-wide text-white">{cert.company}</p>
+                                                <p className="text-[10px] uppercase tracking-[0.3em] mt-2 text-[#ffaa44] font-bold">{cert.position}</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="hidden lg:flex lg:col-span-6 h-[500px] justify-center items-center">
+                            <AnimatePresence mode="wait">
+                                <motion.div 
+                                    key={activeCert} 
+                                    initial={{ opacity: 0, scale: 0.95 }} 
+                                    animate={{ opacity: 1, scale: 1 }} 
+                                    exit={{ opacity: 0, scale: 0.95 }} 
+                                    className="relative w-full h-full p-4"
+                                >
+                                    <div className="absolute inset-0 bg-white/[0.05] backdrop-blur-3xl rounded-[3rem] border border-white/10" />
+                                    <div className="h-full w-full relative z-10 rounded-[2rem] overflow-hidden grayscale border border-white/5 shadow-2xl">
+                                        <img src={displayCertificates[activeCert]?.image_url} alt="Certificate" className="w-full h-full object-cover opacity-80" />
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                </GlassCard>
+
+            </div>
         </section>
     );
 };

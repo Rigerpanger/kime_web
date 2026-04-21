@@ -77,7 +77,7 @@ class EmailWatcher {
     }
 
     async analyzeHistory(months = 3) {
-        console.log(`📚 EmailWatcher: Starting archive scan for the last ${months} months...`);
+        console.log(`📚 EmailWatcher: Starting broad archive scan for the last ${months} months...`);
         const client = await this.createClient();
         try {
             await client.connect();
@@ -86,22 +86,32 @@ class EmailWatcher {
                 const sinceDate = new Date();
                 sinceDate.setMonth(sinceDate.getMonth() - months);
                 
+                // Search ALL but filter in loop for safety/compatibility
                 const messages = await client.search({ 
-                    since: sinceDate,
-                    from: 'ЭТП ГПБ'
+                    since: sinceDate
                 });
                 
-                console.log(`📂 Found ${messages.length} messages in search range.`);
+                console.log(`📂 [EMAIL_SCAN] Found ${messages.length} messages in search range. Analyzing...`);
                 
                 let count = 0;
                 for (const seq of messages) {
-                    let message = await client.fetchOne(seq, { source: true });
+                    let message = await client.fetchOne(seq, { source: true, envelope: true });
                     let parsed = await simpleParser(message.source);
-                    await this.processEmail(parsed, false);
-                    count++;
+                    
+                    const fromAddress = parsed.from?.text || '';
+                    const subject = parsed.subject || '';
+
+                    // Keywords: ГПБ, tender, закуп, завка
+                    if (fromAddress.includes('ГПБ') || fromAddress.includes('gpb') || 
+                        subject.includes('ГПБ') || subject.includes('закуп') || subject.includes('тендер')) {
+                        
+                        console.log(`🔎 [EMAIL_SCAN] Processing match: "${subject}" from "${fromAddress}"`);
+                        await this.processEmail(parsed, false); // false = no TG notify for history
+                        count++;
+                    }
                 }
-                console.log(`✅ Archive scan complete.`);
-                this.telegramHelper(`📚 *Синхронизация завершена.* Облачный агрегатор KIME обновил базу. Теперь я вижу актуальную повестку.`);
+                console.log(`✅ [EMAIL_SCAN] Archive scan complete. Processed ${count} relevant emails.`);
+                this.telegramHelper(`📚 *Синхронизация завершена.* Облачный агрегатор KIME обновил базу. Найдено и проанализировано ${count} тендеров.`);
             } finally {
                 lock.release();
             }
@@ -206,50 +216,6 @@ class EmailWatcher {
     extractCustomer(text) {
         const custMatch = text.match(/Заказчик:\s*([^\n\r]+)/i);
         return custMatch ? custMatch[1].trim() : null;
-    }
-
-    async analyzeHistory(months = 3) {
-        if (!this.imap) {
-            console.error('❌ IMAP not initialized for history scan.');
-            return;
-        }
-
-        try {
-            const client = this.imap;
-            await client.lock();
-            
-            const sinceDate = new Date();
-            sinceDate.setMonth(sinceDate.getMonth() - months);
-            
-            console.log(`📡 [EMAIL_SCAN] Ищу письма за последние ${months} мес. (начиная с ${sinceDate.toLocaleDateString()})...`);
-
-            const messages = await client.search({ 
-                since: sinceDate
-            });
-
-            console.log(`📡 [EMAIL_SCAN] Найдено ${messages.length} потенциальных писем.`);
-
-            for (const msgId of messages) {
-                const message = await client.fetchOne(msgId, { source: true, envelope: true });
-                const parsed = await simpleParser(message.source);
-                
-                const fromAddress = parsed.from?.text || '';
-                const subject = parsed.subject || '';
-
-                // Фильтр по ключевым словам ГПБ или Тендер
-                if (fromAddress.includes('ГПБ') || fromAddress.includes('gpb') || 
-                    subject.includes('ГПБ') || subject.includes('закуп') || subject.includes('тендер')) {
-                    
-                    console.log(`🔎 [EMAIL_SCAN] Обрабатываю письмо: "${subject}" от "${fromAddress}"`);
-                    await this.processEmail(parsed, false); // false = без уведомлений в ТГ при сканировании истории
-                }
-            }
-            
-            await client.unlock();
-            console.log(`✅ [EMAIL_SCAN] Синхронизация истории завершена!`);
-        } catch (e) {
-            console.error('❌ History Scan Error:', e.message);
-        }
     }
 
     async generateSummary(text) {

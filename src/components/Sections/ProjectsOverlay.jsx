@@ -161,7 +161,7 @@ const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange })
         <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0 scroll-smooth"
+            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0 scroll-smooth touch-pan-y"
         >
             {extendedProjects.map((project, idx) => (
                 <div 
@@ -400,7 +400,7 @@ const ProjectsOverlay = () => {
     const cOff = isMobile ? (layout?.projects_content_offset_mobile || 0) : 0;
 
     return (
-        <div style={{ '--ds': 'calc(min(1.25, max(0.9, 100vw / 1700)))' }} className="w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative overflow-hidden">
+        <div style={{ '--ds': 'calc(min(1.25, max(0.9, 100vw / 1700)))' }} className={`w-full h-[100dvh] md:min-h-screen pointer-events-none flex flex-col relative ${isMobile ? '' : 'overflow-hidden'}`}>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ transform: `translateY(${hOff}px) ${!isMobile ? 'scale(var(--ds))' : ''}`, transformOrigin: 'bottom center' }} className={`${isMobile ? 'relative pt-20 pb-4' : `absolute ${aspectRatio > 1.8 ? 'bottom-8' : 'bottom-32'}`} w-full z-40 flex flex-col items-center px-12 transition-opacity duration-1000`}>
                 <div className={`relative ${aspectRatio > 1.8 ? 'mb-8' : 'mb-12'} mt-2 w-full max-w-[85vw]`}>
                     <div className="absolute inset-0 bg-[#ffaa44]/20 blur-[80px] rounded-full scale-[2.5] md:scale-100" />

@@ -27,9 +27,8 @@ const ContactOverlay = () => {
     useEffect(() => {
         const checkResolution = () => {
             const w = window.innerWidth;
-            // TV/Large screen mode for anything above 1900px (4K/High-res)
-            // or specific high-res professional monitors
-            setIsTV(w > 1900); 
+            // TV mode is for the 1080p/720p logical resolution range (1280px-1360px)
+            setIsTV(w > 1000 && w < 1600); 
         };
         checkResolution();
         window.addEventListener('resize', checkResolution);
@@ -167,13 +166,13 @@ const ContactOverlay = () => {
             
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[85vh] h-fit'} flex flex-col transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: isTV ? '1000px' : (isMobile ? 'none' : '1700px') }}
+                style={{ maxWidth: isTV ? '560px' : (isMobile ? 'none' : '1000px') }}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-8' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '38px' : 'clamp(44px, 8vw, 110px)' }}
+                           style={{ fontSize: isTV ? '22px' : 'clamp(44px, 8vw, 110px)' }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -185,8 +184,8 @@ const ContactOverlay = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }} 
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
                     className="flex-1 min-h-[250px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
-                    onMouseEnter={() => setScrollLocked(true)}
-                    onMouseLeave={() => setScrollLocked(false)}
+                    onMouseEnter={() => !isMobile && setScrollLocked(true)}
+                    onMouseLeave={() => !isMobile && setScrollLocked(false)}
                 >
                     <div 
                         onWheel={(e) => e.stopPropagation()}
@@ -204,8 +203,8 @@ const ContactOverlay = () => {
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '1.5rem 2.5rem' : (isMobile ? '2rem' : '3.5rem'),
-                                        fontSize: isTV ? '20px' : 'clamp(18px, 2.5vw, 38px)'
+                                        padding: isTV ? '0.6rem 1.1rem' : (isMobile ? '2rem' : '3.5rem'),
+                                        fontSize: isTV ? '12px' : 'clamp(18px, 2.5vw, 38px)'
                                     }}
                                 >
                                     {msg.content}
@@ -267,16 +266,16 @@ const ContactOverlay = () => {
                                     <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 12 : 32} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-6 px-10' : 'gap-12 md:gap-14'}`}>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-2 px-5' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                         type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." 
                                         className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} 
                                         style={{ 
-                                            padding: isTV ? '1.5rem 3rem' : '2.5rem 4rem',
-                                            fontSize: isTV ? '20px' : '30px'
+                                            padding: isTV ? '0.5rem 1.25rem' : '2.5rem 4rem',
+                                            fontSize: isTV ? '12px' : '30px'
                                         }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-16 h-16' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 24 : 32} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 12 : 32} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
