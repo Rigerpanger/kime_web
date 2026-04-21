@@ -27,12 +27,17 @@ const ContactOverlay = () => {
     useEffect(() => {
         const checkResolution = () => {
             const w = window.innerWidth;
-            setIsTV(w > 1200 && w < 1600); // 1280px logical falls here
+            // TV/Large screen mode for anything above 1900px (4K/High-res)
+            // or specific high-res professional monitors
+            setIsTV(w > 1900); 
         };
         checkResolution();
         window.addEventListener('resize', checkResolution);
-        return () => window.removeEventListener('resize', checkResolution);
-    }, []);
+        return () => {
+            window.removeEventListener('resize', checkResolution);
+            setScrollLocked(false);
+        };
+    }, [setScrollLocked]);
 
     const chatEndRef = useRef(null);
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
@@ -155,20 +160,20 @@ const ContactOverlay = () => {
 
     return (
         <div 
-           className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col ${isTV ? 'justify-start pt-[12vh]' : 'justify-center'} items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
+           className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col ${isTV ? 'justify-start pt-[15vh]' : 'justify-center'} items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
         >
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[85vh] h-fit'} flex flex-col transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: isTV ? '600px' : (isMobile ? 'none' : '1700px') }}
+                style={{ maxWidth: isTV ? '1000px' : (isMobile ? 'none' : '1700px') }}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-8' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '22px' : 'clamp(44px, 8vw, 110px)' }}
+                           style={{ fontSize: isTV ? '38px' : 'clamp(44px, 8vw, 110px)' }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -180,13 +185,18 @@ const ContactOverlay = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }} 
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
                     className="flex-1 min-h-[250px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
+                    onMouseEnter={() => setScrollLocked(true)}
+                    onMouseLeave={() => setScrollLocked(false)}
                 >
-                    <div className={`flex-1 overflow-y-auto ${isTV ? 'px-8 py-6 space-y-6' : 'px-4 md:px-14 py-12 space-y-8'} no-scrollbar scroll-smooth overscroll-contain`}>
+                    <div 
+                        onWheel={(e) => e.stopPropagation()}
+                        className={`flex-1 overflow-y-auto ${isTV ? 'px-16 py-10 space-y-6' : 'px-4 md:px-14 py-12 space-y-8'} no-scrollbar scroll-smooth overscroll-contain`}
+                    >
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className={`hidden md:flex ${isTV ? 'w-8 h-8 mr-4' : 'w-24 h-24 mr-12'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
-                                        <Sparkles size={isTV ? 14 : 48} className="text-[#ffaa44]" />
+                                    <div className={`hidden md:flex ${isTV ? 'w-7 h-7 mr-3' : 'w-24 h-24 mr-12'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
+                                        <Sparkles size={isTV ? 12 : 48} className="text-[#ffaa44]" />
                                     </div>
                                 )}
                                 <div 
@@ -194,8 +204,8 @@ const ContactOverlay = () => {
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '1rem 1.5rem' : (isMobile ? '2rem' : '3.5rem'),
-                                        fontSize: isTV ? '13px' : 'clamp(18px, 2.5vw, 38px)'
+                                        padding: isTV ? '1.5rem 2.5rem' : (isMobile ? '2rem' : '3.5rem'),
+                                        fontSize: isTV ? '20px' : 'clamp(18px, 2.5vw, 38px)'
                                     }}
                                 >
                                     {msg.content}
@@ -204,17 +214,17 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'flex flex-col gap-3 mt-4 px-12' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'grid grid-cols-2 gap-6 mt-8 mb-8 px-10' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-3 rounded-[1.25rem]' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-6 p-6 rounded-[2rem] border-2' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-6 h-6' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
-                                            {React.cloneElement(act.icon, { size: isTV ? 10 : 36 })}
+                                        <div className={`${isTV ? 'w-16 h-16' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 28 : 36 })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[10px]' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-sm' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -224,49 +234,49 @@ const ContactOverlay = () => {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
                                 <div className="hidden md:block w-4 h-4 shrink-0 mr-4 mt-auto"></div>
                                 <div className="rounded-[1.25rem] p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] uppercase tracking-widest shadow-md">
-                                    <Loader2 size={isTV ? 12 : 16} className="animate-spin text-[#ffaa44]" /> Генерирую...
+                                    <Loader2 size={isTV ? 10 : 16} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
                         )}
                         <div ref={chatEndRef} className="h-4" />
                     </div>
                     
-                    <div className={`${isTV ? 'p-4' : 'p-6 md:p-10'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
+                    <div className={`${isTV ? 'p-3' : 'p-6 md:p-10'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-2 p-4' : 'gap-10 p-16'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
-                                    <CheckCircle2 size={isTV ? 16 : 60} className="text-green-400" />
+                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-2 p-3' : 'gap-10 p-16'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
+                                    <CheckCircle2 size={isTV ? 14 : 60} className="text-green-400" />
                                     <span 
                                         className={`text-green-300 font-medium`}
-                                        style={{ fontSize: isTV ? '13px' : '40px' }}
+                                        style={{ fontSize: isTV ? '12px' : '40px' }}
                                     >
                                         Заявка успешно отправлена!
                                     </span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-2 px-6' : 'gap-12 md:gap-14'}`}>
+                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-2 px-5' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                        type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" 
                                        className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} 
                                        autoFocus 
                                        style={{ 
-                                           padding: isTV ? '0.6rem 1.5rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
-                                           fontSize: isTV ? '13px' : '30px'
+                                           padding: isTV ? '0.5rem 1.25rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
+                                           fontSize: isTV ? '12px' : '30px'
                                        }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 14 : 32} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 12 : 32} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-2 px-6' : 'gap-12 md:gap-14'}`}>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-6 px-10' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                         type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." 
                                         className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} 
                                         style={{ 
-                                            padding: isTV ? '0.6rem 1.5rem' : '2.5rem 4rem',
-                                            fontSize: isTV ? '13px' : '30px'
+                                            padding: isTV ? '1.5rem 3rem' : '2.5rem 4rem',
+                                            fontSize: isTV ? '20px' : '30px'
                                         }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 14 : 32} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-16 h-16' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 24 : 32} /></button>
                                 </form>
                             )}
                         </AnimatePresence>

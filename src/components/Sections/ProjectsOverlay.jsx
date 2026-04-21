@@ -415,8 +415,8 @@ const ProjectsOverlay = () => {
 
             {!isMobile && projects.length > perPage && (
                 <>
-                    <button onClick={() => paginate(-1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute left-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all shadow-xl"><ChevronLeft size={24} /></button>
-                    <button onClick={() => paginate(1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute right-12 top-1/2 z-40 pointer-events-auto w-12 h-12 rounded-full border border-white/20 bg-black/60 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-white/20 hover:scale-110 transition-all shadow-xl"><ChevronRight size={24} /></button>
+                    <button onClick={() => paginate(-1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute left-10 top-1/2 z-40 pointer-events-auto w-16 h-16 rounded-full border-2 border-[#ffaa44]/40 bg-black/80 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-[#ffaa44]/20 hover:border-[#ffaa44] hover:scale-110 transition-all shadow-[0_0_30px_rgba(255,170,68,0.15)]"><ChevronLeft size={32} strokeWidth={2.5} /></button>
+                    <button onClick={() => paginate(1)} style={{ transform: 'translateY(-50%) scale(var(--ds))' }} className="absolute right-10 top-1/2 z-40 pointer-events-auto w-16 h-16 rounded-full border-2 border-[#ffaa44]/40 bg-black/80 backdrop-blur-2xl text-white flex items-center justify-center hover:bg-[#ffaa44]/20 hover:border-[#ffaa44] hover:scale-110 transition-all shadow-[0_0_30px_rgba(255,170,68,0.15)]"><ChevronRight size={32} strokeWidth={2.5} /></button>
                 </>
             )}
 
