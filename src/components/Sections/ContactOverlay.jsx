@@ -3,10 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, MessageSquare, ArrowRight, DollarSign, Send, Loader2, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../../store/useAppStore';
+import { useFluidScale } from '../../hooks/useFluidScale';
 
 const ContactOverlay = () => {
     const navigate = useNavigate();
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
+    const globalScale = useFluidScale();
     
     const [gptInput, setGptInput] = useState('');
     const [messages, setMessages] = useState([
@@ -22,12 +24,14 @@ const ContactOverlay = () => {
         phone: '+7 (999) 000-00-00'
     });
     
-    // --- React Based Scaling Logic v9.0 ---
+    // --- Precise TV Detection for v12.0 ---
     const [isTV, setIsTV] = useState(false);
     
     useEffect(() => {
         const checkResolution = () => {
-            setIsTV(window.innerWidth > 2000);
+            // TV is detected if logical width is large OR physical pixel density is high on large screens
+            const isWide = window.innerWidth > 1750;
+            setIsTV(isWide);
         };
         checkResolution();
         window.addEventListener('resize', checkResolution);
@@ -69,9 +73,9 @@ const ContactOverlay = () => {
     }, [setScrollLocked, apiUrl]);
 
     const QUICK_ACTIONS = [
-        { id: 'tz', icon: <MessageSquare size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
-        { id: 'price', icon: <DollarSign size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
-        { id: 'fast', icon: <ArrowRight size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
+        { id: 'tz', icon: <MessageSquare size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
+        { id: 'price', icon: <DollarSign size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
+        { id: 'fast', icon: <ArrowRight size={isTV ? 12 : 16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
     ];
 
     const handleGptEstimate = async (e, directText = null) => {
@@ -157,29 +161,35 @@ const ContactOverlay = () => {
 
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
-    // --- Dynamic Styles based on Programmatic Scaling ---
-    const headerFS = isTV ? 'text-[20px]' : 'text-xl md:text-[clamp(44px,7vw,90px)]';
-    const containerMaxW = isTV ? 'max-w-[750px]' : 'max-w-[1600px]';
-    const topPadding = isTV ? 'pt-[220px]' : 'pt-24 md:pt-[160px]';
-    const bubbleFS = isTV ? 'text-[14px]' : 'text-[20px] md:text-[clamp(18px,2.2vw,32px)]';
-    const bubblePadding = isTV ? 'p-5' : 'p-8 md:p-12';
-    const footerMargin = isTV ? 'mt-8 mb-10' : 'mt-24 mb-20';
-    const footerFS = isTV ? 'text-[10px]' : 'text-[clamp(14px,1vw,18px)]';
+    // --- FORCED INLINE STYLES FOR v12.0 (To bypass any scaling bugs) ---
+    const FORCE_TV_HEADER_FS = isTV ? "24px" : "";
+    const FORCE_TV_BUBBLE_FS = isTV ? "14px" : "";
+    const FORCE_TV_CONTAINER_W = isTV ? "800px" : "";
+    const FORCE_TV_TOP_PAD = isTV ? "220px" : "";
 
     return (
-        <div className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md ${topPadding} pb-12`}>
+        <div 
+           className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
+           style={{ paddingTop: FORCE_TV_TOP_PAD || (isMobile ? '6rem' : '15rem') }}
+        >
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
+            
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : `${containerMaxW} w-[90vw] min-h-[500px] max-h-[82vh] h-fit`} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[500px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                style={{ maxWidth: FORCE_TV_CONTAINER_W || (isMobile ? 'none' : '1600px') }}
             >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-6' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
-                        <h2 className={`${headerFS} font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}>
-                            Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
+                        <h2 
+                           className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl ${!isTV ? 'text-xl md:text-[clamp(44px,7vw,72px)]' : ''}`}
+                           style={{ fontSize: FORCE_TV_HEADER_FS }}
+                        >
+                            Нейро <span className="text-[#ffaa44] font-normal">РОБОТ</span>
                         </h2>
                     </div>
                 </motion.div>
+
                 <motion.div 
                     initial={{ opacity: 0, y: 30, scale: 0.95 }} 
                     animate={{ opacity: 1, y: 0, scale: 1 }} 
@@ -197,19 +207,25 @@ const ContactOverlay = () => {
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
                                     <div className={`hidden md:flex ${isTV ? 'w-8 h-8 mr-4' : 'w-20 h-20 mr-10'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
-                                        <Sparkles size={isTV ? 20 : 32} className="text-[#ffaa44]" />
+                                        <Sparkles size={isTV ? 16 : 32} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] ${bubblePadding} ${bubbleFS} font-normal leading-relaxed shadow-lg border ${
-                                    msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
-                                }`}>
+                                <div 
+                                    className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] border font-normal leading-relaxed shadow-lg ${
+                                        msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
+                                    }`}
+                                    style={{ 
+                                        padding: isTV ? '1.25rem' : (isMobile ? '2rem' : '3rem'),
+                                        fontSize: FORCE_TV_BUBBLE_FS || (isMobile ? '20px' : 'clamp(18px, 2.2vw, 32px)')
+                                    }}
+                                >
                                     {msg.content}
                                 </div>
                             </motion.div>
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'flex flex-col gap-3 mt-4 px-4' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'flex flex-col gap-2 mt-4' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         initial={{ opacity: 0, x: -10 }}
@@ -222,7 +238,12 @@ const ContactOverlay = () => {
                                         <div className={`${isTV ? 'w-6 h-6' : 'w-20 h-20 md:w-14 md:h-14'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all`}>
                                             {React.cloneElement(act.icon, { size: isTV ? 12 : 28 })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] ${isTV ? 'text-[10px]' : 'text-[20px] md:text-[clamp(14px,1.2vw,22px)]'} uppercase`}>{act.label}</span>
+                                        <span 
+                                            className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase`}
+                                            style={{ fontSize: isTV ? '10px' : (isMobile ? '20px' : '0.8vw') }}
+                                        >
+                                            {act.label}
+                                        </span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -238,42 +259,71 @@ const ContactOverlay = () => {
                         )}
                         <div ref={chatEndRef} className="h-4" />
                     </div>
+                    
                     <div className={`${isTV ? 'p-3' : 'p-5 md:p-6'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-6">
-                                    <button onClick={handleRequestContact} className={`bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black ${isTV ? 'px-8 py-3 text-[14px]' : 'px-16 py-8 text-[22px]'} rounded-full uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6`}>
-                                        Отправить диалог менеджеру <ArrowRight size={isTV ? 18 : 32} strokeWidth={3} />
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`flex justify-end ${isTV ? 'mb-4' : 'mb-6'}`}>
+                                    <button 
+                                        onClick={handleRequestContact} 
+                                        className={`bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black rounded-full uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6`}
+                                        style={{ 
+                                            padding: isTV ? '0.75rem 1.5rem' : '2rem 4rem',
+                                            fontSize: isTV ? '12px' : '22px'
+                                        }}
+                                    >
+                                        Отправить диалог менеджеру <ArrowRight size={isTV ? 16 : 32} strokeWidth={3} />
                                     </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-4 p-6' : 'gap-8 p-14'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
-                                    <CheckCircle2 size={isTV ? 24 : 50} className="text-green-400" />
-                                    <span className={`text-green-300 font-medium ${isTV ? 'text-[18px]' : 'text-[30px]'}`}>Заявка успешно отправлена!</span>
+                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-3 p-4' : 'gap-8 p-14'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
+                                    <CheckCircle2 size={isTV ? 20 : 50} className="text-green-400" />
+                                    <span 
+                                        className={`text-green-300 font-medium`}
+                                        style={{ fontSize: isTV ? '14px' : '30px' }}
+                                    >
+                                        Заявка успешно отправлена!
+                                    </span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full ${isTV ? 'px-6 py-3 text-[14px]' : 'px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)]'} text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} autoFocus />
+                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-2' : 'gap-10 md:gap-12'}`}>
+                                    <input 
+                                       type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" 
+                                       className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} 
+                                       autoFocus 
+                                       style={{ 
+                                           padding: isTV ? '0.75rem 1.5rem' : (isMobile ? '2rem 3rem' : '1.5rem 3rem'),
+                                           fontSize: isTV ? '14px' : '20px'
+                                       }}
+                                    />
                                     <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 14 : 24} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full ${isTV ? 'px-6 py-3 text-[14px]' : 'px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)]'} text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} />
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-2' : 'gap-10 md:gap-12'}`}>
+                                    <input 
+                                        type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." 
+                                        className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} 
+                                        style={{ 
+                                            padding: isTV ? '0.75rem 1.5rem' : '1.5rem 3rem',
+                                            fontSize: isTV ? '14px' : '20px'
+                                        }}
+                                    />
                                     <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 14 : 24} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className={`shrink-0 ${footerMargin} flex flex-col items-center justify-center gap-4 relative z-10`}>
-                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6' : 'gap-x-12'} ${footerFS} tracking-[0.2em] uppercase font-black text-white/80`}>
+
+                <div className={`shrink-0 ${isTV ? 'mt-6 mb-4' : 'mt-24 mb-20'} flex flex-col items-center justify-center gap-4 relative z-10`}>
+                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-4 text-[10px]' : 'gap-x-12 text-[clamp(14px,1vw,18px)]'} tracking-[0.2em] uppercase font-black text-white/80`}>
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
-                        <div className={`hidden md:block ${isTV ? 'w-1.5 h-1.5' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block ${isTV ? 'w-1 w-1' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
-                        <div className={`hidden md:block ${isTV ? 'w-1.5 h-1.5' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block ${isTV ? 'w-1 w-1' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
                         <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
                     <div className={`${isTV ? 'text-[8px]' : 'text-[clamp(10px,0.8vw,14px)]'} text-white/40 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>

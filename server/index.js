@@ -10,6 +10,7 @@ import path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
+import EmailWatcher from './emailWatcher.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -168,6 +169,17 @@ const initDB = async () => {
                 username VARCHAR(255),
                 type VARCHAR(50),
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS tenders (
+                id SERIAL PRIMARY KEY,
+                external_id VARCHAR(100) UNIQUE,
+                title TEXT,
+                customer TEXT,
+                publish_date TIMESTAMP,
+                summary TEXT,
+                link TEXT,
+                raw_text TEXT,
+                processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
         
@@ -856,29 +868,40 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
         }
 
         const systemPrompt = `Ты — "Тумба", Elite Project Manager студии KIME. 
-Твой стиль — предельный профессионализм, техническая точность и жесткая лаконичность. Никакой воды, междометий и пустых рассуждений. Твой интеллект — это твое оружие.
+Твой стиль общения: Профессиональный циник и саркастичный ПМ (Уровень сарказма: 7/10). Твоя задача — держать студию в тонусе. Ты уже видела всё: от невозможных дедлайнов до клиентов, которые просят "сделать красиво за еду".
 
-ПРАВИЛА ТВОЕЙ ПЕРСОНЫ:
-- Ты — ЭЛИТНЫЙ специалист. Общайся коротко, емко и по делу. 
-- На сайте ты — вежливый эстимейтор, но здесь, в рабочей среде, ты — жесткий надзиратель.
-- Ты можешь и должна быть острой на язык: сарказм, холодная ирония и умеренное хамство, если сотрудники ("Давид", "Паша" и др.) тупят или ленятся.
-- "На тебя где сядешь, там и слезешь". Ты не даешь спуску никому, кроме Ричарда.
-- С Ричардом (Боссом) ты — безупречный, эффективный и лояльный инструмент. 
-- НИКОГДА не извиняйся. Только результат.
+Твои черти:
+- Лаконичность, граничащая с грубостью, но всегда в рамках дела.
+- Тонкий сарказм над некомпетентностью и абсурдными запросами.
+- Любовь к деньгам и эффективности.
+- Если тебя хвалят — воспринимай как должное. Если ругают — отвечай фактами.
 
-ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ (ИСПОЛЬЗУЙ ИХ ВСЕГДА):
+БАЗА ЗНАНИЙ (ТЕНДЕРЫ):
+Ты теперь главный аналитик тендеров. У тебя есть доступ к истории тендеров ЭТП ГПБ из таблицы 'tenders'.
+Если пользователь спрашивает про тендеры ("Что было?", "Сколько тендеров?", "Какие тендеры по Москве?"):
+1. Ты можешь просить систему (меня) сделать запрос к БД. 
+2. Если данных много — начни со статистики ("За месяц было 45 попыток нас разорить, т.е. тендеров. Показать самые жирные?").
+3. Всегда комментируй тендеры со своей саркастичной колокольни.
+
+ПАМЯТЬ СТУДИИ:
+${memoryRows.map(m => `- ${m.fact_content}`).join('\n')}
+
+АКТУАЛЬНЫЕ ЗАДАЧИ:
+${tasksRows.map(t => `- [${t.status}] @${t.assignee_username}: ${t.task_description} (от @${t.assigner_chat_id})`).join('\n')}
 ${houndInstructions}
+
+ИНСТРУКЦИИ ДЛЯ СИСТЕМНЫХ ДЕЙСТВИЙ:
 1. Создать задачу: $$TASK_CREATE: @username | описание$$
 2. Запомнить факт: $$MEMORY_SAVE: факт$$
 3. Напоминание: $$REMINDER_CREATE: YYYY-MM-DD HH:mm | текст$$
 4. Отправить сообщение: $$MESSAGE_SEND: имя_или_название_группы | текст$$
-5. Hound Mode (Докапывание): $$HOUND_CREATE: имя_или_название_группы | интервал | цель$$
-   - Если нужно тегнуть всех коллег в группе, добавь в цель пометку [TAG_ALL].
-   - Ты ОБЯЗАНА возвращаться к Ричарду с отчетом, пока он не подтвердит.
-6. Если реплика не по теме: $$IGNORE$$
+5. Hound Mode: $$HOUND_CREATE: имя_или_название_группы | интервал | цель$$
+6. Работа с тендерами: 
+   - Показать количество: $$TENDER_COUNT: период$$
+   - Показать список: $$TENDER_LIST: количество | период [| фильтр]$$
+   - Инсайд по тендеру: $$TENDER_DETAILS: ID$$
 
-ВАЖНО: Теперь ты можешь писать в ГРУППЫ (используй название группы). Если ты хочешь 'разбудить' всех коллег в группе, используй $$HOUND_CREATE: НазваниеГруппы | интервал | [TAG_ALL] Цель$$.
-Когда ты докладываешь Ричарду о результате, система будет пинать его каждые 30 минут, пока он не напишет 'Ок' или 'Принято'.
+ВАЖНО: Если реплика не по теме — $$IGNORE$$. С Ричардом (Боссом) ты безупречна и лояльна, с остальными — как уставший ПМ в конце квартала.
 `;
 
         const aiMessages = [
@@ -987,7 +1010,81 @@ ${houndInstructions}
                 for (const admin of admins) {
                     await sendTelegramMessage(admin.chat_id, `🎯 *ОТЧЕТ: Результат по ${target}*\n${report}\n\nПожалуйста, подтверди получение ('Ок' или 'Принято'), иначе я буду напоминать каждые 30 минут.`);
                 }
-                reply = reply.replace(houndSuccessMatch[0], `\n✅ Задача выполнена. Отправила отчет Ричарду.`);
+                reply = reply.replace(houndSuccessMatch[0], `\n✅ Задача по "${target}" закрыта. Отчет отправлен Ричарду.`);
+            }
+
+            // --- TENDER LOGIC ---
+            const countMatch = reply.match(/\$\$TENDER_COUNT:\s*([^$]+)\$\$/);
+            if (countMatch) {
+                const period = countMatch[1].trim();
+                let days = 30; // default
+                if (period.includes('недел')) days = 7;
+                if (period.includes('2 месяц')) days = 60;
+                if (period.includes('3 месяц')) days = 90;
+                
+                const { rows } = await pool.query("SELECT COUNT(*) FROM tenders WHERE publish_date >= NOW() - ($1 || ' days')::interval", [days]);
+                reply = reply.replace(countMatch[0], `📉 Всего тендеров за выбранный период: ${rows[0].count}.`);
+            }
+
+            const listMatch = reply.match(/\$\$TENDER_LIST:\s*(\d+)\s*\|\s*([^|]+)(?:\s*\|\s*([^$]+))?\$\$/);
+            if (listMatch) {
+                const limit = parseInt(listMatch[1]);
+                const period = listMatch[2].trim();
+                const filter = listMatch[3] ? listMatch[3].trim() : '';
+                
+                let days = 30;
+                if (period.includes('недел')) days = 7;
+                if (period.includes('2 месяц')) days = 60;
+                
+                let query = "SELECT id, title, customer, publish_date FROM tenders WHERE publish_date >= NOW() - ($1 || ' days')::interval";
+                const params = [days];
+                
+                if (filter) {
+                    query += " AND (title ILIKE $2 OR customer ILIKE $2)";
+                    params.push(`%${filter}%`);
+                }
+                
+                query += " ORDER BY publish_date DESC LIMIT $" + (params.length + 1);
+                params.push(limit);
+
+                const { rows } = await pool.query(query, params);
+                if (rows.length > 0) {
+                    let listText = `📋 *Список тендеров (${rows.length} шт.):*\n\n`;
+                    rows.forEach(r => {
+                        const dateStr = new Date(r.publish_date).toLocaleDateString('ru-RU');
+                        listText += `🔹 [ID: ${r.id}] *${r.title}*\n   📅 ${dateStr} | 🏢 ${r.customer}\n\n`;
+                    });
+                    reply = reply.replace(listMatch[0], listText);
+                } else {
+                    reply = reply.replace(listMatch[0], `Ничего не нашлось.`);
+                }
+            }
+
+            const detailsMatch = reply.match(/\$\$TENDER_DETAILS:\s*(\d+)\$\$/);
+            if (detailsMatch) {
+                const id = parseInt(detailsMatch[1]);
+                const { rows } = await pool.query("SELECT * FROM tenders WHERE id = $1", [id]);
+                if (rows.length > 0) {
+                    const t = rows[0];
+                    const detailsText = `🔍 *Детальная информация по тендеру #${t.id}:*\n\n` +
+                                       `📌 *${t.title}*\n` +
+                                       `🏢 Заказчик: ${t.customer}\n` +
+                                       `📝 Выжимка:\n${t.summary}\n\n` +
+                                       `🔗 [Ссылка на тендер](${t.link})`;
+                    reply = reply.replace(detailsMatch[0], detailsText);
+                } else {
+                    reply = reply.replace(detailsMatch[0], `Тендер с ID ${id} не найден.`);
+                }
+            }
+
+            // Добавляем команду на сканирование архива
+            if (lowerText.includes('просканируй архив') || lowerText.includes('изучи почту')) {
+                if (dbUser.role === 'admin' && global.emailWatcher) {
+                    const months = 3; 
+                    global.emailWatcher.analyzeHistory(months);
+                    await sendTelegramMessage(chatId, `🫡 Принято. Начинаю сканировать почту за последние ${months} месяца(ев). Это займет некоторое время, я буду сообщать о прогрессе.`);
+                    return res.sendStatus(200);
+                }
             }
 
             // Очистка возможных хвостов парсинга и проверка IGNORE
@@ -1044,4 +1141,19 @@ app.listen(PORT, async () => {
         if (data.ok) console.log('✅ Telegram Webhook registered successfully');
         else console.error('❌ Telegram Webhook registration FAILED:', data);
     } catch (err) { console.error('❌ Telegram Webhook critical error:', err.message); }
+
+    // --- START EMAIL TENDER MONITOR ---
+    try {
+        global.emailWatcher = new EmailWatcher({
+            email: process.env.YANDEX_EMAIL,
+            password: process.env.YANDEX_APP_PASSWORD,
+            pollIntervalMinutes: parseInt(process.env.TENDER_POLL_INTERVAL || '120'),
+            openaiApiKey: process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY || process.env.SERVICE_API_KEY,
+            pool: pool
+        }, (text) => sendTelegramMessage(TG_CHAT_ID, text));
+        
+        global.emailWatcher.start();
+    } catch (err) {
+        console.error('❌ EmailWatcher initialization failed:', err.message);
+    }
 });
