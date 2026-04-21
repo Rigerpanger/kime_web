@@ -142,7 +142,7 @@ const ContactOverlay = () => {
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[800px] h-[75vh] min-h-[500px]'} flex flex-col justify-center`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1100px] h-[80vh] min-h-[600px]'} flex flex-col justify-center transition-all duration-500`}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
@@ -167,11 +167,11 @@ const ContactOverlay = () => {
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-6 h-6 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-2.5 mt-auto">
-                                        <Sparkles size={10} className="text-[#ffaa44]" />
+                                    <div className="hidden md:flex w-8 h-8 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-3.5 mt-auto">
+                                        <Sparkles size={12} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[92%] md:max-w-[80%] rounded-[1.25rem] p-3.5 md:p-2.5 text-[13px] md:text-[11px] leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[92%] md:max-w-[85%] rounded-[1.5rem] p-4 md:p-5 text-[14px] md:text-[14px] leading-relaxed shadow-lg border ${
                                     msg.role === 'user' ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
@@ -210,31 +210,31 @@ const ContactOverlay = () => {
                         )}
                         <div ref={chatEndRef} className="h-4" />
                     </div>
-                    <div className="p-3 md:p-2.5 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
+                    <div className="p-4 md:p-5 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-2">
-                                    <button onClick={handleRequestContact} className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-4 py-2 rounded-full text-[10px] uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-2">
-                                        Отправить диалог менеджеру <ArrowRight size={12} strokeWidth={3} />
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-3">
+                                    <button onClick={handleRequestContact} className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-6 py-2.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-2">
+                                        Отправить диалог менеджеру <ArrowRight size={14} strokeWidth={3} />
                                     </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className="w-full flex items-center justify-center gap-3 p-3 bg-green-500/10 border border-green-500/30 rounded-2xl">
-                                    <CheckCircle2 size={16} className="text-green-400" />
-                                    <span className="text-green-300 font-medium text-[12px]">Заявка успешно отправлена!</span>
+                                <div className="w-full flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/30 rounded-2xl">
+                                    <CheckCircle2 size={18} className="text-green-400" />
+                                    <span className="text-green-300 font-medium text-[13px]">Заявка успешно отправлена!</span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-2 md:gap-2.5">
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 rounded-full px-5 py-3 md:py-2.5 text-[13px] text-white outline-none" autoFocus />
-                                    <button type="submit" className="w-12 h-12 md:w-9 md:h-9 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center"><Send size={14} /></button>
+                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-3 md:gap-4">
+                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 rounded-full px-6 py-4 md:py-3.5 text-[14px] text-white outline-none" autoFocus />
+                                    <button type="submit" className="w-14 h-14 md:w-11 md:h-11 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center"><Send size={16} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-2 md:gap-2.5">
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/40 border border-white/20 rounded-full px-5 py-3 md:py-2.5 text-[13px] text-white outline-none" />
-                                    <button type="submit" className="w-12 h-12 md:w-9 md:h-9 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center"><Send size={14} /></button>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-3 md:gap-4">
+                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/40 border border-white/20 rounded-full px-6 py-4 md:py-3.5 text-[14px] text-white outline-none" />
+                                    <button type="submit" className="w-14 h-14 md:w-11 md:h-11 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center"><Send size={16} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
