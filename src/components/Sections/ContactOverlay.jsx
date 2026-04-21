@@ -172,7 +172,7 @@ const ContactOverlay = () => {
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '22px' : 'clamp(24px, 5vw, 42px)' }}
+                           style={{ fontSize: isTV ? '22px' : (isMobile ? '16px' : 'clamp(24px, 5vw, 42px)') }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -199,12 +199,12 @@ const ContactOverlay = () => {
                                     </div>
                                 )}
                                 <div 
-                                    className={`max-w-[95%] md:max-w-[85%] rounded-[3.5rem] border font-normal leading-relaxed shadow-lg ${
+                                    className={`max-w-[95%] md:max-w-[85%] rounded-[2rem] md:rounded-[3.5rem] border font-normal leading-relaxed shadow-lg ${
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '0.6rem 1.1rem' : (isMobile ? '1rem 1.4rem' : '1.5rem 2.5rem'),
-                                        fontSize: isTV ? '12px' : 'clamp(14px, 2vw, 20px)'
+                                        padding: isTV ? '0.6rem 1.1rem' : (isMobile ? '0.75rem 1.25rem' : '1.5rem 2.5rem'),
+                                        fontSize: isTV ? '12px' : (isMobile ? '13px' : 'clamp(14px, 2vw, 20px)')
                                     }}
                                 >
                                     {msg.content}
@@ -218,12 +218,12 @@ const ContactOverlay = () => {
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-4 p-4 rounded-[1.5rem] border-2' : 'gap-6 md:gap-8 p-6 md:p-8 rounded-[2rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-4 p-4 rounded-[1.5rem] border-2' : (isMobile ? 'gap-3 p-4 rounded-[1.5rem]' : 'gap-6 md:gap-8 p-6 md:p-8 rounded-[2rem]')} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-12 h-12' : 'w-14 h-14 md:w-16 md:h-16'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
-                                            {React.cloneElement(act.icon, { size: isTV ? 22 : 28 })}
+                                        <div className={`${isTV ? 'w-12 h-12' : (isMobile ? 'w-10 h-10' : 'w-14 h-14 md:w-16 md:h-16')} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 18 : (isMobile ? 18 : 28) })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-xs' : 'text-sm md:text-[16px]'}`}>{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[10px]' : (isMobile ? 'text-[11px]' : 'text-sm md:text-[16px]')}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -282,15 +282,15 @@ const ContactOverlay = () => {
                     </div>
                 </motion.div>
 
-                <div className={`shrink-0 ${isTV ? 'mt-6 mb-2' : 'mt-16 mb-12'} flex flex-col items-center justify-center gap-2 relative z-10`}>
-                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6 text-[10px]' : 'gap-x-14 text-[14px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
-                        <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
+                <div className={`shrink-0 ${isTV ? 'mt-6 mb-2' : 'mt-10 md:mt-16 mb-8 md:mb-12'} flex flex-col items-center justify-center gap-4 md:gap-2 relative z-10 w-full`}>
+                    <div className={`flex flex-col md:flex-row items-center justify-center ${isTV ? 'gap-x-6 text-[10px]' : 'gap-y-3 md:gap-y-0 md:gap-x-12 text-[12px] md:text-[14px]'} tracking-[0.1em] md:tracking-[0.2em] uppercase font-black text-white/70 w-full`}>
+                        <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors whitespace-nowrap">{globalContacts.email}</a>
                         <div className={`hidden md:block w-1 h-1 rounded-full bg-[#ffaa44]/40`} />
-                        <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
+                        <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors whitespace-nowrap">{globalContacts.telegram}</a>
                         <div className={`hidden md:block w-1 h-1 rounded-full bg-[#ffaa44]/40`} />
-                        <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
+                        <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors whitespace-nowrap">{globalContacts.phone}</a>
                     </div>
-                    <div className={`text-[9px] text-white/30 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className={`text-[9px] text-white/30 tracking-[0.3em] uppercase font-bold text-center`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
            </div>
         </div>

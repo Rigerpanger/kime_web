@@ -54,7 +54,7 @@ const LogoTicker = () => {
         : [];
 
     return (
-        <div className="h-[80px] py-1 overflow-hidden w-full opacity-60 hover:opacity-100 transition-opacity duration-500">
+        <div className="h-[50px] md:h-[80px] py-1 overflow-hidden w-full opacity-60 hover:opacity-100 transition-opacity duration-500">
             <div className="relative flex h-full items-center overflow-x-hidden">
                 <AnimatePresence>
                     <motion.div 
@@ -78,7 +78,7 @@ const LogoTicker = () => {
                                 <img 
                                     src={partner.logo_url} 
                                     alt={partner.name} 
-                                    className="object-contain w-[160px] max-h-12"
+                                    className="object-contain w-[100px] md:w-[160px] max-h-8 md:max-h-12"
                                 />
                             </div>
                         ))}

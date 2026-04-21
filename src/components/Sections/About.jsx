@@ -43,6 +43,16 @@ const About = () => {
     const [certificates, setCertificates] = useState([]);
     const [isReady, setIsReady] = useState(false);
     const [activeCert, setActiveCert] = useState(0);
+    const [selectedFullCert, setSelectedFullCert] = useState(null);
+
+    useEffect(() => {
+        if (selectedFullCert) {
+            setScrollLocked(true);
+        } else {
+            setScrollLocked(false);
+        }
+        return () => setScrollLocked(false);
+    }, [selectedFullCert, setScrollLocked]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -99,7 +109,8 @@ const About = () => {
                         </div>
                     </div>
                     {/* LogoTicker Integration */}
-                    <div className="w-full relative h-[40px] md:h-[100px] flex items-center justify-center overflow-hidden mt-12 md:mt-20 border-t border-white/5 pt-10">
+                    {/* LogoTicker Integration - Optimized for Mobile */}
+                    <div className="w-full relative h-[60px] md:h-[100px] flex items-center justify-center overflow-hidden mt-8 md:mt-20 border-t border-white/5 pt-4 md:pt-10">
                         <LogoTicker />
                     </div>
                 </GlassCard>
@@ -174,7 +185,6 @@ const About = () => {
                                                 <p className="text-lg md:text-xl font-light tracking-wide text-white">{cert.company}</p>
                                                 <p className="text-[10px] uppercase tracking-[0.3em] mt-2 text-[#ffaa44] font-bold">{cert.position}</p>
                                                 
-                                                {/* Mobile Accordion Content */}
                                                 <AnimatePresence>
                                                     {isMobile && index === activeCert && (
                                                         <motion.div 
@@ -183,7 +193,13 @@ const About = () => {
                                                             exit={{ height: 0, opacity: 0, marginTop: 0 }}
                                                             className="overflow-hidden"
                                                         >
-                                                            <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden grayscale border border-white/10 shadow-xl">
+                                                            <div 
+                                                                className="w-full aspect-[4/5] rounded-2xl overflow-hidden grayscale border border-white/10 shadow-xl cursor-zoom-in"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedFullCert(displayCertificates[index]);
+                                                                }}
+                                                            >
                                                                 <img src={cert.image_url} alt="Certificate" className="w-full h-full object-cover opacity-80" />
                                                             </div>
                                                         </motion.div>
@@ -215,6 +231,18 @@ const About = () => {
                 </GlassCard>
 
             </div>
+            <AnimatePresence>
+                {selectedFullCert && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-2xl p-6 md:p-20 pointer-events-auto" onClick={() => setSelectedFullCert(null)}>
+                        <button className="absolute top-6 right-6 md:top-12 md:right-12 text-white/50 hover:text-white bg-white/5 p-3 md:p-5 rounded-full border border-white/10 z-[210] transition-all hover:scale-110" onClick={(e) => { e.stopPropagation(); setSelectedFullCert(null); }}>
+                            <X size={isMobile ? 24 : 32} strokeWidth={1.5} />
+                        </button>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative max-w-full max-h-full aspect-[210/297] bg-white rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                            <img src={selectedFullCert.image_url} alt="Full Certificate" className="w-full h-full object-contain" />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </section>
     );
 };
