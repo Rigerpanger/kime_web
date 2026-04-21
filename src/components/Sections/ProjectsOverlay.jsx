@@ -161,7 +161,7 @@ const MobileNativeGallery = ({ projects, onProjectSelect, onActiveIndexChange })
         <div 
             ref={scrollRef}
             onScroll={handleScroll}
-            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0 scroll-smooth touch-pan-y"
+            className="md:absolute inset-x-0 md:top-[48%] md:-translate-y-1/2 w-full h-[400px] flex overflow-x-auto snap-x snap-mandatory pointer-events-auto z-30 px-[7.5vw] gap-4 items-center no-scrollbar relative shrink-0 scroll-smooth touch-pan-x"
         >
             {extendedProjects.map((project, idx) => (
                 <div 

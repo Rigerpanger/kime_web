@@ -173,6 +173,22 @@ const About = () => {
                                             <div>
                                                 <p className="text-lg md:text-xl font-light tracking-wide text-white">{cert.company}</p>
                                                 <p className="text-[10px] uppercase tracking-[0.3em] mt-2 text-[#ffaa44] font-bold">{cert.position}</p>
+                                                
+                                                {/* Mobile Accordion Content */}
+                                                <AnimatePresence>
+                                                    {isMobile && index === activeCert && (
+                                                        <motion.div 
+                                                            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1, marginTop: 24 }}
+                                                            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="w-full aspect-[4/5] rounded-2xl overflow-hidden grayscale border border-white/10 shadow-xl">
+                                                                <img src={cert.image_url} alt="Certificate" className="w-full h-full object-cover opacity-80" />
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
                                     </button>

@@ -36,9 +36,9 @@ const ServiceListItem = ({ service, isActive, isHint, index, isMobile }) => {
             <div className={`p-1.5 rounded-xl transition-colors duration-500 ${isActive ? 'text-[#ffaa44]' : isHint ? 'text-[#ffcc00] neon-hint-text' : 'text-gray-500 group-hover:text-white/60'}`}>
                 <IconComponent size={18} strokeWidth={isActive || isHint ? 1.5 : 1} />
             </div>
-            <span className={`text-[11px] md:text-[12px] tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/15 group-hover:text-white/40'}`}>
+            <span className={`text-[11px] md:text-[12px] tracking-[0.25em] uppercase transition-colors duration-500 ${isActive ? 'text-white font-medium' : isHint ? 'text-white/80 font-medium' : 'text-white/40 group-hover:text-white/80'}`}>
                 {service.title}
-                {isHint && <span className="ml-3 text-[8px] text-[#E0F7FF] opacity-60 lowercase transition-opacity animate-pulse tracking-normal font-light">следующее</span>}
+                {isHint && <span className="ml-3 text-[8px] text-[#ffaa44] opacity-80 lowercase transition-opacity animate-pulse tracking-normal font-light">узнать больше</span>}
             </span>
         </NavLink>
     );
@@ -59,7 +59,15 @@ const ServicesOverlay = () => {
         return servicesData.findIndex(s => s.id === activeService?.id);
     }, [activeService]);
 
-    const hintIndex = interactionCount < 2 ? (activeIndex + 1) % servicesData.length : -1;
+    const [autoHintIndex, setAutoHintIndex] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setAutoHintIndex(prev => (prev + 1) % servicesData.length);
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const hintIndex = interactionCount < 1 ? autoHintIndex : -1;
 
     const [layout, setLayout] = React.useState({});
     const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
@@ -139,7 +147,7 @@ const ServicesOverlay = () => {
                                         key={service.id} 
                                         service={service} 
                                         isActive={activeService?.id === service.id} 
-                                        isHint={index === hintIndex}
+                                        isHint={index === hintIndex && index !== activeIndex}
                                         index={index}
                                         isMobile={isMobile}
                                     />
@@ -188,6 +196,7 @@ const ServicesOverlay = () => {
                                      <ServiceListItem 
                                         service={service} 
                                         isActive={activeService?.id === service.id} 
+                                        isHint={index === hintIndex && index !== activeIndex}
                                         index={index}
                                         isMobile={isMobile}
                                     />

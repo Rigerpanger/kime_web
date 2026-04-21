@@ -172,7 +172,7 @@ const ContactOverlay = () => {
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '22px' : 'clamp(44px, 8vw, 110px)' }}
+                           style={{ fontSize: isTV ? '22px' : 'clamp(24px, 5vw, 42px)' }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -203,8 +203,8 @@ const ContactOverlay = () => {
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '0.6rem 1.1rem' : (isMobile ? '2rem' : '3.5rem'),
-                                        fontSize: isTV ? '12px' : 'clamp(18px, 2.5vw, 38px)'
+                                        padding: isTV ? '0.6rem 1.1rem' : (isMobile ? '1rem 1.4rem' : '1.5rem 2.5rem'),
+                                        fontSize: isTV ? '12px' : 'clamp(14px, 2vw, 20px)'
                                     }}
                                 >
                                     {msg.content}
@@ -213,17 +213,17 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'grid grid-cols-2 gap-6 mt-8 mb-8 px-10' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'grid grid-cols-2 gap-4 mt-6 mb-4 px-8' : 'flex flex-col gap-5 mt-12 md:grid md:grid-cols-2 md:gap-10 md:ml-20 md:mr-20 mb-10'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-6 p-6 rounded-[2rem] border-2' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-4 p-4 rounded-[1.5rem] border-2' : 'gap-6 md:gap-8 p-6 md:p-8 rounded-[2rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-16 h-16' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
-                                            {React.cloneElement(act.icon, { size: isTV ? 28 : 36 })}
+                                        <div className={`${isTV ? 'w-12 h-12' : 'w-14 h-14 md:w-16 md:h-16'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 22 : 28 })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-sm' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-xs' : 'text-sm md:text-[16px]'}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -259,8 +259,8 @@ const ContactOverlay = () => {
                                        className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} 
                                        autoFocus 
                                        style={{ 
-                                           padding: isTV ? '0.5rem 1.25rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
-                                           fontSize: isTV ? '12px' : '30px'
+                                           padding: isTV ? '0.5rem 1.25rem' : (isMobile ? '1.2rem 1.8rem' : '1.5rem 2.5rem'),
+                                           fontSize: isTV ? '12px' : 'clamp(14px, 2.5vw, 18px)'
                                        }}
                                     />
                                     <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 12 : 32} /></button>
