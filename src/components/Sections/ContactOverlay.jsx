@@ -21,8 +21,20 @@ const ContactOverlay = () => {
         email: 'rp@kimeproduction.ru',
         phone: '+7 (999) 000-00-00'
     });
-    const chatEndRef = useRef(null);
+    
+    // --- React Based Scaling Logic v9.0 ---
+    const [isTV, setIsTV] = useState(false);
+    
+    useEffect(() => {
+        const checkResolution = () => {
+            setIsTV(window.innerWidth > 2000);
+        };
+        checkResolution();
+        window.addEventListener('resize', checkResolution);
+        return () => window.removeEventListener('resize', checkResolution);
+    }, []);
 
+    const chatEndRef = useRef(null);
     const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     const scrollToBottom = () => {
@@ -57,9 +69,9 @@ const ContactOverlay = () => {
     }, [setScrollLocked, apiUrl]);
 
     const QUICK_ACTIONS = [
-        { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
-        { id: 'price', icon: <DollarSign size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
-        { id: 'fast', icon: <ArrowRight size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
+        { id: 'tz', icon: <MessageSquare size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
+        { id: 'price', icon: <DollarSign size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
+        { id: 'fast', icon: <ArrowRight size={isTV ? 14 : 16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
     ];
 
     const handleGptEstimate = async (e, directText = null) => {
@@ -145,16 +157,25 @@ const ContactOverlay = () => {
 
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
+    // --- Dynamic Styles based on Programmatic Scaling ---
+    const headerFS = isTV ? 'text-[20px]' : 'text-xl md:text-[clamp(44px,7vw,90px)]';
+    const containerMaxW = isTV ? 'max-w-[750px]' : 'max-w-[1600px]';
+    const topPadding = isTV ? 'pt-[220px]' : 'pt-24 md:pt-[160px]';
+    const bubbleFS = isTV ? 'text-[14px]' : 'text-[20px] md:text-[clamp(18px,2.2vw,32px)]';
+    const bubblePadding = isTV ? 'p-5' : 'p-8 md:p-12';
+    const footerMargin = isTV ? 'mt-8 mb-10' : 'mt-24 mb-20';
+    const footerFS = isTV ? 'text-[10px]' : 'text-[clamp(14px,1vw,18px)]';
+
     return (
-        <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-24 md:pt-[160px] [@media(min-width:2500px)]:pt-[220px] pb-12">
+        <div className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md ${topPadding} pb-12`}>
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1600px] [@media(min-width:2500px)]:max-w-[1000px] w-[90vw] min-h-[600px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : `${containerMaxW} w-[90vw] min-h-[500px] max-h-[82vh] h-fit`} flex flex-col justify-center transition-all duration-500 ease-in-out`}
             >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-10 md:mb-16 [@media(min-width:2500px)]:mb-8 flex items-center justify-center w-full relative">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-6' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
-                        <h2 className="text-xl md:text-[clamp(44px,7vw,90px)] [@media(min-width:2500px)]:text-[24px] font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
+                        <h2 className={`${headerFS} font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}>
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
@@ -163,23 +184,23 @@ const ContactOverlay = () => {
                     initial={{ opacity: 0, y: 30, scale: 0.95 }} 
                     animate={{ opacity: 1, y: 0, scale: 1 }} 
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
-                    className="flex-1 min-h-[300px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
+                    className="flex-1 min-h-[250px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
                     onMouseEnter={() => window.innerWidth >= 768 && setScrollLocked(true)}
                     onMouseLeave={() => window.innerWidth >= 768 && setScrollLocked(false)}
                 >
                     <div 
-                        className="flex-1 overflow-y-auto px-4 md:px-10 py-8 space-y-6 no-scrollbar scroll-smooth overscroll-contain"
+                        className={`flex-1 overflow-y-auto ${isTV ? 'px-6 py-6 space-y-4' : 'px-4 md:px-10 py-8 space-y-6'} no-scrollbar scroll-smooth overscroll-contain`}
                         onTouchMove={preventScrollLeaking}
                         onWheel={preventScrollLeaking}
                     >
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-20 h-20 [@media(min-width:2500px)]:w-10 [@media(min-width:2500px)]:h-10 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-10 mt-auto">
-                                        <Sparkles size={32} className="text-[#ffaa44] [@media(min-width:2500px)]:size-6" />
+                                    <div className={`hidden md:flex ${isTV ? 'w-8 h-8 mr-4' : 'w-20 h-20 mr-10'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
+                                        <Sparkles size={isTV ? 20 : 32} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-8 md:p-12 [@media(min-width:2500px)]:p-6 text-[20px] md:text-[clamp(18px,2.2vw,32px)] [@media(min-width:2500px)]:text-[16px] font-normal leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] ${bubblePadding} ${bubbleFS} font-normal leading-relaxed shadow-lg border ${
                                     msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
@@ -188,7 +209,7 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className="flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14">
+                            <div className={`${isTV ? 'flex flex-col gap-3 mt-4 px-4' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         initial={{ opacity: 0, x: -10 }}
@@ -196,12 +217,12 @@ const ContactOverlay = () => {
                                         transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center justify-start gap-10 md:gap-8 [@media(min-width:2500px)]:gap-4 bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 rounded-[2.5rem] [@media(min-width:2500px)]:rounded-[1.5rem] p-10 md:p-6 [@media(min-width:2500px)]:p-4 text-left w-full group shadow-2xl"
+                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-3 rounded-[1rem]' : 'gap-10 md:gap-8 p-10 md:p-6 rounded-[2.5rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className="w-20 h-20 md:w-14 md:h-14 [@media(min-width:2500px)]:w-8 [@media(min-width:2500px)]:h-8 rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all">
-                                            {React.cloneElement(act.icon, { size: 28, className: "text-[#ffaa44] [@media(min-width:2500px)]:size-4" })}
+                                        <div className={`${isTV ? 'w-6 h-6' : 'w-20 h-20 md:w-14 md:h-14'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 12 : 28 })}
                                         </div>
-                                        <span className="text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] text-[20px] md:text-[clamp(14px,1.2vw,22px)] [@media(min-width:2500px)]:text-[12px] uppercase">{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] ${isTV ? 'text-[10px]' : 'text-[20px] md:text-[clamp(14px,1.2vw,22px)]'} uppercase`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -209,53 +230,53 @@ const ContactOverlay = () => {
 
                         {isThinking && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
-                                <div className="hidden md:block w-8 h-8 shrink-0 mr-4 mt-auto"></div>
-                                <div className="rounded-[1.25rem] p-4 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[11px] md:text-xs uppercase tracking-widest shadow-md">
-                                    <Loader2 size={16} className="animate-spin text-[#ffaa44]" /> Генерирую...
+                                <div className="hidden md:block w-4 h-4 shrink-0 mr-4 mt-auto"></div>
+                                <div className="rounded-[1.25rem] p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] uppercase tracking-widest shadow-md">
+                                    <Loader2 size={isTV ? 12 : 16} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
                         )}
                         <div ref={chatEndRef} className="h-4" />
                     </div>
-                    <div className="p-5 md:p-6 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
+                    <div className={`${isTV ? 'p-3' : 'p-5 md:p-6'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-10">
-                                    <button onClick={handleRequestContact} className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-16 py-8 rounded-full text-[22px] uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6">
-                                        Отправить диалог менеджеру <ArrowRight size={32} strokeWidth={3} />
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-6">
+                                    <button onClick={handleRequestContact} className={`bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black ${isTV ? 'px-8 py-3 text-[14px]' : 'px-16 py-8 text-[22px]'} rounded-full uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6`}>
+                                        Отправить диалог менеджеру <ArrowRight size={isTV ? 18 : 32} strokeWidth={3} />
                                     </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className="w-full flex items-center justify-center gap-8 p-14 bg-green-500/10 border border-green-500/30 rounded-2xl">
-                                    <CheckCircle2 size={50} className="text-green-400" />
-                                    <span className="text-green-300 font-medium text-[30px]">Заявка успешно отправлена!</span>
+                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-4 p-6' : 'gap-8 p-14'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
+                                    <CheckCircle2 size={isTV ? 24 : 50} className="text-green-400" />
+                                    <span className={`text-green-300 font-medium ${isTV ? 'text-[18px]' : 'text-[30px]'}`}>Заявка успешно отправлена!</span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-10 md:gap-12 [@media(min-width:2500px)]:gap-6">
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full px-12 py-8 md:py-6 [@media(min-width:2500px)]:px-8 [@media(min-width:2500px)]:py-4 text-[22px] md:text-[clamp(16px,1vw,20px)] [@media(min-width:2500px)]:text-[16px] text-white font-medium outline-none focus:border-[#ffaa44] transition-all" autoFocus />
-                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 [@media(min-width:2500px)]:w-12 [@media(min-width:2500px)]:h-12 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all"><Send size={24} className="[@media(min-width:2500px)]:size-5" /></button>
+                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
+                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full ${isTV ? 'px-6 py-3 text-[14px]' : 'px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)]'} text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} autoFocus />
+                                    <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 14 : 24} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-10 md:gap-12 [@media(min-width:2500px)]:gap-6">
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full px-12 py-8 md:py-6 [@media(min-width:2500px)]:px-8 [@media(min-width:2500px)]:py-4 text-[22px] md:text-[clamp(16px,1vw,20px)] [@media(min-width:2500px)]:text-[16px] text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all" />
-                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 [@media(min-width:2500px)]:w-12 [@media(min-width:2500px)]:h-12 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"><Send size={24} className="[@media(min-width:2500px)]:size-5" /></button>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-10 md:gap-12'}`}>
+                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full ${isTV ? 'px-6 py-3 text-[14px]' : 'px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)]'} text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} />
+                                    <button type="submit" className={`${isTV ? 'w-10 h-10' : 'w-20 h-20 md:w-16 md:h-16'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 14 : 24} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className="shrink-0 mt-24 [@media(min-width:2500px)]:mt-12 flex flex-col items-center justify-center gap-8 [@media(min-width:2500px)]:gap-4 mb-20 relative z-10">
-                    <div className="flex flex-wrap items-center justify-center gap-x-12 [@media(min-width:2500px)]:gap-x-6 text-[clamp(14px,1vw,18px)] [@media(min-width:2500px)]:text-[12px] tracking-[0.2em] uppercase font-black text-white/80">
+                <div className={`shrink-0 ${footerMargin} flex flex-col items-center justify-center gap-4 relative z-10`}>
+                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6' : 'gap-x-12'} ${footerFS} tracking-[0.2em] uppercase font-black text-white/80`}>
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
-                        <div className="hidden md:block w-3 h-3 [@media(min-width:2500px)]:w-1.5 [@media(min-width:2500px)]:h-1.5 rounded-full bg-[#ffaa44]/40" />
+                        <div className={`hidden md:block ${isTV ? 'w-1.5 h-1.5' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
-                        <div className="hidden md:block w-3 h-3 [@media(min-width:2500px)]:w-1.5 [@media(min-width:2500px)]:h-1.5 rounded-full bg-[#ffaa44]/40" />
+                        <div className={`hidden md:block ${isTV ? 'w-1.5 h-1.5' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
                         <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
-                    <div className="text-[clamp(10px,0.8vw,14px)] [@media(min-width:2500px)]:text-[10px] text-white/40 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className={`${isTV ? 'text-[8px]' : 'text-[clamp(10px,0.8vw,14px)]'} text-white/40 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
            </div>
         </div>
