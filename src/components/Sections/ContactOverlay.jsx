@@ -3,12 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, MessageSquare, ArrowRight, DollarSign, Send, Loader2, Sparkles, X, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../../store/useAppStore';
-import { useFluidScale } from '../../hooks/useFluidScale';
 
 const ContactOverlay = () => {
     const navigate = useNavigate();
     const setScrollLocked = useAppStore(s => s.setScrollLocked);
-    const globalScale = useFluidScale();
     
     const [gptInput, setGptInput] = useState('');
     const [messages, setMessages] = useState([
@@ -24,14 +22,16 @@ const ContactOverlay = () => {
         phone: '+7 (999) 000-00-00'
     });
     
-    // --- Precise TV Detection for v12.0 ---
+    const [windowData, setWindowData] = useState({ w: 0, dpr: 1 });
     const [isTV, setIsTV] = useState(false);
     
     useEffect(() => {
         const checkResolution = () => {
-            // TV is detected if logical width is large OR physical pixel density is high on large screens
-            const isWide = window.innerWidth > 1750;
-            setIsTV(isWide);
+            const w = window.innerWidth;
+            const dpr = window.devicePixelRatio;
+            setWindowData({ w, dpr });
+            // LOWER THRESHOLD to 1400px to catch scaled TVs
+            setIsTV(w > 1400); 
         };
         checkResolution();
         window.addEventListener('resize', checkResolution);
@@ -155,37 +155,27 @@ const ContactOverlay = () => {
         }
     };
 
-    const preventScrollLeaking = (e) => {
-        e.stopPropagation();
-    };
-
-    const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
-
-    // --- FORCED INLINE STYLES FOR v12.0 (To bypass any scaling bugs) ---
-    const FORCE_TV_HEADER_FS = isTV ? "24px" : "";
-    const FORCE_TV_BUBBLE_FS = isTV ? "14px" : "";
-    const FORCE_TV_CONTAINER_W = isTV ? "800px" : "";
-    const FORCE_TV_TOP_PAD = isTV ? "220px" : "";
+    const isMobile = windowData.w < 768;
 
     return (
         <div 
            className={`relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pb-12 transition-all duration-300`}
-           style={{ paddingTop: FORCE_TV_TOP_PAD || (isMobile ? '6rem' : '15rem') }}
+           style={{ paddingTop: isTV ? '150px' : (isMobile ? '80px' : '240px') }}
         >
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[500px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: FORCE_TV_CONTAINER_W || (isMobile ? 'none' : '1600px') }}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                style={{ maxWidth: isTV ? '800px' : (isMobile ? 'none' : '1600px') }}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
                         <h2 
-                           className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl ${!isTV ? 'text-xl md:text-[clamp(44px,7vw,72px)]' : ''}`}
-                           style={{ fontSize: FORCE_TV_HEADER_FS }}
+                           className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
+                           style={{ fontSize: isTV ? '24px' : 'clamp(24px, 5vw, 42px)' }}
                         >
-                            Нейро <span className="text-[#ffaa44] font-normal">РОБОТ</span>
+                            Нейро <span className="text-[#ffaa44] font-normal">РОБОТ [{windowData.w}]</span>
                         </h2>
                     </div>
                 </motion.div>
@@ -195,14 +185,8 @@ const ContactOverlay = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }} 
                     transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }} 
                     className="flex-1 min-h-[250px] relative w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border-2 border-white/30 shadow-[0_40px_100px_rgba(0,0,0,1),inset_0_1px_2px_rgba(255,255,255,0.1)] rounded-[3rem] overflow-hidden flex flex-col"
-                    onMouseEnter={() => window.innerWidth >= 768 && setScrollLocked(true)}
-                    onMouseLeave={() => window.innerWidth >= 768 && setScrollLocked(false)}
                 >
-                    <div 
-                        className={`flex-1 overflow-y-auto ${isTV ? 'px-6 py-6 space-y-4' : 'px-4 md:px-10 py-8 space-y-6'} no-scrollbar scroll-smooth overscroll-contain`}
-                        onTouchMove={preventScrollLeaking}
-                        onWheel={preventScrollLeaking}
-                    >
+                    <div className={`flex-1 overflow-y-auto ${isTV ? 'px-6 py-6 space-y-4' : 'px-4 md:px-10 py-8 space-y-6'} no-scrollbar scroll-smooth overscroll-contain`}>
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
@@ -215,8 +199,8 @@ const ContactOverlay = () => {
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '1.25rem' : (isMobile ? '2rem' : '3rem'),
-                                        fontSize: FORCE_TV_BUBBLE_FS || (isMobile ? '20px' : 'clamp(18px, 2.2vw, 32px)')
+                                        padding: isTV ? '1.5rem' : (isMobile ? '2rem' : '3rem'),
+                                        fontSize: isTV ? '14px' : 'clamp(16px, 1.8vw, 22px)'
                                     }}
                                 >
                                     {msg.content}
@@ -225,25 +209,17 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'flex flex-col gap-2 mt-4' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'flex flex-col gap-2 mt-4 px-4' : 'flex flex-col gap-8 mt-16 md:grid md:grid-cols-2 md:gap-12 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-3 rounded-[1rem]' : 'gap-10 md:gap-8 p-10 md:p-6 rounded-[2.5rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-3 rounded-[1.2rem]' : 'gap-10 md:gap-8 p-10 md:p-6 rounded-[2.5rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-6 h-6' : 'w-20 h-20 md:w-14 md:h-14'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all`}>
+                                        <div className={`${isTV ? 'w-6 h-6' : 'w-20 h-20 md:w-14 md:h-14'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
                                             {React.cloneElement(act.icon, { size: isTV ? 12 : 28 })}
                                         </div>
-                                        <span 
-                                            className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase`}
-                                            style={{ fontSize: isTV ? '10px' : (isMobile ? '20px' : '0.8vw') }}
-                                        >
-                                            {act.label}
-                                        </span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[10px]' : 'text-[16px] md:text-[clamp(14px,1vw,20px)]'}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -261,22 +237,6 @@ const ContactOverlay = () => {
                     </div>
                     
                     <div className={`${isTV ? 'p-3' : 'p-5 md:p-6'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
-                        <AnimatePresence>
-                            {!isSent && !contactMode && messages.length > 2 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`flex justify-end ${isTV ? 'mb-4' : 'mb-6'}`}>
-                                    <button 
-                                        onClick={handleRequestContact} 
-                                        className={`bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black rounded-full uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6`}
-                                        style={{ 
-                                            padding: isTV ? '0.75rem 1.5rem' : '2rem 4rem',
-                                            fontSize: isTV ? '12px' : '22px'
-                                        }}
-                                    >
-                                        Отправить диалог менеджеру <ArrowRight size={isTV ? 16 : 32} strokeWidth={3} />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                         <AnimatePresence mode="wait">
                             {isSent ? (
                                 <div className={`w-full flex items-center justify-center ${isTV ? 'gap-3 p-4' : 'gap-8 p-14'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
@@ -318,15 +278,15 @@ const ContactOverlay = () => {
                     </div>
                 </motion.div>
 
-                <div className={`shrink-0 ${isTV ? 'mt-6 mb-4' : 'mt-24 mb-20'} flex flex-col items-center justify-center gap-4 relative z-10`}>
-                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-4 text-[10px]' : 'gap-x-12 text-[clamp(14px,1vw,18px)]'} tracking-[0.2em] uppercase font-black text-white/80`}>
+                <div className={`shrink-0 ${isTV ? 'mt-6 mb-4' : 'mt-16 mb-10'} flex flex-col items-center justify-center gap-2 relative z-10`}>
+                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-4 text-[9px]' : 'gap-x-10 text-[12px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
-                        <div className={`hidden md:block ${isTV ? 'w-1 w-1' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block w-1.5 h-1.5 rounded-full bg-[#ffaa44]/40`} />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
-                        <div className={`hidden md:block ${isTV ? 'w-1 w-1' : 'w-3 h-3'} rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block w-1.5 h-1.5 rounded-full bg-[#ffaa44]/40`} />
                         <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
-                    <div className={`${isTV ? 'text-[8px]' : 'text-[clamp(10px,0.8vw,14px)]'} text-white/40 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className="text-[8px] text-white/30 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
            </div>
         </div>
