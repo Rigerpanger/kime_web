@@ -179,9 +179,13 @@ const initDB = async () => {
                 summary TEXT,
                 link TEXT,
                 raw_text TEXT,
-                processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        
+        // Ensure index for external_id for performance
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_tenders_external_id ON tenders(external_id);`);
         
         // Вставка стартового администратора (Исправлено: Richardsan)
         await pool.query(`
