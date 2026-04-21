@@ -57,9 +57,9 @@ const ContactOverlay = () => {
     }, [setScrollLocked, apiUrl]);
 
     const QUICK_ACTIONS = [
-        { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
-        { id: 'price', icon: <DollarSign size={16} className="text-[#ffaa44]" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
-        { id: 'fast', icon: <ArrowRight size={16} className="text-[#ffaa44]" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
+        { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
+        { id: 'price', icon: <DollarSign size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Рыночная оценка', prompt: 'Какая ориентировочная стоимость разработки? Подготовь оценку.' },
+        { id: 'fast', icon: <ArrowRight size={16} className="text-[#ffaa44] [@media(min-width:2500px)]:size-4" />, label: 'Связь с командой', prompt: 'Передай мои контакты менеджеру прямо сейчас.' }
     ];
 
     const handleGptEstimate = async (e, directText = null) => {
@@ -152,9 +152,9 @@ const ContactOverlay = () => {
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1600px] [@media(min-width:2500px)]:max-w-[1000px] w-[90vw] min-h-[600px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
             >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-6 md:mb-10 flex items-center justify-center w-full relative">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-10 md:mb-16 [@media(min-width:2500px)]:mb-8 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
-                        <h2 className="text-xl md:text-[clamp(32px,5vw,72px)] font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
+                        <h2 className="text-xl md:text-[clamp(44px,7vw,90px)] [@media(min-width:2500px)]:text-[24px] font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
@@ -175,11 +175,11 @@ const ContactOverlay = () => {
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-20 h-20 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-10 mt-auto">
-                                        <Sparkles size={32} className="text-[#ffaa44]" />
+                                    <div className="hidden md:flex w-20 h-20 [@media(min-width:2500px)]:w-10 [@media(min-width:2500px)]:h-10 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-10 mt-auto">
+                                        <Sparkles size={32} className="text-[#ffaa44] [@media(min-width:2500px)]:size-6" />
                                     </div>
                                 )}
-                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-8 md:p-12 text-[20px] md:text-[clamp(20px,1.8vw,32px)] font-normal leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-8 md:p-12 [@media(min-width:2500px)]:p-6 text-[20px] md:text-[clamp(18px,2.2vw,32px)] [@media(min-width:2500px)]:text-[16px] font-normal leading-relaxed shadow-lg border ${
                                     msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
@@ -196,12 +196,12 @@ const ContactOverlay = () => {
                                         transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center justify-start gap-10 md:gap-8 bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 rounded-[2.5rem] p-10 md:p-6 text-left w-full group shadow-2xl"
+                                        className="flex items-center justify-start gap-10 md:gap-8 [@media(min-width:2500px)]:gap-4 bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 rounded-[2.5rem] [@media(min-width:2500px)]:rounded-[1.5rem] p-10 md:p-6 [@media(min-width:2500px)]:p-4 text-left w-full group shadow-2xl"
                                     >
-                                        <div className="w-20 h-20 md:w-14 md:h-14 rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all">
-                                            {React.cloneElement(act.icon, { size: 28, className: "text-[#ffaa44]" })}
+                                        <div className="w-20 h-20 md:w-14 md:h-14 [@media(min-width:2500px)]:w-8 [@media(min-width:2500px)]:h-8 rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all">
+                                            {React.cloneElement(act.icon, { size: 28, className: "text-[#ffaa44] [@media(min-width:2500px)]:size-4" })}
                                         </div>
-                                        <span className="text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] text-[20px] md:text-[clamp(14px,1.2vw,22px)] uppercase">{act.label}</span>
+                                        <span className="text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] text-[20px] md:text-[clamp(14px,1.2vw,22px)] [@media(min-width:2500px)]:text-[12px] uppercase">{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -234,28 +234,28 @@ const ContactOverlay = () => {
                                     <span className="text-green-300 font-medium text-[30px]">Заявка успешно отправлена!</span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-10 md:gap-12">
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)] text-white font-medium outline-none focus:border-[#ffaa44] transition-all" autoFocus />
-                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all"><Send size={24} /></button>
+                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-10 md:gap-12 [@media(min-width:2500px)]:gap-6">
+                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full px-12 py-8 md:py-6 [@media(min-width:2500px)]:px-8 [@media(min-width:2500px)]:py-4 text-[22px] md:text-[clamp(16px,1vw,20px)] [@media(min-width:2500px)]:text-[16px] text-white font-medium outline-none focus:border-[#ffaa44] transition-all" autoFocus />
+                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 [@media(min-width:2500px)]:w-12 [@media(min-width:2500px)]:h-12 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all"><Send size={24} className="[@media(min-width:2500px)]:size-5" /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-10 md:gap-12">
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full px-12 py-8 md:py-6 text-[22px] md:text-[clamp(16px,1vw,20px)] text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all" />
-                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"><Send size={24} /></button>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-10 md:gap-12 [@media(min-width:2500px)]:gap-6">
+                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full px-12 py-8 md:py-6 [@media(min-width:2500px)]:px-8 [@media(min-width:2500px)]:py-4 text-[22px] md:text-[clamp(16px,1vw,20px)] [@media(min-width:2500px)]:text-[16px] text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all" />
+                                    <button type="submit" className="w-20 h-20 md:w-16 md:h-16 [@media(min-width:2500px)]:w-12 [@media(min-width:2500px)]:h-12 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"><Send size={24} className="[@media(min-width:2500px)]:size-5" /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className="shrink-0 mt-24 flex flex-col items-center justify-center gap-8 mb-10 relative z-10">
-                    <div className="flex flex-wrap items-center justify-center gap-x-12 text-[clamp(14px,1vw,18px)] tracking-[0.2em] uppercase font-black text-white/80">
+                <div className="shrink-0 mt-24 [@media(min-width:2500px)]:mt-12 flex flex-col items-center justify-center gap-8 [@media(min-width:2500px)]:gap-4 mb-20 relative z-10">
+                    <div className="flex flex-wrap items-center justify-center gap-x-12 [@media(min-width:2500px)]:gap-x-6 text-[clamp(14px,1vw,18px)] [@media(min-width:2500px)]:text-[12px] tracking-[0.2em] uppercase font-black text-white/80">
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
-                        <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
+                        <div className="hidden md:block w-3 h-3 [@media(min-width:2500px)]:w-1.5 [@media(min-width:2500px)]:h-1.5 rounded-full bg-[#ffaa44]/40" />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
-                        <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
+                        <div className="hidden md:block w-3 h-3 [@media(min-width:2500px)]:w-1.5 [@media(min-width:2500px)]:h-1.5 rounded-full bg-[#ffaa44]/40" />
                         <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
-                    <div className="text-[clamp(10px,0.8vw,14px)] text-white/40 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className="text-[clamp(10px,0.8vw,14px)] [@media(min-width:2500px)]:text-[10px] text-white/40 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
            </div>
         </div>
