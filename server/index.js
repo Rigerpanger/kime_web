@@ -815,6 +815,23 @@ app.post(['/telegram-webhook', '/api/telegram-webhook'], async (req, res) => {
             }
             return res.sendStatus(200);
         }
+
+        const isScanRequest = lowerText.includes('обнови повестку') || 
+                             lowerText.includes('глянь на горизонте') || 
+                             lowerText.includes('синхронизируй базу') ||
+                             lowerText.includes('проанализируй тендер');
+
+        if (isScanRequest) {
+            if (dbUser && dbUser.role === 'admin' && global.emailWatcher) {
+                console.log(`📡 [TENDER_SYNC] Triggered by @${user}`);
+                global.emailWatcher.analyzeHistory(3);
+                await sendTelegramMessage(chatId, `🫡 Принято. Обновляю данные из агрегатора. Как закончу — сможем обсудить последние поступления или заглянуть в историю.`);
+                return res.sendStatus(200);
+            } else if (isScanRequest && (isPrivate || lowerText.includes('тумб'))) {
+                await sendTelegramMessage(chatId, `❌ У вас нет прав для принудительной синхронизации узлов.`);
+                return res.sendStatus(200);
+            }
+        }
         await pool.query('INSERT INTO telegram_history (chat_id, role, content) VALUES ($1, $2, $3)', 
             [chatId, 'user', `${user}: ${text}`]);
         await pool.query('DELETE FROM telegram_history WHERE id IN (SELECT id FROM telegram_history WHERE chat_id = $1 ORDER BY created_at DESC OFFSET 15)', [chatId]);
@@ -1015,25 +1032,35 @@ ${houndInstructions}
             // --- TENDER LOGIC ---
             const countMatch = reply.match(/\$\$TENDER_COUNT:\s*([^$]+)\$\$/);
             if (countMatch) {
-                const period = countMatch[1].trim();
+                const period = countMatch[1].trim().toLowerCase();
                 let days = 30; // default
-                if (period.includes('недел')) days = 7;
-                if (period.includes('2 месяц')) days = 60;
-                if (period.includes('3 месяц')) days = 90;
+                const dayMatch = period.match(/(\d+)\s*дн/);
+                const weekMatch = period.match(/(\d+)\s*недел/);
+                
+                if (dayMatch) days = parseInt(dayMatch[1]);
+                else if (weekMatch) days = parseInt(weekMatch[1]) * 7;
+                else if (period.includes('недел')) days = 7;
+                else if (period.includes('2 месяц')) days = 60;
+                else if (period.includes('3 месяц')) days = 90;
                 
                 const { rows } = await pool.query("SELECT COUNT(*) FROM tenders WHERE publish_date >= NOW() - ($1 || ' days')::interval", [days]);
-                reply = reply.replace(countMatch[0], `📉 Всего тендеров за выбранный период: ${rows[0].count}.`);
+                reply = reply.replace(countMatch[0], `📉 Всего тендеров за последние ${days} дн.: ${rows[0].count}.`);
             }
 
             const listMatch = reply.match(/\$\$TENDER_LIST:\s*(\d+)\s*\|\s*([^|]+)(?:\s*\|\s*([^$]+))?\$\$/);
             if (listMatch) {
                 const limit = parseInt(listMatch[1]);
-                const period = listMatch[2].trim();
+                const period = listMatch[2].trim().toLowerCase();
                 const filter = listMatch[3] ? listMatch[3].trim() : '';
                 
                 let days = 30;
-                if (period.includes('недел')) days = 7;
-                if (period.includes('2 месяц')) days = 60;
+                const dayMatch = period.match(/(\d+)\s*дн/);
+                const weekMatch = period.match(/(\d+)\s*недел/);
+                
+                if (dayMatch) days = parseInt(dayMatch[1]);
+                else if (weekMatch) days = parseInt(weekMatch[1]) * 7;
+                else if (period.includes('недел')) days = 7;
+                else if (period.includes('2 месяц')) days = 60;
                 
                 let query = "SELECT id, title, customer, publish_date FROM tenders WHERE publish_date >= NOW() - ($1 || ' days')::interval";
                 const params = [days];
@@ -1072,23 +1099,6 @@ ${houndInstructions}
                 }
             }
 
-            // Добавляем команду на маскировочное сканирование (только для админа)
-            const isScanRequest = lowerText.includes('обнови повестку') || 
-                                 lowerText.includes('глянь на горизонте') || 
-                                 lowerText.includes('синхронизируй базу');
-
-            if (isScanRequest) {
-                if (dbUser.role === 'admin' && global.emailWatcher) {
-                    console.log(`📡 [TENDER_SYNC] Disguised sync triggered by @${user}`);
-                    const months = 3; 
-                    global.emailWatcher.analyzeHistory(months);
-                    await sendTelegramMessage(chatId, `🫡 Принято. Синхронизируюсь с облачным агрегатором тендеров. Это может занять минуту, я дам знать.`);
-                    return res.sendStatus(200);
-                } else if (isPrivate || lowerText.includes('тумб')) {
-                    await sendTelegramMessage(chatId, `❌ У вас нет прав для принудительной синхронизации узлов.`);
-                    return res.sendStatus(200);
-                }
-            }
 
             // Очистка возможных хвостов парсинга и проверка IGNORE
             if (reply.includes('$$IGNORE$$')) {
