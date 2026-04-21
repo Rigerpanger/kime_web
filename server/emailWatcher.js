@@ -2,6 +2,7 @@ import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { convert } from 'html-to-text';
 import fetch from 'node-fetch';
+import * as cheerio from 'cheerio';
 
 class EmailWatcher {
     constructor(config, telegramHelper) {
@@ -75,7 +76,7 @@ class EmailWatcher {
         }
     }
 
-    async analyzeHistory(months = 2) {
+    async analyzeHistory(months = 3) {
         console.log(`📚 EmailWatcher: Starting archive scan for the last ${months} months...`);
         const client = await this.createClient();
         try {
@@ -85,22 +86,22 @@ class EmailWatcher {
                 const sinceDate = new Date();
                 sinceDate.setMonth(sinceDate.getMonth() - months);
                 
-                const messages = await client.search({ since: sinceDate });
+                const messages = await client.search({ 
+                    since: sinceDate,
+                    from: 'ЭТП ГПБ'
+                });
+                
                 console.log(`📂 Found ${messages.length} messages in search range.`);
                 
                 let count = 0;
                 for (const seq of messages) {
                     let message = await client.fetchOne(seq, { source: true });
                     let parsed = await simpleParser(message.source);
-                    
-                    const from = parsed.from?.text || '';
-                    if (from.includes('ЭТП ГПБ') || from.includes('etp-gpb.ru')) {
-                        await this.processEmail(parsed, false); // false = don't notify telegram during bulk Import
-                        count++;
-                    }
+                    await this.processEmail(parsed, false);
+                    count++;
                 }
-                console.log(`✅ Archive scan complete. Imported/Updated ${count} tenders.`);
-                this.telegramHelper(`📚 *Архив изучен.* Я загрузила в базу ${count} тендеров за последние ${months} месяца(ев). Теперь я знаю о них всё.`);
+                console.log(`✅ Archive scan complete.`);
+                this.telegramHelper(`📚 *Синхронизация завершена.* Облачный агрегатор KIME обновил базу. Теперь я вижу актуальную повестку.`);
             } finally {
                 lock.release();
             }
@@ -112,50 +113,76 @@ class EmailWatcher {
 
     async processEmail(parsed, notify = true) {
         const html = parsed.html || parsed.textAsHtml || '';
-        const text = convert(html, {
-            wordwrap: 130,
-            selectors: [
-                { selector: 'a', options: { hideLinkHrefIfSameAsText: true } }
-            ]
+        const $ = cheerio.load(html);
+        
+        const tendersFound = [];
+
+        // Try to parse ETP GPB tables
+        $('table tr').each((i, row) => {
+            const cells = $(row).find('td');
+            if (cells.length >= 4) {
+                const idText = $(cells[0]).text().trim();
+                const title = $(cells[2]).text().trim();
+                const customer = $(cells[3]).text().trim();
+                const link = $(cells[0]).find('a').attr('href') || $(row).find('a').attr('href');
+
+                // Check if it's a real tender row (often starts with ГП or numbers)
+                if (idText.match(/^[ГП\d]+$/) && title && customer && link) {
+                    tendersFound.push({
+                        externalId: idText,
+                        title,
+                        customer,
+                        link,
+                        raw: $(row).text().trim()
+                    });
+                }
+            }
         });
 
-        // 1. Find links & ID
-        const links = this.extractLinks(html);
-        const mainLink = links[0] || 'Ссылка не найдена';
-        const externalId = this.extractTenderId(parsed.subject, text);
-
-        // 2. Generate AI Summary (Sarcastic personality)
-        const summary = await this.generateSummary(text);
-
-        // 3. Save to DB
-        try {
-            await this.pool.query(`
-                INSERT INTO tenders (external_id, title, customer, publish_date, summary, link, raw_text)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
-                ON CONFLICT (external_id) DO UPDATE SET
-                    summary = $5,
-                    link = $6,
-                    raw_text = $7
-            `, [
-                externalId || `mail_${parsed.date.getTime()}`,
-                parsed.subject,
-                this.extractCustomer(text) || 'Unknown',
-                parsed.date,
-                summary,
-                mainLink,
-                text.substring(0, 5000)
-            ]);
-        } catch (dbErr) {
-            console.error('❌ DB Save Error:', dbErr.message);
+        // Fallback to old method if no tables found but it's clearly a tender
+        if (tendersFound.length === 0) {
+            const text = convert(html, { wordwrap: 130 });
+            const id = this.extractTenderId(parsed.subject, text);
+            if (id) {
+                tendersFound.push({
+                    externalId: id,
+                    title: parsed.subject,
+                    customer: this.extractCustomer(text) || 'Не указан',
+                    link: this.extractLinks(html)[0] || '',
+                    raw: text.substring(0, 5000)
+                });
+            }
         }
 
-        // 4. Send to Telegram if needed
-        if (notify) {
-            const message = `🔔 *Новый тендер: ЭТП ГПБ*\n\n` +
-                            `📝 *Выжимка Тумбы:*\n${summary}\n\n` +
-                            `🔗 [Перейти к тендеру](${mainLink})\n\n` +
-                            `📂 *Оригинал темы:* ${parsed.subject}`;
-            await this.telegramHelper(message);
+        // Process each found tender
+        for (const tender of tendersFound) {
+            const summary = await this.generateSummary(tender.raw);
+            
+            try {
+                await this.pool.query(`
+                    INSERT INTO tenders (external_id, title, customer, publish_date, summary, link, raw_text)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    ON CONFLICT (external_id) DO UPDATE SET
+                        summary = $5,
+                        link = $6,
+                        raw_text = $7
+                `, [
+                    tender.externalId,
+                    tender.title,
+                    tender.customer,
+                    parsed.date,
+                    summary,
+                    tender.link,
+                    tender.raw
+                ]);
+
+                if (notify) {
+                    const message = `🔔 *Обнаружен новый тендер в агрегаторе*\n\n${summary}\n\n🔗 [Смотреть портал](${tender.link})`;
+                    await this.telegramHelper(message);
+                }
+            } catch (dbErr) {
+                console.error('❌ DB Save Error:', dbErr.message);
+            }
         }
     }
 
@@ -164,7 +191,7 @@ class EmailWatcher {
         const links = [];
         let match;
         while ((match = linkRegex.exec(html)) !== null) {
-            if (match[1].startsWith('http') && !match[1].includes('yandex') && !match[1].includes('static')) {
+            if (match[1].startsWith('http') && !match[1].includes('yandex')) {
                 links.push(match[1]);
             }
         }
@@ -172,7 +199,7 @@ class EmailWatcher {
     }
 
     extractTenderId(subject, text) {
-        const idMatch = subject.match(/№\s*(\d+)/) || text.match(/№\s*(\d+)/);
+        const idMatch = subject.match(/([ГП\d]{6,})/i) || text.match(/([ГП\d]{6,})/i);
         return idMatch ? idMatch[1] : null;
     }
 
@@ -195,12 +222,14 @@ class EmailWatcher {
                         { 
                             role: 'system', 
                             content: `Ты — Тумба, Elite PM студии KIME. Сарказм: 3/10.
-Проанализируй тендер и выдай отчет строго в три блока:
-[Intro]: О чем проект своими словами (1-2 предложения).
-[Original]: Главная суть из текста (цитата или сухой факт).
-[Opinion]: Твое краткое профессиональное мнение (мягкий сарказм).
+Твоя база — "Облачный агрегатор тендеров". Не упоминай "почту".
 
-Будь точна и не лей воду.` 
+Проанализируй тендер и выдай отчет строго в три блока:
+[Intro]: О чем проект своими словами (1-2 предложения). Постарайся зацепить суть.
+[Original]: Главная суть из текста (короткая цитата или сухой факт).
+[Opinion]: Твое краткое профессиональное мнение (сарказм 3/10).
+
+Будь точна и лаконична.` 
                         },
                         { role: 'user', content: text.substring(0, 6000) }
                     ] 
@@ -211,9 +240,9 @@ class EmailWatcher {
                 const data = await aiRes.json();
                 return data.choices[0].message.content.trim();
             }
-            return 'Не удалось сгенерировать выжимку (ошибка API).';
+            return 'Ошибка генерации отчета.';
         } catch (e) {
-            return `Ошибка при анализе: ${e.message}`;
+            return `Ошибка: ${e.message}`;
         }
     }
 }
