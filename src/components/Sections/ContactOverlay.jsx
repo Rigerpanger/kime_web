@@ -146,11 +146,11 @@ const ContactOverlay = () => {
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
     return (
-        <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-24 md:pt-[200px] pb-12">
+        <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center md:justify-start items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-24 md:pt-[160px] [@media(min-width:2500px)]:pt-[220px] pb-12">
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1500px] w-[90vw] min-h-[600px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1600px] [@media(min-width:2500px)]:max-w-[1000px] w-[90vw] min-h-[600px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-6 md:mb-10 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
