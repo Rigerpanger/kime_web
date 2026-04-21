@@ -16,6 +16,12 @@ export const useFluidScale = () => {
             const w = window.innerWidth || 1280;
             const h = window.innerHeight || 800;
             
+            // Strict Mobile Reset: Mobile doesn't need fluid scale, it needs native feel.
+            if (w < 768) {
+                setScale(1);
+                return;
+            }
+            
             // Width-based scale vs Height-based limit
             const widthScale = w / 1280;
             const rawScale = Math.min(widthScale, (h / 800));
