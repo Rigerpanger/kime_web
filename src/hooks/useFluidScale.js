@@ -24,7 +24,7 @@ export const useFluidScale = () => {
             // Global Balance Fix: Capping scale for Large Displays (TVs/Monitors)
             // Anything wider than 1800px is treated as a Large Display regardless of aspect ratio.
             const isLargeDisplay = w > 1800;
-            const maxAllowedScale = isLargeDisplay ? 1.1 : (aspectRatio > 1.8 ? 0.7 : 2.9);
+            const maxAllowedScale = isLargeDisplay ? 1.6 : (aspectRatio > 1.8 ? 0.7 : 2.9);
             const cappedScale = Math.min(maxAllowedScale, rawScale);
             
             // Final safety check: never set NaN
