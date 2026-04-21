@@ -208,6 +208,50 @@ class EmailWatcher {
         return custMatch ? custMatch[1].trim() : null;
     }
 
+    async analyzeHistory(months = 3) {
+        if (!this.imap) {
+            console.error('❌ IMAP not initialized for history scan.');
+            return;
+        }
+
+        try {
+            const client = this.imap;
+            await client.lock();
+            
+            const sinceDate = new Date();
+            sinceDate.setMonth(sinceDate.getMonth() - months);
+            
+            console.log(`📡 [EMAIL_SCAN] Ищу письма за последние ${months} мес. (начиная с ${sinceDate.toLocaleDateString()})...`);
+
+            const messages = await client.search({ 
+                since: sinceDate
+            });
+
+            console.log(`📡 [EMAIL_SCAN] Найдено ${messages.length} потенциальных писем.`);
+
+            for (const msgId of messages) {
+                const message = await client.fetchOne(msgId, { source: true, envelope: true });
+                const parsed = await simpleParser(message.source);
+                
+                const fromAddress = parsed.from?.text || '';
+                const subject = parsed.subject || '';
+
+                // Фильтр по ключевым словам ГПБ или Тендер
+                if (fromAddress.includes('ГПБ') || fromAddress.includes('gpb') || 
+                    subject.includes('ГПБ') || subject.includes('закуп') || subject.includes('тендер')) {
+                    
+                    console.log(`🔎 [EMAIL_SCAN] Обрабатываю письмо: "${subject}" от "${fromAddress}"`);
+                    await this.processEmail(parsed, false); // false = без уведомлений в ТГ при сканировании истории
+                }
+            }
+            
+            await client.unlock();
+            console.log(`✅ [EMAIL_SCAN] Синхронизация истории завершена!`);
+        } catch (e) {
+            console.error('❌ History Scan Error:', e.message);
+        }
+    }
+
     async generateSummary(text) {
         try {
             const aiRes = await fetch('https://api.openai-proxy.com/v1/chat/completions', {
