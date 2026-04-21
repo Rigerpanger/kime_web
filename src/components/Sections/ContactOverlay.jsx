@@ -134,11 +134,11 @@ const ContactOverlay = () => {
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
 
     return (
-        <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-10">
+        <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-24 md:pt-36 pb-12">
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[1400px] w-[90vw] min-h-[500px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[2100px] w-[90vw] min-h-[750px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-8 md:mb-12 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
@@ -163,11 +163,11 @@ const ContactOverlay = () => {
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className="hidden md:flex w-14 h-14 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-8 mt-auto">
-                                        <Sparkles size={24} className="text-[#ffaa44]" />
+                                    <div className="hidden md:flex w-20 h-20 rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mr-10 mt-auto">
+                                        <Sparkles size={32} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[2.5rem] p-7 md:p-10 text-[18px] md:text-[24px] font-light leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-8 md:p-14 text-[20px] md:text-[36px] font-light leading-relaxed shadow-lg border ${
                                     msg.role === 'user' ? 'bg-[#ffaa44]/10 border-[#ffaa44]/30 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/5 border-white/10 text-gray-200 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
@@ -208,42 +208,42 @@ const ContactOverlay = () => {
                     <div className="p-5 md:p-6 border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20">
                         <AnimatePresence>
                             {!isSent && !contactMode && messages.length > 2 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-8">
-                                    <button onClick={handleRequestContact} className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-14 py-6 rounded-full text-[17px] uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-5">
-                                        Отправить диалог менеджеру <ArrowRight size={24} strokeWidth={3} />
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="flex justify-end mb-10">
+                                    <button onClick={handleRequestContact} className="bg-gradient-to-r from-[#ffaa44] to-[#ffcc00] text-black px-16 py-8 rounded-full text-[22px] uppercase tracking-[0.2em] font-black hover:shadow-lg transition-all flex items-center gap-6">
+                                        Отправить диалог менеджеру <ArrowRight size={32} strokeWidth={3} />
                                     </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className="w-full flex items-center justify-center gap-6 p-10 bg-green-500/10 border border-green-500/30 rounded-2xl">
-                                    <CheckCircle2 size={40} className="text-green-400" />
-                                    <span className="text-green-300 font-medium text-[24px]">Заявка успешно отправлена!</span>
+                                <div className="w-full flex items-center justify-center gap-8 p-14 bg-green-500/10 border border-green-500/30 rounded-2xl">
+                                    <CheckCircle2 size={50} className="text-green-400" />
+                                    <span className="text-green-300 font-medium text-[30px]">Заявка успешно отправлена!</span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-8 md:gap-10">
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 rounded-full px-14 py-8 md:py-7 text-[20px] text-white outline-none" autoFocus />
-                                    <button type="submit" className="w-24 h-24 md:w-20 md:h-20 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center"><Send size={28} /></button>
+                                <form onSubmit={handleContactSubmit} className="relative flex items-center gap-10 md:gap-14">
+                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/40 border border-[#ffaa44]/50 rounded-full px-16 py-10 md:py-9 text-[28px] text-white outline-none" autoFocus />
+                                    <button type="submit" className="w-28 h-28 md:w-26 md:h-26 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center"><Send size={36} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-8 md:gap-10">
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/40 border border-white/20 rounded-full px-14 py-8 md:py-7 text-[20px] text-white outline-none" />
-                                    <button type="submit" className="w-24 h-24 md:w-20 md:h-20 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center"><Send size={28} /></button>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-10 md:gap-14">
+                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/40 border border-white/20 rounded-full px-16 py-10 md:py-9 text-[28px] text-white outline-none" />
+                                    <button type="submit" className="w-28 h-28 md:w-26 md:h-26 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center"><Send size={36} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className="shrink-0 mt-6 flex flex-col items-center justify-center gap-3 mb-2 relative z-10">
-                    <div className="flex flex-wrap items-center justify-center gap-x-8 text-[10px] tracking-[0.2em] uppercase font-bold text-white/40">
+                <div className="shrink-0 mt-12 flex flex-col items-center justify-center gap-5 mb-4 relative z-10">
+                    <div className="flex flex-wrap items-center justify-center gap-x-12 text-[15px] tracking-[0.2em] uppercase font-bold text-white/40">
                         <a href="mailto:hello@kime.xyz">HELLO@KIME.XYZ</a>
-                        <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                        <div className="hidden md:block w-2.5 h-2.5 rounded-full bg-white/20" />
                         <a href="https://t.me/kime_bot" target="_blank" rel="noreferrer">TELEGRAM</a>
-                        <div className="hidden md:block w-1.5 h-1.5 rounded-full bg-white/20" />
+                        <div className="hidden md:block w-2.5 h-2.5 rounded-full bg-white/20" />
                         <a href="tel:+79990000000">+7 (999) 000-00-00</a>
                     </div>
-                    <div className="text-[9px] text-white/30 tracking-[0.25em] uppercase font-light">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className="text-[13px] text-white/30 tracking-[0.25em] uppercase font-light">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
             </div>
         </div>
