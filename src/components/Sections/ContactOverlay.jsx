@@ -162,13 +162,13 @@ const ContactOverlay = () => {
             
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'w-[90vw] min-h-[400px] max-h-[85vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
-                style={{ maxWidth: isTV ? '700px' : (isMobile ? 'none' : '1700px') }}
+                style={{ maxWidth: isTV ? '600px' : (isMobile ? 'none' : '1700px') }}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`shrink-0 text-center ${isTV ? 'mb-4' : 'mb-10 md:mb-16'} flex items-center justify-center w-full relative`}>
                     <div className="flex-grow text-center">
                         <h2 
                            className={`font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl`}
-                           style={{ fontSize: isTV ? '18px' : 'clamp(44px, 8vw, 110px)' }}
+                           style={{ fontSize: isTV ? '14px' : 'clamp(44px, 8vw, 110px)' }}
                         >
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
@@ -185,8 +185,8 @@ const ContactOverlay = () => {
                         {messages.map((msg, idx) => (
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} key={idx} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                                 {msg.role === 'assistant' && (
-                                    <div className={`hidden md:flex ${isTV ? 'w-8 h-8 mr-4' : 'w-24 h-24 mr-12'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
-                                        <Sparkles size={isTV ? 16 : 48} className="text-[#ffaa44]" />
+                                    <div className={`hidden md:flex ${isTV ? 'w-6 h-6 mr-4' : 'w-24 h-24 mr-12'} rounded-full bg-gradient-to-tr from-[#ffcc00]/20 to-transparent items-center justify-center shrink-0 border border-[#ffaa44]/40 mt-auto`}>
+                                        <Sparkles size={isTV ? 12 : 48} className="text-[#ffaa44]" />
                                     </div>
                                 )}
                                 <div 
@@ -194,8 +194,8 @@ const ContactOverlay = () => {
                                         msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                     }`}
                                     style={{ 
-                                        padding: isTV ? '1.25rem 2rem' : (isMobile ? '2rem' : '3.5rem'),
-                                        fontSize: isTV ? '13px' : 'clamp(18px, 2.5vw, 38px)'
+                                        padding: isTV ? '0.75rem 1.25rem' : (isMobile ? '2rem' : '3.5rem'),
+                                        fontSize: isTV ? '11px' : 'clamp(18px, 2.5vw, 38px)'
                                     }}
                                 >
                                     {msg.content}
@@ -204,17 +204,17 @@ const ContactOverlay = () => {
                         ))}
                         
                         {messages.length === 1 && !isThinking && (
-                            <div className={`${isTV ? 'flex flex-col gap-2.5 mt-4 px-10' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
+                            <div className={`${isTV ? 'flex flex-col gap-2 mt-4 px-10' : 'flex flex-col gap-10 mt-20 md:grid md:grid-cols-2 md:gap-14 md:ml-32 md:mr-32 mb-14'}`}>
                                 {QUICK_ACTIONS.map((act, i) => (
                                     <motion.button 
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className={`flex items-center justify-start ${isTV ? 'gap-3 p-2.5 rounded-[1rem]' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
+                                        className={`flex items-center justify-start ${isTV ? 'gap-2.5 p-2 rounded-[1rem]' : 'gap-12 md:gap-10 p-12 md:p-8 rounded-[3rem]'} bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 text-left w-full group shadow-2xl`}
                                     >
-                                        <div className={`${isTV ? 'w-6 h-6' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
-                                            {React.cloneElement(act.icon, { size: isTV ? 10 : 36 })}
+                                        <div className={`${isTV ? 'w-5 h-5' : 'w-24 w-24 md:w-20 md:h-20'} rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 transition-all`}>
+                                            {React.cloneElement(act.icon, { size: isTV ? 8 : 36 })}
                                         </div>
-                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[9px]' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
+                                        <span className={`text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] uppercase ${isTV ? 'text-[8px]' : 'text-[18px] md:text-[clamp(16px,1.5vw,26px)]'}`}>{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -224,64 +224,64 @@ const ContactOverlay = () => {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex w-full justify-start mt-4">
                                 <div className="hidden md:block w-4 h-4 shrink-0 mr-4 mt-auto"></div>
                                 <div className="rounded-[1.25rem] p-3 bg-white/5 border border-white/10 text-gray-400 rounded-bl-[0.5rem] flex items-center gap-2 text-[10px] uppercase tracking-widest shadow-md">
-                                    <Loader2 size={isTV ? 12 : 16} className="animate-spin text-[#ffaa44]" /> Генерирую...
+                                    <Loader2 size={isTV ? 10 : 16} className="animate-spin text-[#ffaa44]" /> Генерирую...
                                 </div>
                             </motion.div>
                         )}
                         <div ref={chatEndRef} className="h-4" />
                     </div>
                     
-                    <div className={`${isTV ? 'p-3' : 'p-6 md:p-10'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
+                    <div className={`${isTV ? 'p-2.5' : 'p-6 md:p-10'} border-t border-white/10 bg-[#050505]/60 shrink-0 relative z-20`}>
                         <AnimatePresence mode="wait">
                             {isSent ? (
-                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-3 p-4' : 'gap-10 p-16'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
-                                    <CheckCircle2 size={isTV ? 16 : 60} className="text-green-400" />
+                                <div className={`w-full flex items-center justify-center ${isTV ? 'gap-2 p-3' : 'gap-10 p-16'} bg-green-500/10 border border-green-500/30 rounded-2xl`}>
+                                    <CheckCircle2 size={isTV ? 14 : 60} className="text-green-400" />
                                     <span 
                                         className={`text-green-300 font-medium`}
-                                        style={{ fontSize: isTV ? '13px' : '40px' }}
+                                        style={{ fontSize: isTV ? '11px' : '40px' }}
                                     >
                                         Заявка успешно отправлена!
                                     </span>
                                 </div>
                             ) : contactMode ? (
-                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-12 md:gap-14'}`}>
+                                <form onSubmit={handleContactSubmit} className={`relative flex items-center ${isTV ? 'gap-2 px-4' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                        type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" 
                                        className={`flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full text-white font-medium outline-none focus:border-[#ffaa44] transition-all`} 
                                        autoFocus 
                                        style={{ 
-                                           padding: isTV ? '0.75rem 1.5rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
-                                           fontSize: isTV ? '13px' : '30px'
+                                           padding: isTV ? '0.5rem 1.25rem' : (isMobile ? '2rem 3rem' : '2.5rem 4rem'),
+                                           fontSize: isTV ? '11px' : '30px'
                                        }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 14 : 32} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-8 h-8' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-lg hover:scale-105 transition-all`}><Send size={isTV ? 12 : 32} /></button>
                                 </form>
                             ) : (
-                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-3 px-4' : 'gap-12 md:gap-14'}`}>
+                                <form onSubmit={(e) => handleGptEstimate(e)} className={`relative flex items-center ${isTV ? 'gap-2 px-4' : 'gap-12 md:gap-14'}`}>
                                     <input 
                                         type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." 
                                         className={`flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all`} 
                                         style={{ 
-                                            padding: isTV ? '0.75rem 1.5rem' : '2.5rem 4rem',
-                                            fontSize: isTV ? '13px' : '30px'
+                                            padding: isTV ? '0.5rem 1.25rem' : '2.5rem 4rem',
+                                            fontSize: isTV ? '11px' : '30px'
                                         }}
                                     />
-                                    <button type="submit" className={`${isTV ? 'w-9 h-9' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 14 : 32} /></button>
+                                    <button type="submit" className={`${isTV ? 'w-8 h-8' : 'w-24 h-24 md:w-20 md:h-20'} shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all`}><Send size={isTV ? 12 : 32} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
                     </div>
                 </motion.div>
 
-                <div className={`shrink-0 ${isTV ? 'mt-6 mb-4' : 'mt-16 mb-12'} flex flex-col items-center justify-center gap-3 relative z-10`}>
-                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-6 text-[10px]' : 'gap-x-14 text-[14px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
+                <div className={`shrink-0 ${isTV ? 'mt-4 mb-2' : 'mt-16 mb-12'} flex flex-col items-center justify-center gap-2 relative z-10`}>
+                    <div className={`flex flex-wrap items-center justify-center ${isTV ? 'gap-x-4 text-[8px]' : 'gap-x-14 text-[14px]'} tracking-[0.2em] uppercase font-black text-white/70`}>
                         <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
-                        <div className={`hidden md:block w-1.5 h-1.5 rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block w-1 h-1 rounded-full bg-[#ffaa44]/40`} />
                         <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
-                        <div className={`hidden md:block w-1.5 h-1.5 rounded-full bg-[#ffaa44]/40`} />
+                        <div className={`hidden md:block w-1 h-1 rounded-full bg-[#ffaa44]/40`} />
                         <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
-                    <div className={`text-[9px] text-white/30 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
+                    <div className={`text-[7px] text-white/30 tracking-[0.3em] uppercase font-bold`}>© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
            </div>
         </div>
