@@ -152,9 +152,9 @@ const ContactOverlay = () => {
             <div 
                 className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[2100px] w-[90vw] min-h-[750px] max-h-[82vh] h-fit'} flex flex-col justify-center transition-all duration-500 ease-in-out`}
             >
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-10 md:mb-16 flex items-center justify-center w-full relative">
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-6 md:mb-10 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
-                        <h2 className="text-xl md:text-[90px] font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
+                        <h2 className="text-xl md:text-[clamp(32px,5vw,72px)] font-thin text-white uppercase tracking-[0.4em] leading-tight drop-shadow-2xl">
                             Нейро <span className="text-[#ffaa44] font-normal">Ассистент</span>
                         </h2>
                     </div>
@@ -179,7 +179,7 @@ const ContactOverlay = () => {
                                         <Sparkles size={32} className="text-[#ffaa44]" />
                                     </div>
                                 )}
-                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-8 md:p-14 text-[20px] md:text-[36px] font-normal leading-relaxed shadow-lg border ${
+                                <div className={`max-w-[95%] md:max-w-[85%] rounded-[3rem] p-6 md:p-10 text-[20px] md:text-[clamp(24px,1.8vw,32px)] font-normal leading-relaxed shadow-lg border ${
                                     msg.role === 'user' ? 'bg-[#ffaa44]/15 border-[#ffaa44]/50 text-[#ffaa44] rounded-br-[0.5rem]' : 'bg-white/10 border-white/20 text-gray-100 rounded-bl-[0.5rem]'
                                 }`}>
                                     {msg.content}
@@ -196,12 +196,12 @@ const ContactOverlay = () => {
                                         transition={{ delay: i * 0.05 }}
                                         key={act.id} 
                                         onClick={() => handleGptEstimate(null, act.prompt)} 
-                                        className="flex items-center justify-start gap-10 md:gap-12 bg-white/[0.07] border-2 border-white/30 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 rounded-[3rem] p-10 md:p-8 text-left w-full group shadow-2xl"
+                                        className="flex items-center justify-start gap-8 md:gap-10 bg-white/[0.07] border-2 border-white/20 hover:border-[#ffaa44] hover:bg-[#ffaa44]/20 transition-all duration-300 rounded-[2.5rem] p-8 md:p-6 text-left w-full group shadow-xl"
                                     >
-                                        <div className="w-24 h-24 md:w-20 md:h-20 rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/20 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all">
-                                            {React.cloneElement(act.icon, { size: 48, className: "text-[#ffaa44]" })}
+                                        <div className="w-16 h-16 md:w-14 md:h-14 rounded-full bg-black flex items-center justify-center shrink-0 border-2 border-white/10 group-hover:border-[#ffaa44]/50 group-hover:scale-110 transition-all">
+                                            {React.cloneElement(act.icon, { size: 32, className: "text-[#ffaa44]" })}
                                         </div>
-                                        <span className="text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] text-[24px] md:text-[30px] uppercase">{act.label}</span>
+                                        <span className="text-white font-black tracking-[0.1em] group-hover:text-[#ffaa44] text-[18px] md:text-[clamp(18px,1.2vw,24px)] uppercase">{act.label}</span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -235,13 +235,13 @@ const ContactOverlay = () => {
                                 </div>
                             ) : contactMode ? (
                                 <form onSubmit={handleContactSubmit} className="relative flex items-center gap-10 md:gap-14">
-                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/60 rounded-full px-16 py-10 md:py-9 text-[28px] text-white font-medium outline-none focus:border-[#ffaa44] transition-all" autoFocus />
-                                    <button type="submit" className="w-28 h-28 md:w-26 md:h-26 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-[0_0_30px_rgba(255,170,68,0.3)] hover:scale-105 transition-all"><Send size={36} /></button>
+                                    <input type="text" value={contactInput} onChange={(e) => setContactInput(e.target.value)} placeholder="Telegram (например: @durov)" className="flex-1 w-full bg-black/60 border-2 border-[#ffaa44]/40 rounded-full px-12 py-8 md:py-7 text-[22px] text-white font-medium outline-none focus:border-[#ffaa44] transition-all" autoFocus />
+                                    <button type="submit" className="w-24 h-24 md:w-20 md:h-20 shrink-0 rounded-full bg-[#ffaa44] text-black flex items-center justify-center shadow-[0_0_30px_rgba(255,170,68,0.3)] hover:scale-105 transition-all"><Send size={28} /></button>
                                 </form>
                             ) : (
                                 <form onSubmit={(e) => handleGptEstimate(e)} className="relative flex items-center gap-10 md:gap-14">
-                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/60 border-2 border-white/30 rounded-full px-16 py-10 md:py-9 text-[28px] text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all" />
-                                    <button type="submit" className="w-28 h-28 md:w-26 md:h-26 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"><Send size={36} /></button>
+                                    <input type="text" value={gptInput} onChange={(e) => setGptInput(e.target.value)} placeholder="Опишите задачу подробнее..." className="flex-1 w-full bg-black/60 border-2 border-white/20 rounded-full px-12 py-8 md:py-7 text-[22px] text-white font-medium outline-none focus:border-[#ffaa44]/60 transition-all" />
+                                    <button type="submit" className="w-24 h-24 md:w-20 md:h-20 shrink-0 rounded-full bg-white/10 text-white flex items-center justify-center border border-white/20 hover:bg-white/20 transition-all"><Send size={28} /></button>
                                 </form>
                             )}
                         </AnimatePresence>
