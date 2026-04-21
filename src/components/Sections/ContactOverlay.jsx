@@ -16,7 +16,14 @@ const ContactOverlay = () => {
     const [contactMode, setContactMode] = useState(false);
     const [contactInput, setContactInput] = useState('');
     const [isSent, setIsSent] = useState(false);
+    const [globalContacts, setGlobalContacts] = useState({
+        telegram: '@Richardsan',
+        email: 'rp@kimeproduction.ru',
+        phone: '+7 (999) 000-00-00'
+    });
     const chatEndRef = useRef(null);
+
+    const apiUrl = import.meta.env.VITE_API_URL || '/api';
 
     const scrollToBottom = () => {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,8 +36,25 @@ const ContactOverlay = () => {
     }, [messages, isThinking]);
 
     useEffect(() => {
+        const fetchGlobalContacts = async () => {
+            try {
+                const res = await fetch(`${apiUrl}/content/global_layout`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.telegram || data.email || data.phone) {
+                        setGlobalContacts(prev => ({
+                            ...prev,
+                            telegram: data.telegram || prev.telegram,
+                            email: data.email || prev.email,
+                            phone: data.phone || prev.phone
+                        }));
+                    }
+                }
+            } catch (e) { console.error('Failed to fetch contacts:', e); }
+        };
+        fetchGlobalContacts();
         return () => setScrollLocked(false);
-    }, [setScrollLocked]);
+    }, [setScrollLocked, apiUrl]);
 
     const QUICK_ACTIONS = [
         { id: 'tz', icon: <MessageSquare size={16} className="text-[#ffaa44]" />, label: 'Техническое ТЗ', prompt: 'Необходимо подготовить техническое задание. Проведи опрос по пунктам.' },
@@ -59,7 +83,6 @@ const ContactOverlay = () => {
         setIsThinking(true);
 
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || '/api';
             const response = await fetch(`${apiUrl}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -94,7 +117,6 @@ const ContactOverlay = () => {
         if (!contactInput.trim() || isThinking) return;
         setIsThinking(true);
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || '/api';
             await fetch(`${apiUrl}/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -225,13 +247,13 @@ const ContactOverlay = () => {
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className="shrink-0 mt-20 flex flex-col items-center justify-center gap-8 mb-10 relative z-10">
+                <div className="shrink-0 mt-32 flex flex-col items-center justify-center gap-8 mb-10 relative z-10">
                     <div className="flex flex-wrap items-center justify-center gap-x-16 text-[18px] tracking-[0.2em] uppercase font-black text-white/80">
-                        <a href="mailto:rp@kimeproduction.ru" className="hover:text-[#ffaa44] transition-colors">rp@kimeproduction.ru</a>
+                        <a href={`mailto:${globalContacts.email}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.email}</a>
                         <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
-                        <a href="https://t.me/Richardsan" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">@Richardsan</a>
+                        <a href={`https://t.me/${globalContacts.telegram.replace('@', '')}`} target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">{globalContacts.telegram}</a>
                         <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
-                        <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-colors">+7 (999) 000-00-00</a>
+                        <a href={`tel:${globalContacts.phone.replace(/[^0-9+]/g, '')}`} className="hover:text-[#ffaa44] transition-colors">{globalContacts.phone}</a>
                     </div>
                     <div className="text-[15px] text-white/40 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>

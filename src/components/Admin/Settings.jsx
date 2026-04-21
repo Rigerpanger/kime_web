@@ -50,7 +50,10 @@ const Settings = () => {
         projects_mobile_info_plate_offset: 0,
         contact_header_offset_desktop: 0, contact_header_offset_mobile: 0,
         contact_content_offset_desktop: 0, contact_content_offset_mobile: 0,
-        showStudioEditor: false
+        showStudioEditor: false,
+        telegram: '@Richardsan',
+        email: 'rp@kimeproduction.ru',
+        phone: '+7 (999) 000-00-00'
     });
 
     useEffect(() => {
@@ -115,7 +118,8 @@ const Settings = () => {
         { id: 'about_slide4', label: 'О НАС: СЛАЙД 4', group: 'О НАС' },
         { id: 'services', label: 'НАПРАВЛЕНИЯ', group: 'РАЗДЕЛЫ' },
         { id: 'projects', label: 'ПРАКТИКА', group: 'РАЗДЕЛЫ' },
-        { id: 'contact', label: 'ОБСУДИТЬ', group: 'РАЗДЕЛЫ' }
+        { id: 'contact', label: 'ОБСУДИТЬ', group: 'РАЗДЕЛЫ' },
+        { id: 'global_contacts', label: 'КОНТАКТЫ', group: 'ГЛОБАЛЬНЫЕ' }
     ];
 
     // Helper components
@@ -336,7 +340,7 @@ const Settings = () => {
                 <div className="flex flex-1 overflow-hidden">
                     {/* Left Sidebar - Navigation */}
                     <div className="w-[300px] border-r border-white/5 bg-black/20 overflow-y-auto no-scrollbar p-6 space-y-8">
-                        {['О НАС', 'РАЗДЕЛЫ'].map(group => (
+                        {['О НАС', 'РАЗДЕЛЫ', 'ГЛОБАЛЬНЫЕ'].map(group => (
                             <div key={group} className="space-y-3">
                                 <h3 className="text-[10px] font-black text-white/20 tracking-[0.4em] px-4 uppercase">{group}</h3>
                                 <div className="space-y-1">
@@ -371,57 +375,98 @@ const Settings = () => {
 
                             {/* Control Panel Area */}
                             <div className="lg:col-span-4 space-y-6">
-                                <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 space-y-8">
-                                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                                        <Layers className="text-indigo-400" size={20} />
-                                        <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Параметры оффсетов</h4>
+                                {activeScreen === 'global_contacts' ? (
+                                    <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 space-y-8">
+                                        <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                            <MousePointer2 className="text-indigo-400" size={20} />
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Прямые контакты</h4>
+                                        </div>
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] uppercase tracking-widest text-white/20 ml-2">Telegram</label>
+                                                <input 
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:border-indigo-500/50 outline-none transition-all" 
+                                                    value={layoutSettings.telegram} 
+                                                    onChange={e => setLayoutSettings({...layoutSettings, telegram: e.target.value})}
+                                                    placeholder="@username"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] uppercase tracking-widest text-white/20 ml-2">Email</label>
+                                                <input 
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:border-indigo-500/50 outline-none transition-all" 
+                                                    value={layoutSettings.email} 
+                                                    onChange={e => setLayoutSettings({...layoutSettings, email: e.target.value})}
+                                                    placeholder="hello@studio.ru"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] uppercase tracking-widest text-white/20 ml-2">Телефон</label>
+                                                <input 
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-sm focus:border-indigo-500/50 outline-none transition-all" 
+                                                    value={layoutSettings.phone} 
+                                                    onChange={e => setLayoutSettings({...layoutSettings, phone: e.target.value})}
+                                                    placeholder="+7..."
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+                                ) : (
+                                    <div className="p-6 bg-white/[0.03] rounded-3xl border border-white/5 space-y-8">
+                                        <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                            <Layers className="text-indigo-400" size={20} />
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em]">Параметры оффсетов</h4>
+                                        </div>
 
-                                    {/* Offset Controls */}
-                                    <div className="space-y-10">
-                                        <ControlRow 
-                                            label="Заголовок" 
-                                            currentKey={`${activeScreen}_header_offset_${deviceMode}`}
-                                            value={layoutSettings[`${activeScreen}_header_offset_${deviceMode}`]}
-                                            updateFn={updateVal}
-                                            color="indigo"
-                                            isSelected={selectedKey === `${activeScreen}_header_offset_${deviceMode}`}
-                                        />
-                                        <ControlRow 
-                                            label="Основной контент" 
-                                            currentKey={`${activeScreen}_content_offset_${deviceMode}`}
-                                            value={layoutSettings[`${activeScreen}_content_offset_${deviceMode}`]}
-                                            updateFn={updateVal}
-                                            color="amber"
-                                            isSelected={selectedKey === `${activeScreen}_content_offset_${deviceMode}`}
-                                        />
-                                        {activeScreen === 'about_slide1' && (
+                                        {/* Offset Controls */}
+                                        <div className="space-y-10">
                                             <ControlRow 
-                                                label="Отступ логотипов" 
-                                                currentKey={deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile'}
-                                                value={layoutSettings[deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile']}
+                                                label="Заголовок" 
+                                                currentKey={`${activeScreen}_header_offset_${deviceMode}`}
+                                                value={layoutSettings[`${activeScreen}_header_offset_${deviceMode}`]}
                                                 updateFn={updateVal}
-                                                color="emerald"
-                                                isSelected={selectedKey === (deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile')}
+                                                color="indigo"
+                                                isSelected={selectedKey === `${activeScreen}_header_offset_${deviceMode}`}
                                             />
-                                        )}
-                                        {activeScreen === 'projects' && deviceMode === 'mobile' && (
                                             <ControlRow 
-                                                label="Нижняя плашка" 
-                                                currentKey="projects_mobile_info_plate_offset"
-                                                value={layoutSettings.projects_mobile_info_plate_offset}
+                                                label="Основной контент" 
+                                                currentKey={`${activeScreen}_content_offset_${deviceMode}`}
+                                                value={layoutSettings[`${activeScreen}_content_offset_${deviceMode}`]}
                                                 updateFn={updateVal}
-                                                color="rose"
-                                                isSelected={selectedKey === 'projects_mobile_info_plate_offset'}
+                                                color="amber"
+                                                isSelected={selectedKey === `${activeScreen}_content_offset_${deviceMode}`}
                                             />
-                                        )}
+                                            {activeScreen === 'about_slide1' && (
+                                                <ControlRow 
+                                                    label="Отступ логотипов" 
+                                                    currentKey={deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile'}
+                                                    value={layoutSettings[deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile']}
+                                                    updateFn={updateVal}
+                                                    color="emerald"
+                                                    isSelected={selectedKey === (deviceMode === 'desktop' ? 'logoOffsetDesktop' : 'logoOffsetMobile')}
+                                                />
+                                            )}
+                                            {activeScreen === 'projects' && deviceMode === 'mobile' && (
+                                                <ControlRow 
+                                                    label="Нижняя плашка" 
+                                                    currentKey="projects_mobile_info_plate_offset"
+                                                    value={layoutSettings.projects_mobile_info_plate_offset}
+                                                    updateFn={updateVal}
+                                                    color="rose"
+                                                    isSelected={selectedKey === 'projects_mobile_info_plate_offset'}
+                                                />
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Helper Info Card */}
                                 <div className="p-6 bg-indigo-500/5 rounded-3xl border border-indigo-500/10">
                                     <p className="text-[11px] text-indigo-400/80 font-light leading-relaxed">
-                                        Используйте кнопки <span className="font-bold underline">↑ ↓</span> для точной настройки с шагом 5px. Отрицательные значения поднимают блок выше, положительные — опускают ниже.
+                                        {activeScreen === 'global_contacts' 
+                                            ? "Эти контакты используются в чат-ассистенте и футере сайта. После изменения нажмите «Сохранить», чтобы применить их."
+                                            : "Используйте кнопки ↑ ↓ для точной настройки с шагом 5px. Отрицательные значения поднимают блок выше, положительные — опускают ниже."
+                                        }
                                     </p>
                                 </div>
                             </div>
