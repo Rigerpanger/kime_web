@@ -10,7 +10,7 @@ import path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
-import EmailWatcher from './emailWatcher.js';
+// import EmailWatcher from './emailWatcher.js'; // Moved to dynamic import inside listen
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1145,8 +1145,11 @@ app.listen(PORT, async () => {
         else console.error('❌ Telegram Webhook registration FAILED:', data);
     } catch (err) { console.error('❌ Telegram Webhook critical error:', err.message); }
 
-    // --- START EMAIL TENDER MONITOR ---
+    // --- START EMAIL TENDER MONITOR (SAFE BOOT) ---
     try {
+        console.log('📡 [SAFE BOOT] Attempting to initialize EmailWatcher...');
+        const { default: EmailWatcher } = await import('./emailWatcher.js');
+        
         global.emailWatcher = new EmailWatcher({
             email: process.env.YANDEX_EMAIL,
             password: process.env.YANDEX_APP_PASSWORD,
@@ -1156,7 +1159,9 @@ app.listen(PORT, async () => {
         }, (text) => sendTelegramMessage(TG_CHAT_ID, text));
         
         global.emailWatcher.start();
+        console.log('✅ [SAFE BOOT] EmailWatcher initialized successfully.');
     } catch (err) {
-        console.error('❌ EmailWatcher initialization failed:', err.message);
+        console.warn('⚠️ [SAFE BOOT] EmailWatcher initialization failed or modules missing:', err.message);
+        console.log('ℹ️ Site will continue running without email monitoring.');
     }
 });
