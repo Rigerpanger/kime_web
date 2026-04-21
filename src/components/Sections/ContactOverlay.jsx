@@ -10,7 +10,7 @@ const ContactOverlay = () => {
     
     const [gptInput, setGptInput] = useState('');
     const [messages, setMessages] = useState([
-        { role: 'assistant', content: 'Здравствуйте. Я — Elite Creative Estimator студии KIME. Готов провести техническую квалификацию вашего проекта и рассчитать рыночную вилку цен. С чего начнем?' }
+        { role: 'assistant', content: 'Здравствуйте. Я — Интеллектуальный Эксперт студии KIME. Готов провести технический аудит вашего проекта и рассчитать профессиональную смету. С чего начнем?' }
     ]);
     const [isThinking, setIsThinking] = useState(false);
     const [contactMode, setContactMode] = useState(false);
@@ -225,17 +225,17 @@ const ContactOverlay = () => {
                         </AnimatePresence>
                     </div>
                 </motion.div>
-                <div className="shrink-0 mt-12 flex flex-col items-center justify-center gap-7 mb-6 relative z-10">
+                <div className="shrink-0 mt-20 flex flex-col items-center justify-center gap-8 mb-10 relative z-10">
                     <div className="flex flex-wrap items-center justify-center gap-x-16 text-[18px] tracking-[0.2em] uppercase font-black text-white/80">
-                        <a href="mailto:hello@kime.xyz" className="hover:text-[#ffaa44] transition-colors">HELLO@KIME.XYZ</a>
+                        <a href="mailto:rp@kimeproduction.ru" className="hover:text-[#ffaa44] transition-colors">rp@kimeproduction.ru</a>
                         <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
-                        <a href="https://t.me/kime_bot" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">TELEGRAM</a>
+                        <a href="https://t.me/Richardsan" target="_blank" rel="noreferrer" className="hover:text-[#ffaa44] transition-colors">@Richardsan</a>
                         <div className="hidden md:block w-3 h-3 rounded-full bg-[#ffaa44]/40" />
                         <a href="tel:+79990000000" className="hover:text-[#ffaa44] transition-colors">+7 (999) 000-00-00</a>
                     </div>
                     <div className="text-[15px] text-white/40 tracking-[0.3em] uppercase font-bold">© 2026 КИМЭ. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</div>
                 </div>
-            </div>
+           </div>
         </div>
     );
 };
