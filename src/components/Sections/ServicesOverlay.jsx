@@ -15,7 +15,7 @@ const ICON_MAP = {
     Code: Code
 };
 
-const ServiceListItem = ({ service, isActive, isHint, index }) => {
+const ServiceListItem = ({ service, isActive, isHint, index, isMobile }) => {
     const IconComponent = ICON_MAP[service.icon] || Box;
     const number = (index + 1).toString().padStart(2, '0');
     
@@ -24,7 +24,7 @@ const ServiceListItem = ({ service, isActive, isHint, index }) => {
             to={`/services/${service.slug}`}
             className={`group flex items-center gap-6 px-10 py-3 rounded-2xl transition-all duration-500 border sweep-container ${
                 isActive 
-                ? 'bg-white/10 border-white/20 shadow-[0_0_50px_rgba(255,170,68,0.15)] premium-active-border' 
+                ? (isMobile ? 'bg-[#ffaa44]/20 border-[#ffaa44]/40 shadow-lg' : 'bg-white/10 border-white/20 shadow-[0_0_50px_rgba(255,170,68,0.15)] premium-active-border') 
                 : isHint 
                 ? 'neon-hint-border'
                 : 'border-transparent hover:bg-white/[0.05]'
@@ -87,10 +87,10 @@ const ServicesOverlay = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Global Balance Anchor: 50% for Laptop centering, 54% for TV balance
+    // Global Balance Anchor: 50% for Laptop centering, 44% for TV balance (lifted)
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7;
-        const base = ar > 1.8 ? 54 : 50; 
+        const base = ar > 1.8 ? 44 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 10);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
@@ -141,6 +141,7 @@ const ServicesOverlay = () => {
                                         isActive={activeService?.id === service.id} 
                                         isHint={index === hintIndex}
                                         index={index}
+                                        isMobile={isMobile}
                                     />
                                 ))}
                             </div>
@@ -188,6 +189,7 @@ const ServicesOverlay = () => {
                                         service={service} 
                                         isActive={activeService?.id === service.id} 
                                         index={index}
+                                        isMobile={isMobile}
                                     />
                                     {activeService?.id === service.id && (
                                         <motion.div 

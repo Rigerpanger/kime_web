@@ -89,10 +89,10 @@ const About = () => {
     }, []);
 
     // Calculate dynamic top offset based on aspect ratio
-    // Global Balance Anchor: 50% for Laptop centering, 54% for TV balance
+    // Global Balance Anchor: 50% for Laptop centering, 44% for TV balance (lifted)
     const dynamicTop = useMemo(() => {
         const ar = Number.isFinite(aspectRatio) ? aspectRatio : 1.7; // default to safe AR
-        const base = ar > 1.8 ? 54 : 50; 
+        const base = ar > 1.8 ? 44 : 50; 
         const diff = 1.8 - ar;
         const correction = Math.min(8, diff * 12);
         return `${base - (Number.isFinite(correction) ? correction : 0)}%`;
@@ -212,8 +212,8 @@ const About = () => {
                 </>
             )}
 
-            <div className="absolute inset-0 flex items-center justify-center">
-                {isReady && !isMobile && (
+            <div className={`absolute inset-0 flex items-center justify-center ${isMobile ? 'overflow-y-auto no-scrollbar pointer-events-auto' : ''}`}>
+                {!isMobile ? (
                     <div 
                         style={{ 
                             position: 'absolute',
@@ -230,6 +230,20 @@ const About = () => {
                         }}
                     >
                         <AnimatePresence mode="wait">{slides[currentSlide]}</AnimatePresence>
+                    </div>
+                ) : (
+                    <div className="w-full flex flex-col items-center gap-24 pt-32 pb-40 px-6">
+                         {slides.map((slide, idx) => (
+                             <motion.div 
+                                key={idx} 
+                                initial={{ opacity: 0, y: 30 }} 
+                                whileInView={{ opacity: 1, y: 0 }} 
+                                viewport={{ once: true, margin: "-100px" }}
+                                className="w-full shrink-0 flex items-center justify-center min-h-[50vh]"
+                             >
+                                 {slide}
+                             </motion.div>
+                         ))}
                     </div>
                 )}
             </div>

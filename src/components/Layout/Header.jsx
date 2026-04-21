@@ -42,11 +42,18 @@ const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
     const isModalOpen = useAppStore(s => s.isModalOpen);
+    const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
 
     const activeIndex = ROUTES.findIndex(r =>
         r.path === '/' ? location.pathname === '/' : location.pathname.startsWith(r.path)
     );
     const currentLabel = activeIndex >= 0 ? ROUTES[activeIndex].label : '';
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // Close menu when route changes
     useEffect(() => {
@@ -65,12 +72,14 @@ const Header = () => {
         };
     }, [isMenuOpen]);
 
+    const headerScale = isMobile ? Math.max(0.85, dsScale) : dsScale;
+
     return (
         <>
             <header 
                 style={{ 
-                    '--ds': dsScale,
-                    transform: `scale(${dsScale})`,
+                    '--ds': headerScale,
+                    transform: `scale(${headerScale})`,
                     transformOrigin: 'top center'
                 }}
                 className="fixed top-0 left-0 w-full z-[120] flex justify-center pointer-events-none px-4 pt-4 md:pt-6 transition-all duration-700"

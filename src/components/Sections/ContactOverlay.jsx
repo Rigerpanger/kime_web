@@ -135,7 +135,6 @@ const ContactOverlay = () => {
     };
 
     const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
-    const baseScale = isMobile ? 1 : Math.min(2.5, window.innerWidth / 1280);
 
     return (
         <div className="relative md:fixed inset-0 w-full min-h-[100dvh] md:h-full pointer-events-auto flex flex-col justify-center items-center px-4 md:px-0 z-[110] bg-black/80 backdrop-blur-md pt-20 md:pt-28 pb-4">
@@ -143,11 +142,7 @@ const ContactOverlay = () => {
             <div className="md:hidden absolute top-[99%] left-0 right-0 h-[50vh] bg-black/90 backdrop-blur-xl z-[-1]" />
             <div className="absolute inset-0 z-0 cursor-pointer" onClick={() => navigate('/')} />
             <div 
-                style={{ 
-                    transform: isMobile ? 'none' : `scale(${baseScale})`, 
-                    transformOrigin: 'center center',
-                }}
-                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[800px] h-full max-h-[85vh]'} flex flex-col justify-center`}
+                className={`relative z-10 w-full ${isMobile ? 'flex-1 max-h-none h-full' : 'max-w-[800px] h-[75vh] min-h-[500px]'} flex flex-col justify-center`}
             >
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="shrink-0 text-center mb-4 md:mb-6 flex items-center justify-center w-full relative">
                     <div className="flex-grow text-center">
